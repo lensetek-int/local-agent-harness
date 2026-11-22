@@ -35,7 +35,7 @@ pipeline_tag: text-generation
 
 | Repository | Role & Description | Format & Target Hardware | Direct Link |
 | :--- | :--- | :--- | :---: |
-| **🧠 [`lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)** *(Current Repo)* | **Edge Quantized Model (Ready-to-Run)**<br>Specialized 4-bit edge weights with 100% tool accuracy & zero-hallucination. | 4-Bit `Q4_K_M` GGUF (~1.93 GB)<br>Runs on Mini PC / SBC / CPU (RAM < 2.5 GB) | [**Download GGUF**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) |
+| **🧠 [`lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)** *(Current Repo)* | **Edge Quantized Model (Ready-to-Run)**<br>Specialized 4-bit edge weights with 100% tool accuracy & zero-hallucination. | 4-Bit `Q4_K_M` GGUF (~1.93 GB)<br>Runs on Mini PC / SBC / CPU (RAM < 2.5 GB) | [**⬇️ Download GGUF**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) • [Files](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/tree/main) |
 | **🔬 [`lensetek-edge-loop-3b`](https://huggingface.co/lensetek/lensetek-edge-loop-3b)** | **Base 16-Bit Model (Safetensors)**<br>Full-precision weights for GPU inference (vLLM/SGLang) and domain fine-tuning. | 16-Bit BF16 Safetensors (~6 GB)<br>Cloud & Enterprise GPUs | [**Inspect Weights**](https://huggingface.co/lensetek/lensetek-edge-loop-3b) |
 | **🛠️ [`lensetek-edge-ai-agent`](https://huggingface.co/lensetek/lensetek-edge-ai-agent)** | **Application Hub & Edge Studio**<br>Self-contained workspace with Web UI, air-gapped SQLite RAG, and agent harnesses. | Application Code & Multi-Project Suite<br>(`usecase/edge-ai-agent` & `survival-agent`) | [**Explore Code Hub**](https://huggingface.co/lensetek/lensetek-edge-ai-agent) |
 
@@ -128,9 +128,23 @@ Empirically evaluated against 300 held-out industrial & survival scenarios and b
 
 ---
 
-## 🚀 Quickstart: Running the Model Weights
+## 🚀 Quickstart: Downloading & Running the Model Weights
 
-### 1. Using Ollama (1-Command Direct Run)
+### 📥 1. Direct File Download (Hugging Face Standard)
+
+| Filename | Quant Method | File Size | Memory Footprint | Direct Download Link |
+| :--- | :---: | :---: | :---: | :---: |
+| **`lensetek-edge-loop-3b-q4_k_m.gguf`** | `Q4_K_M` (4-bit) | **~1.93 GB** | ~2.49 GB RAM | [**⬇️ Direct Download GGUF (~1.93 GB)**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) • [Inspect File](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/blob/main/lensetek-edge-loop-3b-q4_k_m.gguf) |
+
+```bash
+# Direct download via curl:
+curl -L -O https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf
+
+# Or using official huggingface-cli:
+huggingface-cli download lensetek/lensetek-edge-loop-3b-GGUF lensetek-edge-loop-3b-q4_k_m.gguf --local-dir .
+```
+
+### 2. Using Ollama (1-Command Direct Run)
 ```bash
 ollama run hf.co/lensetek/lensetek-edge-loop-3b-GGUF
 ```
@@ -258,9 +272,23 @@ Hasil pengujian empiris nyata terhadap 300 skenario held-out industri dan ketaha
 
 ---
 
-## 🚀 Cara Menjalankan Bobot Model
+## 🚀 Cara Mengunduh & Menjalankan Bobot Model
 
-### 1. Menggunakan Ollama (1 Perintah)
+### 📥 1. Unduh Berkas Langsung (Standar Hugging Face)
+
+| Nama Berkas | Metode Kuantisasi | Ukuran Berkas | Kebutuhan RAM | Tautan Unduhan Langsung |
+| :--- | :---: | :---: | :---: | :---: |
+| **`lensetek-edge-loop-3b-q4_k_m.gguf`** | `Q4_K_M` (4-bit) | **~1.93 GB** | ~2.49 GB RAM | [**⬇️ Unduh Langsung GGUF (~1.93 GB)**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) • [Lihat Berkas](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/blob/main/lensetek-edge-loop-3b-q4_k_m.gguf) |
+
+```bash
+# Unduh via curl:
+curl -L -O https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf
+
+# Atau via huggingface-cli:
+huggingface-cli download lensetek/lensetek-edge-loop-3b-GGUF lensetek-edge-loop-3b-q4_k_m.gguf --local-dir .
+```
+
+### 2. Menggunakan Ollama (1 Perintah Langsung)
 ```bash
 ollama run hf.co/lensetek/lensetek-edge-loop-3b-GGUF
 ```
@@ -309,12 +337,26 @@ Buka `http://127.0.0.1:8080` untuk Web UI bawaan C++ (0 MB RAM ekstra).
 
 ## 🚀 权重运行快速上手
 
-### 1. 通过 Ollama 一键运行
+### 1. 模型文件直接下载 (Hugging Face 标准)
+
+| 文件名 | 量化类型 | 文件大小 | 运行时内存 | 下载链接 |
+| :--- | :---: | :---: | :---: | :---: |
+| **`lensetek-edge-loop-3b-q4_k_m.gguf`** | `Q4_K_M` (4-bit) | **~1.93 GB** | ~2.49 GB RAM | [**⬇️ 直接下载 GGUF (~1.93 GB)**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) • [查看文件](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/blob/main/lensetek-edge-loop-3b-q4_k_m.gguf) |
+
+```bash
+# 通过 curl 命令行直接下载:
+curl -L -O https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf
+
+# 或通过 huggingface-cli 下载:
+huggingface-cli download lensetek/lensetek-edge-loop-3b-GGUF lensetek-edge-loop-3b-q4_k_m.gguf --local-dir .
+```
+
+### 2. 通过 Ollama 一键运行
 ```bash
 ollama run hf.co/lensetek/lensetek-edge-loop-3b-GGUF
 ```
 
-### 2. 通过 `llama.cpp` 原生运行
+### 3. 通过 `llama.cpp` 原生运行
 ```bash
 llama-server -hf lensetek/lensetek-edge-loop-3b-GGUF -c 4096 -ctk q4_0 -ctv q4_0 --port 8080
 ```
