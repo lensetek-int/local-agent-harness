@@ -1,0 +1,11 @@
+{
+  "active_model": "lensetek-survival-ark-3b-q4_k_m.gguf",
+  "endpoint": "http://127.0.0.1:3000/v1",
+  "context_window": 4096,
+  "system_ram_ceiling_gb": 3.69,
+  "active_ram_target_gb": 2.49,
+  "temperature": 0.15,
+  "max_tokens": 1024,
+  "theme": "retro-green-hud",
+  "air_gapped_mode": true
+}

@@ -1,0 +1,17 @@
+{
+  "name": "lensetek-survival-agent-ark",
+  "version": "1.0.0",
+  "description": "Lensetek ARK Survival Box AI Agent - Air-Gapped Off-Grid Telemetry, Triage & Schematics",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "test": "tsx src/index.ts --self-test",
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}

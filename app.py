@@ -16,9 +16,13 @@ import urllib.parse
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BIN_DIR = os.path.join(BASE_DIR, "bin")
-LLAMA_SERVER_EXE = os.path.join(BIN_DIR, "llama-server.exe")
-WHISPER_EXE = os.path.join(BIN_DIR, "whisper", "whisper-cli.exe")
-PIPER_EXE = os.path.join(BIN_DIR, "piper", "piper.exe")
+
+def _bin_name(name):
+    return f"{name}.exe" if sys.platform == "win32" else name
+
+LLAMA_SERVER_EXE = os.path.join(BIN_DIR, _bin_name("llama-server"))
+WHISPER_EXE = os.path.join(BIN_DIR, "whisper", _bin_name("whisper-cli"))
+PIPER_EXE = os.path.join(BIN_DIR, "piper", _bin_name("piper"))
 VOICES_JSON_PATH = os.path.join(BASE_DIR, "voice_models", "voices.json")
 
 # Import EdgeRAG - Lightweight SQLite3 + NumPy Hybrid Vector Database
@@ -254,7 +258,10 @@ def start_llama_server(model_name):
             "-m", model_path,
             "--host", "127.0.0.1",
             "--port", str(LLAMA_PORT),
-            "-c", "4096"
+            "-c", "4096",
+            "-ctk", "q4_0",
+            "-ctv", "q4_0",
+            "-fa"
         ]
 
         mmproj = get_mmproj_for_model(model_name)

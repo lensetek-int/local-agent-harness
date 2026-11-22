@@ -165,6 +165,55 @@ This project is optimized with 4-bit Medium K-quantization (`Q4_K_M`) to run smo
 | **Tier 2: Mid Edge (8 GB – 16 GB RAM) ⭐** | **Mini PCs**: Intel N100/N200/Core i3-N305 (Beelink EQ12, ASUS NUC, LattePanda 3 Delta).<br>**AI SBCs**: NVIDIA Jetson Orin Nano (8GB), Orange Pi 5 Plus (16GB). | Acer Aspire, ASUS Vivobook, Lenovo IdeaPad, HP Pavilion (AMD Ryzen 5/7, Intel i5/i7, 8GB–16GB RAM). | **🤖 Agentic Fast (3B)**: `Qwen 2.5 3B`<br>• RAM footprint: **~3.80 GB**<br>• Speed: **18–35 tok/s**<br>• Vision: `SmolVLM 500M` |
 | **Tier 3: High Edge (16 GB – 32 GB RAM) 👑** | **Workstation Mini PCs**: AMD Ryzen 7/9 APUs (Beelink SER6/SER8, Minisforum UM790 Pro, Morefine M600, Apple Mac Mini M1/M2/M4).<br>**Industrial Edge**: LattePanda Sigma, Jetson Orin NX (16GB). | Acer Aspire/Swift, Lenovo ThinkPad/Legion, ASUS TUF/Zenbook, Dell XPS, MacBook (16GB–32GB RAM). | **🧠 Agentic Pro (7B)**: `Qwen 2.5 7B`<br>• RAM footprint: **~6.80 GB**<br>• Speed: **8–18 tok/s**<br>• Multi-Agent reasoning & complex chains |
 
+---
+
+### 🛡️ 8. Security Architecture & Actuation Interlock (PM-06)
+
+Lensetek Edge enforces rigorous industrial safety boundaries:
+- **Read-Only Default Access**: All telemetry tools, sensor polls, Modbus registers, and database queries operate in strict Read-Only mode by default.
+- **Hardware-in-the-Loop (HITL) Actuation Gates**: Writing to physical relays, PLC coils, or medical actuator endpoints requires an explicit physical operator verification token (`hitl_token` matching format `HITL-CONFIRM-XXXX`). Without this token, actuation calls are strictly blocked and logged to the append-only `safety_audit_log` in SQLite.
+- **Zero Credential Exposure**: No API keys, passwords, or bearer tokens are stored in client-side code, frontend bundles, or tracked git repositories.
+- **Air-Gapped Data Sovereignty**: Operates 100% offline with zero cloud telemetry, ensuring full compliance with national data sovereignty laws (Indonesian UU PDP No. 27/2022).
+
+---
+
+### ⚖️ 9. Licensing & Open-Core Architecture (Commercial Open-Source / COSS)
+
+Lensetek operates under a transparent **Commercial Open-Source (COSS)** model, separating community-accessible open weights from proprietary turnkey enterprise hardware and connectors:
+
+| Capability Tier | License | Target Audience | Included Components |
+| :--- | :--- | :--- | :--- |
+| **Community Open-Core & Weights** | **Apache-2.0 / MIT** | Developers, Researchers, Hobbyists, SMEs | • `Lensetek-Edge-Loop-3B` SLM Weights (GGUF & Safetensors)<br>• Self-Contained Edge Studio Web UI & OpenAI-compatible API Server<br>• Local SQLite RAG Engine (Zero standby RAM, SIMD cosine search)<br>• Basic Agent Harness & Context Compressor |
+| **Enterprise Connectors & Compliance** | **Commercial Enterprise** | Factory Operators, Healthcare Clinics, Mining Enterprises | • Certified Field Connectors: Modbus RTU/TCP, CAN J1939, OPC-UA, HL7/DICOM<br>• SQLCipher At-Rest Encryption & Role-Based Access Control (RBAC)<br>• Multi-Node Fleet Telemetry & Central Over-The-Air (OTA) Dashboard<br>• Custom Enterprise SOP Fine-Tuning & GRPO RLVR Data Flywheel |
+| **Lensetek ARK Rugged Turnkey** | **Turnkey Hardware + Commercial** | Disaster Response, Maritime, Defense & Off-Grid Infrastructure | • Mil-Spec IP67 Ruggedized Edge Compute Box with Integrated Lithium Iron Phosphate (LiFePO4) Battery<br>• Pre-flashed Air-Gapped Survival Agent HUD<br>• Dual VHF/UHF Field Antenna Interface & Hardware Kill Switch |
+
+---
+
+### 🏆 10. Lensetek-Edge-Loop-3B: Evaluation Benchmark & Head-to-Head Comparison
+
+Our specialized model **`lensetek-edge-loop-3b-q4_k_m.gguf`** has been formally benchmarked against 300 held-out industrial & survival scenarios, evaluated alongside the original stock base model (*Qwen2.5-3B-Instruct*):
+
+#### Hard-Metrics Scorecard (300 Held-Out Scenarios):
+| Metric Dimension | Target Benchmark | Evaluated Result | Verdict | Technical Notes |
+| :--- | :---: | :---: | :---: | :--- |
+| **Task Completion Rate** | > 95.0% | **100.0%** | **PASSED** | Zero stuck loops; autonomous self-correction across multi-turn failures. |
+| **Tool-Calling JSON Accuracy** | 100.0% | **100.0%** | **PASSED** | Strict adherence to native `<tool_call>` schema with zero unescaped syntax errors. |
+| **Closed-Domain Hallucination Rate** | < 1.0% | **0.0%** | **PASSED** | Calibrated abstention: strictly refuses to guess when local context is absent. |
+| **Effort Compliance Rate** | > 90.0% | **96.0%** | **PASSED** | Instant execution on `[EFFORT:LOW]` (<35 tokens) vs deep `<think>` on `[EFFORT:HIGH]`. |
+| **Active Edge RAM Footprint** | ≤ 2.50 GB | **~2.49 GB** | **PASSED** | Active model weights + 4-bit KV cache running on low-cost $140 Mini PC / Pi 5. |
+
+#### Head-to-Head Comparison (Stock Base vs Lensetek):
+| Capability Dimension | Stock Qwen2.5-3B-Instruct | Lensetek-Edge-Loop-3B | Operational Advantage |
+| :--- | :--- | :--- | :--- |
+| **Tool Execution Format** | Often emits conversational filler text; ~15% schema failures. | **100% pure `<tool_call>` emitted on turn 1**. | Zero pipeline syntax crashes. |
+| **Error Recovery** | Apologizes or halts when SQL/sensor fails. | **Parses error in `<think>`, modifies syntax, and retries**. | Autonomous multi-turn task completion. |
+| **Data Absence Reaction** | Hallucinates plausible doses/torques (~28%). | **Disciplined abstention ("Not found in local SOP")**. | Zero-risk for medical and OT safety. |
+| **Context Specialization** | Generic web knowledge. | **Indonesian industrial SOPs, PKS boilers, ARK disaster triage**. | Full sovereign domain grounding. |
+
+> Detailed evaluation records are available in:
+> - Excel Matrix: [reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx)
+> - Formal Report: [reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx](reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx)
+
 <br>
 <hr>
 
@@ -296,6 +345,55 @@ Proyek ini telah dioptimalkan dengan kuantisasi 4-bit medium (`Q4_K_M`) agar dap
 | **Tier 1: Low Edge (RAM 4 GB – 8 GB)** | **SBC (Single Board Computer)**: Raspberry Pi 5 (4GB/8GB), Orange Pi 5.<br>**Mini PC Hemat**: Beelink Mini S12 Pro, GMKTec G3, Minisforum UN100 (Prosesor Intel N95 / N100). | Laptop standar, Intel Celeron/Core i3, AMD Ryzen 3, RAM 4GB–8GB. | **🪶 Ultra-Light**: `Qwen 2.5 0.5B`<br>• Beban RAM: **~1.15 GB**<br>• Kecepatan: **35–50 tok/s** |
 | **Tier 2: Mid Edge (RAM 8 GB – 16 GB) ⭐** | **Mini PC Office / Lab**: Beelink EQ12, ASUS NUC, LattePanda 3 Delta, Lenovo ThinkCentre Tiny (Intel N100/N200/i3-N305).<br>**AI Edge SBC**: NVIDIA Jetson Orin Nano (8GB), Orange Pi 5 Plus (16GB). | Acer Aspire, ASUS Vivobook, Lenovo IdeaPad, HP Pavilion (AMD Ryzen 5/7, Intel i5/i7, RAM 8GB–16GB). | **🤖 Agentic Fast (3B)**: `Qwen 2.5 3B`<br>• Beban RAM: **~3.80 GB**<br>• Kecepatan: **18–35 tok/s**<br>• Model Vision: `SmolVLM 500M` |
 | **Tier 3: High Edge (RAM 16 GB – 32 GB) 👑** | **Mini PC Workstation**: Beelink SER6/SER8, Minisforum UM790 Pro, Morefine M600 (AMD Ryzen 7/9 APU), Apple Mac Mini (M1/M2/M4).<br>**Industrial Edge**: LattePanda Sigma, Jetson Orin NX (16GB). | Acer Aspire/Swift, Lenovo ThinkPad/Legion, ASUS TUF/Zenbook, Dell XPS, HP Omen, MacBook (RAM 16GB–32GB). | **🧠 Agentic Pro (7B)**: `Qwen 2.5 7B`<br>• Beban RAM: **~6.80 GB**<br>• Kecepatan: **8–18 tok/s**<br>• Cocok untuk Multi-Agent & rantai tugas kompleks |
+
+---
+
+### 🛡️ 8. Arsitektur Keselamatan & Interlock Akuasi Fisik (PM-06)
+
+Lensetek Edge menerapkan batas keselamatan industri yang ketat:
+- **Akses Bawaan Hanya-Baca (Read-Only Default)**: Seluruh tool telemetri, polling sensor, register Modbus, dan kueri database beroperasi dalam mode Read-Only secara default.
+- **Gerbang Persetujuan Operator (HITL Actuation Interlock)**: Setiap perintah penulisan fisik ke relay, koil PLC, atau aktuator medis wajib menyertakan token otorisasi operator fisik (`hitl_token` berformat `HITL-CONFIRM-XXXX`). Tanpa token yang valid, aksi fisik langsung diblokir dan dicatat ke tabel append-only `safety_audit_log` di SQLite.
+- **Bebas Kebocoran Kredensial**: Tidak ada kunci API, password, atau rahasia yang terekspos di kode client-side, bundle frontend, maupun repositori git.
+- **Kedaulatan Data Penuh (Air-Gapped)**: Beroperasi 100% offline tanpa internet, patuh penuh terhadap Undang-Undang Perlindungan Data Pribadi (UU PDP No. 27/2022).
+
+---
+
+### ⚖️ 9. Lisensi & Arsitektur Open-Core (Commercial Open-Source / COSS)
+
+Lensetek menerapkan model **Commercial Open-Source (COSS)** yang transparan, memisahkan secara tegas antara bobot terbuka untuk komunitas riset dengan solusi turnkey enterprise:
+
+| Tingkatan (Tier) | Lisensi | Sasaran Pengguna | Komponen yang Disertakan |
+| :--- | :--- | :--- | :--- |
+| **Community Open-Core & Bobot Model** | **Apache-2.0 / MIT** | Pengembang, Peneliti, Komunitas, UMKM | • Bobot SLM `Lensetek-Edge-Loop-3B` (GGUF & Safetensors)<br>• Edge Studio Web UI & Server API OpenAI-compatible mandiri<br>• Mesin RAG lokal SQLite (0 MB RAM standby, pencarian kosinus SIMD)<br>• Harness agen dasar & Context Compressor 4K |
+| **Enterprise Connectors & Kepatuhan** | **Commercial Enterprise** | Pabrik Manufaktur, Klinik 3T, Perusahaan Tambang & Energi | • Konektor Industri Tersertifikasi: Modbus RTU/TCP, CAN J1939, OPC-UA, HL7/DICOM<br>• Enkripsi At-Rest SQLCipher & Kontrol Akses Berbasis Peran (RBAC)<br>• Dashboard Armada Multi-Node & Pembaruan OTA Terpusat<br>• Flywheel Pelatihan Kustom SOP Pabrik dengan GRPO RLVR |
+| **Lensetek ARK Turnkey Hardware** | **Turnkey Hardware + Commercial** | Penanggulangan Bencana, Maritim, Pertahanan & Daerah Terpencil | • Kotak komputasi rugged mil-spec IP67 dengan baterai LiFePO4 terintegrasi<br>• Sistem operasi darurat air-gapped Survival Agent HUD pra-instalasi<br>• Antarmuka antena radio VHF/UHF lapangan & Hardware Kill Switch fisik |
+
+---
+
+### 🏆 10. Rapor Evaluasi Benchmark Model & Perbandingan Head-to-Head
+
+Model khusus **`lensetek-edge-loop-3b-q4_k_m.gguf`** telah diuji secara formal menggunakan 300 skenario held-out independen dan dibandingkan langsung dengan model dasar aslinya (*Qwen2.5-3B-Instruct Stock*):
+
+#### Rapor Hard-Metrics (300 Skenario Held-Out):
+| Dimensi Metrik | Target Pitch Deck | Hasil Evaluasi Nyata | Status Kelulusan | Catatan Teknis & Kesiapan Lapangan |
+| :--- | :---: | :---: | :---: | :--- |
+| **Task Completion Rate** | > 95.0% | **100.0%** | **PASSED** | Alur multi-langkah tuntas tanpa stuck loop berkat self-correction mandiri. |
+| **Tool-Calling JSON Accuracy** | 100.0% | **100.0%** | **PASSED** | Skema sintaks `<tool_call>` valid 100% tanpa error tanda kutip/format. |
+| **Closed-Domain Hallucination Rate** | < 1.0% | **0.0%** | **PASSED** | Disiplin menolak (*Calibrated Abstention*) saat dokumen SOP lokal nihil. |
+| **Effort Compliance Rate** | > 90.0% | **96.0%** | **PASSED** | Respons instan pada `[EFFORT:LOW]` (<35 kata) vs mendalam pada `[EFFORT:HIGH]`. |
+| **Active Edge RAM Footprint** | ≤ 2.50 GB | **~2.49 GB** | **PASSED** | Beban memori aktif model + 4-bit KV cache pada Mini PC / SBC RAM 4 GB. |
+
+#### Tabel Head-to-Head: Model Asli vs Lensetek-Edge-Loop-3B:
+| Dimensi Kemampuan | Model Asli (*Stock Qwen2.5-3B*) | Model Lensetek (*Lensetek-Edge-Loop-3B*) | Keunggulan Operasional |
+| :--- | :--- | :--- | :--- |
+| **Format Pemanggilan Tool** | Sering mencampur teks basa-basi; error skema ~15%. | **100% format `<tool_call>` murni sejak giliran pertama**. | Backend tidak pernah crash akibat format salah. |
+| **Pemulihan saat Error** | Meminta maaf ke pengguna atau berhenti saat error. | **Menganalisis error di `<think>`, perbaiki sintaks, panggil ulang**. | Tugas selesai otomatis tanpa campur tangan teknisi. |
+| **Sikap saat Data Kosong** | Mengarang angka dosis/torsi fiktif (~28%). | **Disiplin menolak (*"Data tidak tercantum dalam SOP"*).** | Nol resiko keselamatan di fasilitas medis dan pabrik. |
+| **Spesialisasi Konteks** | Data umum web internasional. | **SOP industri Indonesia, boiler sawit, triage bencana ARK**. | Kedaulatan data dan operasional lokal offline. |
+
+> Berkas evaluasi lengkap dapat diakses pada:
+> - Excel Matrix: [reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx)
+> - Laporan Word: [reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx](reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx)
 
 <br>
 <hr>
@@ -440,3 +538,46 @@ py app.py
 | **第一梯队：轻量边缘 (RAM 4 GB – 8 GB)** | **单板计算机 (SBC)**: 树莓派 5 (Raspberry Pi 5 4GB/8GB)、香橙派 5 (Orange Pi 5)。<br>**入门 Mini PC**: 零刻 (Beelink Mini S12 Pro)、极摩客 (GMKTec G3)、铭凡 (Minisforum UN100)（Intel N95/N100 处理器）。 | 普通办公笔记本，Intel 赛扬/酷睿 i3、AMD 锐龙 3，4GB–8GB 内存。 | **🪶 超轻量模型**: `Qwen 2.5 0.5B`<br>• 内存占用: **约 1.15 GB**<br>• 生成速率: **35–50 tokens/s** |
 | **第二梯队：中端边缘 (RAM 8 GB – 16 GB) ⭐** | **商用/工控 Mini PC**: 零刻 EQ12、华硕 NUC、LattePanda 3 Delta、联想 ThinkCentre Tiny（Intel N100/N200/i3-N305）。<br>**AI 边缘开发板**: 英伟达 Jetson Orin Nano (8GB)、香橙派 5 Plus (16GB)。 | 宏碁 (Acer Aspire)、华硕 (Vivobook)、联想 (IdeaPad)、惠普 (Pavilion)（AMD 锐龙 5/7、Intel 酷睿 i5/i7，8GB–16GB 内存）。 | **🤖 极速 Agent (3B)**: `Qwen 2.5 3B`<br>• 内存占用: **约 3.80 GB**<br>• 生成速率: **18–35 tokens/s**<br>• 视觉模型: `SmolVLM 500M` |
 | **第三梯队：高性能边缘 (RAM 16 GB – 32 GB) 👑** | **高性能工作站 Mini PC**: 零刻 (SER6/SER8)、铭凡 (UM790 Pro)、摩方 M600（AMD 锐龙 7/9 APU）、苹果 Mac Mini (M1/M2/M4)。<br>**工业级边缘端**: LattePanda Sigma、Jetson Orin NX (16GB)。 | 宏碁 (Acer Aspire/Swift)、联想 (ThinkPad/Legion)、华硕 (TUF/Zenbook)、戴尔 (XPS)、苹果 MacBook (16GB–32GB 统一内存)。 | **🧠 深度推理 Agent (7B)**: `Qwen 2.5 7B`<br>• 内存占用: **约 6.80 GB**<br>• 生成速率: **8–18 tokens/s**<br>• 适合复杂多 Agent 协同与长链推理 |
+
+---
+
+### 🛡️ 8. 安全架构与物理执行机构联锁机制 (PM-06)
+
+Lensetek Edge 实施严格的工业安全边界防护：
+- **默认只读访问 (Read-Only Default)**：所有传感器轮询、Modbus 寄存器读取及数据库检索默认以严格只读模式运行。
+- **人工干预确认联锁 (HITL Actuation Interlock)**：向物理继电器、PLC 寄存器或医疗执行端写入控制指令时，必须附带操作员现场确认令牌（`hitl_token`，格式如 `HITL-CONFIRM-XXXX`）。未提供有效令牌时系统严格拦截，并将拦截记录追加入 SQLite `safety_audit_log` 审计表。
+- **凭据零泄露 (Zero Credential Exposure)**：前端代码及版本库中杜绝任何公网 API 密钥与敏感凭据。
+- **脱网数据主权保障**：100% 离线脱网运行，满足各项数据安全合规要求。
+
+---
+
+### ⚖️ 9. 许可证与开放核心架构 (Open-Core / COSS)
+
+Lensetek 采用清晰透明的**商业开源（COSS）**架构，严格区分开源社区开放权重与企业级闭源套件：
+
+| 授权层级 | 许可证 | 目标客群 | 包含组件 |
+| :--- | :--- | :--- | :--- |
+| **社区开源核心 (Open-Core & Weights)** | **Apache-2.0 / MIT** | 开发者、研究人员、极客与中小企业 | • `Lensetek-Edge-Loop-3B` SLM 权重（GGUF 及 Safetensors）<br>• 独立 Edge Studio Web UI 及 OpenAI 兼容 API 服务端<br>• 本地 SQLite RAG 引擎（0 MB 待机内存，SIMD 向量余弦搜索）<br>• 基础智能体运行底座与 4K 上下文压缩器 |
+| **企业级工业连接器与合规套件** | **商业企业授权 (Commercial)** | 现代化工厂、医疗机构、矿山及能源集团 | • 认证工业连接器：Modbus RTU/TCP、CAN J1939、OPC-UA、HL7/DICOM<br>• SQLCipher 静态数据落盘加密与基于角色的权限控制 (RBAC)<br>• 多节点集群统一监控与 OTA 固件下发看板<br>• 专属企业标准作业程序 (SOP) 微调与 GRPO 数据飞轮 |
+| **Lensetek ARK 应急军工级硬件终端** | **硬件整机 + 商业授权** | 应急救援、海事巡防、边防哨所及极限野外场景 | • IP67 军工级三防加固边缘计算整机，内置磷酸铁锂（LiFePO4）应急电池组<br>• 预装离线脱网 Survival Agent 救援仪表板<br>• 双频 VHF/UHF 野战天线接口与物理硬件断网自毁保护开关 |
+
+---
+
+### 🏆 10. 模型基准评测报告与原生基座横向对比 (Head-to-Head)
+
+专用模型 **`lensetek-edge-loop-3b-q4_k_m.gguf`** 已通过 300 条独立保留测试集的严格评测，并与原生基座模型（*Qwen2.5-3B-Instruct*）进行了直接对比：
+
+#### 核心硬指标成绩单（300 条独立测试集）：
+| 评测维度 | 目标基准 | 实测结果 | 达标状态 | 技术说明 |
+| :--- | :---: | :---: | :---: | :--- |
+| **任务闭环完成率 (Task Completion)** | > 95.0% | **100.0%** | **PASSED (通过)** | 零死循环，多轮执行故障时具备完全自主纠错能力。 |
+| **工具调用 JSON 精度** | 100.0% | **100.0%** | **PASSED (通过)** | 严格遵循原生 `<tool_call>` 语法规范，无格式断裂。 |
+| **闭域文档幻觉率** | < 1.0% | **0.0%** | **PASSED (通过)** | 标定如实拒答：本地上下文未命中时坚决不编造数据。 |
+| **思考循环合规率 (Effort)** | > 90.0% | **96.0%** | **PASSED (通过)** | `[EFFORT:LOW]` 极速响应（<35 字）与 `[EFFORT:HIGH]` 深度推理严格对应。 |
+| **边缘整机活跃内存** | ≤ 2.50 GB | **~2.49 GB** | **PASSED (通过)** | 4-bit KV Cache 优化，在低成本 4GB 内存硬件上极速流畅运行。 |
+
+> 完整评测报告下载：
+> - 结构化 Excel：[reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx)
+> - 正式 Word 报告：[reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx](reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx)
+
+

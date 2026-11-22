@@ -24,7 +24,7 @@ pipeline_tag: text-generation
 
 # 🧠 Lensetek-Edge-Loop-3B (GGUF)
 ### Open-Weights Specialized Small Language Model (SLM) for Air-Gapped Industrial Edge Computing & Survival Resilience
-**Engineered with Looped Agentic Reasoning, Multi-Turn Error Recovery & Calibrated Zero-Hallucination Grounding**
+**Engineered with System-2 Agentic Compute Loop, Multi-Turn Error Recovery & Calibrated Zero-Hallucination Grounding**
 
 🌐 **Language Navigation / Navigasi Bahasa / 语言导航**:  
 [English](#-english) • [Bahasa Indonesia](#-bahasa-indonesia) • [简体中文](#-chinese-简体中文)
@@ -39,7 +39,7 @@ pipeline_tag: text-generation
 ## 🌟 Model Overview
 **Lensetek-Edge-Loop-3B** is an **open-weights specialized Small Language Model (SLM)** repository engineered specifically for edge computing: **delivering deep, frontier-grade agentic reasoning on low-cost edge computers while strictly capping active RAM consumption under 2.5 GB (≤ 3.7 GB total system ceiling).**
 
-Inspired by recurrent and looped transformer architectures (such as Thinking Machines Lab's *Inkling*), this model incorporates **Adaptive Compute Loops** and **Multi-Turn Error Recovery Trajectories**. It operates 100% offline without cloud connectivity, eliminating recurring API token bills and adhering strictly to national data sovereignty and privacy mandates.
+Inspired by recurrent and looped reasoning concepts (such as Thinking Machines Lab's *Inkling*), this model incorporates a **System-2 Agentic Compute Loop & Adaptive Token-Budgeted Reasoning (built on stock GGUF-compatible `Qwen2ForCausalLM` weights + GRPO RLVR)** and **Multi-Turn Error Recovery Trajectories**. It operates 100% offline without cloud connectivity, eliminating recurring API token bills and adhering strictly to national data sovereignty and privacy mandates.
 
 ---
 
@@ -47,10 +47,10 @@ Inspired by recurrent and looped transformer architectures (such as Thinking Mac
 
 1. **🔁 Multi-Turn Error Recovery (Self-Correction Loop)**:
    - 35% of the training dataset contains planned failure trajectories. The model parses error codes and autonomously reformulates its tool calls on subsequent turns.
-   - **Metric**: Achieves **>95% End-to-End Task Completion Rate** on multi-step tool pipelines.
+   - **Metric**: Achieves **>95% End-to-End Task Completion Rate** *(Target Benchmark - Pending Full RunPod Eval Scorecard)* on multi-step tool pipelines.
 2. **🛡️ Calibrated Abstention & Zero-Hallucination Grounding**:
    - Trained with asymmetric reinforcement penalties (GRPO/RLVR). Refusing to guess (*"Information not found in local documents"*) when context is missing receives positive reward (+0.8), while hallucinating outside context is heavily penalized (-2.0).
-   - **Metric**: **<1.0% Closed-Domain Hallucination Rate** across closed enterprise document benchmarks.
+   - **Metric**: **<1.0% Closed-Domain Hallucination Rate** *(Target Benchmark - Pending Full RunPod Eval Scorecard)* across closed enterprise document benchmarks.
 3. **⚡ Adaptive Compute (Inkling-Style Effort Mode)**:
    - `[EFFORT:LOW]` (Zero-Loop): Direct, deterministic tool execution or concise answer in **under 25 tokens** (latency < 320 ms).
    - `[EFFORT:HIGH]` (Deep-Loop): Allows an internal `<think> ... </think>` scratchpad (budget capped at 150–250 tokens) for multi-document RAG cross-referencing and critical survival calculations.
@@ -150,7 +150,7 @@ print(response["choices"][0]["message"]["content"])
 ## 🌟 Ringkasan Model
 **Lensetek-Edge-Loop-3B** adalah repositori bobot resmi **Model Bahasa Kecil (SLM) Khusus Berbobot Terbuka (*Open-Weights Specialized SLM*)** yang dirancang spesifik untuk komputasi edge: **memberikan kemampuan penalaran agen yang mendalam setara model besar pada komputer murah, dengan mengunci konsumsi RAM aktif di bawah 2.5 GB (plafon total sistem ≤ 3.7 GB).**
 
-Terinspirasi dari arsitektur *Looped Transformer* (seperti model *Inkling* dari Thinking Machines Lab), model ini mengintegrasikan **Adaptive Compute Loops** dan **Multi-Turn Error Recovery Trajectories**. Beroperasi 100% offline tanpa internet, menghilangkan tagihan API token bulanan, dan patuh penuh terhadap Undang-Undang Perlindungan Data Pribadi (UU PDP No. 27/2022).
+Terinspirasi dari konsep penalaran berulang/looped (seperti model *Inkling* dari Thinking Machines Lab), model ini mengintegrasikan **System-2 Agentic Compute Loop & Adaptive Token-Budgeted Reasoning (dibangun di atas bobot `Qwen2ForCausalLM` standar yang kompatibel penuh dengan GGUF + GRPO RLVR)** dan **Multi-Turn Error Recovery Trajectories**. Beroperasi 100% offline tanpa internet, menghilangkan tagihan API token bulanan, dan patuh penuh terhadap Undang-Undang Perlindungan Data Pribadi (UU PDP No. 27/2022).
 
 ---
 
@@ -158,10 +158,10 @@ Terinspirasi dari arsitektur *Looped Transformer* (seperti model *Inkling* dari 
 
 1. **🔁 Multi-Turn Error Recovery (Loop Perbaikan Diri Mandiri)**:
    - 35% data latih berisi skenario kegagalan terencana (RAG 0-hit, tool error, berkas tidak ditemukan). Model dilatih menganalisis pesan error dan mengubah strategi secara otonom pada langkah berikutnya tanpa halusinasi atau macet.
-   - **Tingkat Keberhasilan Tugas**: **>95%**.
+   - **Tingkat Keberhasilan Tugas**: **>95%** *(Target Benchmark - Pending Full RunPod Eval Scorecard)*.
 2. **🛡️ Calibrated Abstention & Zero-Hallucination Grounding**:
    - Menolak menjawab *"Data tidak ditemukan dalam dokumen lokal"* saat konteks kosong diberi reward (+0.8), sedangkan mengarang fakta di luar dokumen dihukum berat (-2.0).
-   - **Tingkat Halusinasi Dokumen Tertutup**: **<1.0%**.
+   - **Tingkat Halusinasi Dokumen Tertutup**: **<1.0%** *(Target Benchmark - Pending Full RunPod Eval Scorecard)*.
 3. **⚡ Adaptive Compute & Kompresi Token (Mode Efisiensi ala Inkling)**:
    - `[EFFORT:LOW]`: Jawaban instan/eksekusi tool langsung dalam **kurang dari 25 token** (latensi < 320 ms) untuk suara dan kontrol sakelar.
    - `[EFFORT:HIGH]`: Membuka ruang berpikir `<think>` terukur (**maksimal 150–250 token**) untuk sintesis dokumen RAG rumit atau triage medis.
@@ -240,7 +240,7 @@ Buka `http://127.0.0.1:8080` untuk Web UI bawaan C++ (0 MB RAM ekstra).
 ## 🌟 模型概述
 **Lensetek-Edge-Loop-3B** 是一款**开源专用小型语言模型（Open-Weights Specialized SLM）**官方权重库，专为边缘计算（Edge Computing）、离线工业自动化及灾难应急生存设计。核心突破在于：**在千元级廉价边缘计算设备上实现前沿级深层智能体推理，同时将运行内存严格控制在 2.5 GB 以下（整机系统内存 ≤ 3.7 GB）。**
 
-借鉴 Thinking Machines Lab 团队 *Inkling* 模型的**循环 Transformer（Looped Transformer）**架构思想，本模型融合了**自适应计算循环（Adaptive Compute Loops）**与**多轮错误自愈轨迹（Multi-Turn Error Recovery）**。模型 100% 离线脱网运行，无需云端 API 费用。
+借鉴 Thinking Machines Lab 团队 *Inkling* 模型的循环推理与分层计算思想，本模型融合了 **System-2 Agentic Compute Loop & Adaptive Token-Budgeted Reasoning（基于兼容 GGUF 标准的 `Qwen2ForCausalLM` 基础权重 + GRPO RLVR 强化学习对齐）**与**多轮错误自愈轨迹（Multi-Turn Error Recovery）**。模型 100% 离线脱网运行，无需云端 API 费用。所有性能指标（如 >95% 任务完成率与 <1.0% 闭域幻觉率）均为待完整 RunPod 评测验证的目标基准（Target Benchmark）。
 
 ---
 

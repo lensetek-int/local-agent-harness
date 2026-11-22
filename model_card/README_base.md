@@ -24,7 +24,7 @@ pipeline_tag: text-generation
 
 # 🧠 Lensetek-Edge-Loop-3B (Base Safetensors)
 ### Full-Precision 16-Bit Open-Weights Specialized Small Language Model (SLM) for Air-Gapped Industrial Edge Computing & Survival Resilience
-**Engineered with Looped Agentic Reasoning, Multi-Turn Error Recovery & Calibrated Zero-Hallucination Grounding**
+**Engineered with System-2 Agentic Compute Loop, Multi-Turn Error Recovery & Calibrated Zero-Hallucination Grounding**
 
 [![GGUF Available](https://img.shields.io/badge/GGUF-Quantized%20Version-brightgreen)](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -47,7 +47,7 @@ pipeline_tag: text-generation
 **Lensetek-Edge-Loop-3B** is the official **full-precision 16-bit (BF16 / Safetensors)** base model repository engineered specifically for edge computing, industrial automation, and offline survival resilience.
 
 This repository hosts the unquantized weights, tokenizer configurations, and fine-tuning architecture designed for researchers, enterprise AI engineers, and developers who wish to:
-1. Conduct research on recurrent / looped agentic architectures.
+1. Conduct research on **System-2 Agentic Compute Loop & Adaptive Token-Budgeted Reasoning** (built on stock GGUF-compatible `Qwen2ForCausalLM` weights + GRPO RLVR).
 2. Deploy on high-throughput GPU inference engines (`vLLM`, `SGLang`, Hugging Face `transformers`).
 3. Perform domain-specific continual pre-training or LoRA adaptation.
 
@@ -57,10 +57,10 @@ This repository hosts the unquantized weights, tokenizer configurations, and fin
 
 1. **🔁 Multi-Turn Error Recovery (Self-Correction Loop)**:
    - 35% of the training dataset contains planned failure trajectories. The model parses error codes and autonomously reformulates its tool calls on subsequent turns.
-   - **Metric**: Achieves **>95% End-to-End Task Completion Rate** on multi-step tool pipelines.
+   - **Metric**: Achieves **>95% End-to-End Task Completion Rate** *(Target Benchmark - Pending Full RunPod Eval Scorecard)* on multi-step tool pipelines.
 2. **🛡️ Calibrated Abstention & Zero-Hallucination Grounding**:
    - Trained with asymmetric reinforcement penalties (GRPO/RLVR). Refusing to guess (*"Information not found in local documents"*) when context is missing receives positive reward (+0.8), while hallucinating outside context is heavily penalized (-2.0).
-   - **Metric**: **<1.0% Closed-Domain Hallucination Rate** across closed enterprise document benchmarks.
+   - **Metric**: **<1.0% Closed-Domain Hallucination Rate** *(Target Benchmark - Pending Full RunPod Eval Scorecard)* across closed enterprise document benchmarks.
 3. **⚡ Adaptive Compute (Inkling-Style Effort Mode)**:
    - `[EFFORT:LOW]` (Zero-Loop): Direct, deterministic tool execution or concise answer in **under 25 tokens** (latency < 320 ms).
    - `[EFFORT:HIGH]` (Deep-Loop): Allows an internal `<think> ... </think>` scratchpad (budget capped at 150–250 tokens) for multi-document RAG cross-referencing and critical survival calculations.
