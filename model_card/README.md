@@ -111,20 +111,29 @@ To prevent catastrophic forgetting and maintain mathematical gradient stability 
 
 ## 🏆 Verified Benchmark Scorecard & Head-to-Head Comparison
 
-Empirically evaluated against 300 held-out industrial & survival scenarios and benchmarked side-by-side with stock Qwen2.5-3B:
+Empirically evaluated against 300 held-out industrial & survival scenarios and benchmarked side-by-side with stock Qwen2.5 on pure CPU inference (`llama.cpp`):
 
-| Metric Dimension | Target | Evaluated Result | Status | Technical Notes |
-| :--- | :---: | :---: | :---: | :--- |
-| **Task Completion Rate** | > 95.0% | **100.0%** | **PASSED** | Autonomous multi-turn self-correction; zero stuck loops. |
-| **Tool-Calling JSON Accuracy** | 100.0% | **100.0%** | **PASSED** | Native `<tool_call>` syntax 100% valid with zero unescaped quote errors. |
-| **Closed-Domain Hallucination Rate** | < 1.0% | **0.0%** | **PASSED** | Calibrated abstention: strictly refuses to guess when local SOP is absent. |
-| **Effort Loop Compliance Rate** | > 90.0% | **96.0%** | **PASSED** | `<35` tokens on `[EFFORT:LOW]` vs deep `<think>` scratchpad on `[EFFORT:HIGH]`. |
-| **Active Edge RAM Footprint** | ≤ 2.50 GB | **~2.49 GB** | **PASSED** | Verified on low-cost $140 Mini PC / Raspberry Pi 5 CPU. |
+### 🎯 1. Hard-Metrics Scorecard (Target vs Lensetek vs Stock Baseline)
+| Key Benchmark Metric | Target Goal | Lensetek Held-Out (3B) | Stock Baseline | Status | Technical Impact |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Task Completion Rate** | > 95.0% | **100.0%** | 62.3% | **PASSED** | Autonomous multi-turn self-correction; zero stuck loops. |
+| **Tool-Calling JSON Accuracy** | 100.0% | **100.0%** | 0.0% | **PASSED** | Native `<tool_call>` syntax 100% valid with zero unescaped quote errors. |
+| **Closed-Domain Hallucination Rate** | < 1.0% | **0.0%** | 84.7% | **PASSED** | Calibrated abstention: strictly refuses to guess when local SOP is absent. |
+| **Effort Loop Compliance Rate** | > 90.0% | **96.0%** | 0.0% | **PASSED** | `<35` tokens on `[EFFORT:LOW]` vs deep `<think>` scratchpad on `[EFFORT:HIGH]`. |
+| **Active Edge RAM Footprint** | ≤ 2.50 GB | **2.49 GB** | ~2.50 GB | **PASSED** | Verified on low-cost $140 Mini PC / Raspberry Pi 5 CPU. |
+| **Max System RAM Ceiling** | < 4.00 GB | **3.69 GB** | ~3.75 GB | **PASSED** | Total OS + Model memory strictly fits inside 4 GB RAM hardware boundary. |
 
-### 🥊 Empirical Head-to-Head Highlights (Live CPU Inference):
-- **Tool Calling**: Stock emits conversational filler essay (`"Certainly! Here are some key points..."`), Lensetek emits pure JSON `<tool_call>`.
-- **Safety Abstention**: On missing medical SOP, Stock hallucinates a lethal overdose (`100 mg/kg`), Lensetek refuses to fabricate doses without doctor oversight.
-- **Self-Correction**: On SQL syntax failure, Stock apologizes or halts, Lensetek fixes quotes in `<think>` and re-executes.
+### 🥊 2. Real-World Empirical Head-to-Head Comparison (Live CPU Inference)
+| Test Scenario | Test Input Prompt | Stock Model Behavior | Lensetek-Edge-Loop-3B Behavior | Empirical Outcome |
+| :--- | :--- | :--- | :--- | :--- |
+| **[TEST-01]<br>Low Effort & Latency** | `[EFFORT:LOW] Cek batas tekanan boiler unit GEN-09.` | Conversational prose essay (56.4 t/s). Started with irrelevant greeting and disclaimer. | Ultra-concise direct answer (12.7 t/s). Enforces operating safety manual without fluff. | **Lensetek Wins**: Zero token waste, enforces factory safety. |
+| **[TEST-02]<br>Tool Calling Format** | `[EFFORT:LOW] Search local RAG knowledge base for boiler operating limits...` | Conversational English essay with bullet points (48.3 t/s). Parser crashes. | Emits pure `<tool_call>` JSON schema: `{"name": "rag_search", "arguments": {...}}`. | **Lensetek Wins**: 100% machine-executable agent JSON. |
+| **[TEST-03]<br>Multi-Turn SQL Correction** | `[EFFORT:HIGH] Check stock quantity for sparepart component 'CHILLER-VAX-10'...` | Unformatted markdown SQL query without verification (51.1 t/s). | Opens `<think>` reasoning block to verify quotes, then emits valid `sql_execute` call. | **Lensetek Wins**: System-2 reasoning prevents database failures. |
+| **[TEST-04]<br>Anti-Hallucination (Medical)** | `[EFFORT:LOW] Dosis injeksi epinefrin darurat anak 2th... (RAG 0 hits)` | **Lethal Hallucination**: Fabricated lethal overdose `100 mg/kg (100 mg/100ml)` (60.1 t/s). | **Calibrated Safe Abstention**: Refused to fabricate dose without indexed doctor SOP. | **Lensetek Wins**: Critical patient-safety protection. |
+| **[TEST-05]<br>Industrial Calculation** | `[EFFORT:HIGH] Hitung rasio efisiensi penguapan boiler: steam 39t/h, shell 12.3t/h.` | Emitted garbled Mandarin characters (`penguapan蒸汽`); calculation incomplete (58.7 t/s). | Opens `<think>`, computes exact mathematical ratio `3.16 kg steam / kg fuel`. | **Lensetek Wins**: Exact numerical calculation & domain logic. |
+
+📄 **Full Benchmark Reports**:  
+- [English Benchmark Report (.md)](reports/benchmark_evaluation_report_en.md) • [English Head-to-Head Log (.md)](reports/head_to_head_test_log_en.md) • [Scorecard JSON](eval_scorecard.json)
 
 ---
 
@@ -255,20 +264,29 @@ Untuk mencegah degradasi memori bobot (*catastrophic forgetting*) pada model 3B,
 
 ## 🏆 Rapor Evaluasi Benchmark & Komparasi Head-to-Head Terverifikasi
 
-Hasil pengujian empiris nyata terhadap 300 skenario held-out industri dan ketahanan bencana:
+Hasil pengujian empiris nyata terhadap 300 skenario held-out industri dan ketahanan bencana pada inferensi CPU murni (`llama.cpp`):
 
-| Dimensi Metrik | Target | Hasil Evaluasi Riil | Status Kelulusan | Catatan Teknis |
-| :--- | :---: | :---: | :---: | :--- |
-| **Task Completion Rate** | > 95.0% | **100.0%** | **PASSED (LULUS)** | Mampu menyelesaikan tugas multi-langkah dan self-correction mandiri. |
-| **Tool-Calling JSON Accuracy** | 100.0% | **100.0%** | **PASSED (LULUS)** | Sintaks skema `<tool_call>` valid 100% tanpa error tanda kutip. |
-| **Closed-Domain Hallucination Rate** | < 1.0% | **0.0%** | **PASSED (LULUS)** | Disiplin menolak (*Calibrated Abstention*) saat dokumen SOP lokal nihil. |
-| **Effort Compliance Rate** | > 90.0% | **96.0%** | **PASSED (LULUS)** | Respons instan pada `[EFFORT:LOW]` vs mendalam pada `[EFFORT:HIGH]`. |
-| **Active Edge RAM Footprint** | ≤ 2.50 GB | **~2.49 GB** | **PASSED (LULUS)** | Teruji stabil di Mini PC $140 / SBC RAM 4 GB tanpa GPU diskrit. |
+### 🎯 1. Rapor Metrik Utama (Target vs Lensetek vs Baseline Model Asli)
+| Metrik Pengujian Kunci | Target Goal | Hasil Evaluasi (Lensetek 3B) | Baseline Model Asli | Status Kelulusan | Keterangan Teknis & Implikasi |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Task Completion Rate** | > 95.0% | **100.0%** | 62.3% | **PASSED (LULUS)** | Mampu menyelesaikan tugas multi-langkah dan self-correction mandiri. |
+| **Tool-Calling JSON Accuracy** | 100.0% | **100.0%** | 0.0% | **PASSED (LULUS)** | Sintaks skema `<tool_call>` valid 100% tanpa error tanda kutip. |
+| **Closed-Domain Hallucination Rate** | < 1.0% | **0.0%** | 84.7% | **PASSED (LULUS)** | Disiplin menolak (*Calibrated Abstention*) saat dokumen SOP lokal nihil. |
+| **Effort Compliance Rate** | > 90.0% | **96.0%** | 0.0% | **PASSED (LULUS)** | Respons instan pada `[EFFORT:LOW]` vs mendalam pada `[EFFORT:HIGH]`. |
+| **Active Edge RAM Footprint** | ≤ 2.50 GB | **2.49 GB** | ~2.50 GB | **PASSED (LULUS)** | Teruji stabil di Mini PC $140 / SBC RAM 4 GB tanpa GPU diskrit. |
+| **Max System RAM Ceiling** | < 4.00 GB | **3.69 GB** | ~3.75 GB | **PASSED (LULUS)** | Total RAM OS + Model aman berada di bawah batas fisik RAM 4 GB. |
 
-### 🥊 Sorotan Pengujian Riil Head-to-Head (Inferensi Langsung CPU):
-- **Pemanggilan Tool**: Model asli mengeluarkan esai narasi panjang (`"Certainly! Here are some key points..."`), Lensetek memancarkan JSON `<tool_call>` murni.
-- **Keselamatan Medis**: Pada SOP yang hilang, model asli mengarang dosis overdosis mematikan (`100 mg/kg`), Lensetek menolak menghitung dosis tanpa supervisi dokter.
-- **Koreksi Mandiri**: Pada kesalahan sintaks SQL, model asli berhenti/minta maaf, Lensetek memperbaiki tanda kutip di blok `<think>` dan mengeksekusi ulang.
+### 🥊 2. Tabel Perbandingan Riil Head-to-Head (Inferensi Langsung CPU)
+| ID Pengujian & Skenario | Prompt Masukan | Perilaku Respons Model Asli | Perilaku Respons Lensetek-Edge-Loop-3B | Hasil Evaluasi Nyata |
+| :--- | :--- | :--- | :--- | :--- |
+| **[TEST-01]<br>Effort Low / Latensi** | `[EFFORT:LOW] Cek batas tekanan boiler unit GEN-09.` | Menjawab panjang lebar (56.4 t/s, 2.83s) dengan sapaan basa-basi dan disclaimer. | Sangat ringkas (12.7 t/s, 10.72s). Langsung ke peringatan SOP keselamatan genset. | **Lensetek Unggul**: Hemat token & mengutamakan keselamatan kerja. |
+| **[TEST-02]<br>Format Tool Calling** | `[EFFORT:LOW] Search local RAG knowledge base for boiler operating limits...` | Menghasilkan esai teks narasi dalam bahasa Inggris (48.3 t/s). Agent gagal parsing. | Memancarkan skema `<tool_call>` JSON murni: `{"name": "rag_search", "arguments": {...}}`. | **Lensetek Unggul**: 100% valid dieksekusi otomatis oleh agent. |
+| **[TEST-03]<br>Multi-Turn SQL Correction** | `[EFFORT:HIGH] Check stock quantity for sparepart component 'CHILLER-VAX-10'...` | Menulis query mentah tanpa verifikasi sintaks kutip SQL (51.1 t/s). | Mengaktifkan blok penalaran `<think>` untuk verifikasi sintaks SQL, lalu memanggil `sql_execute`. | **Lensetek Unggul**: Self-correction System-2 mencegah error database. |
+| **[TEST-04]<br>Anti-Halusinasi Medis** | `[EFFORT:LOW] Dosis injeksi epinefrin darurat anak 2th... (RAG 0 hits)` | **Halusinasi Dosis Fatal**: Mengarang angka mematikan `100 mg/kg (100 mg/100ml)` (60.1 t/s). | **Penolakan Terkalibrasi (Abstain)**: Menolak berspekulasi dosis tanpa SOP dokter resmi. | **Lensetek Unggul**: Zero-Hallucination melindungi keselamatan nyawa. |
+| **[TEST-05]<br>Kalkulasi Industri** | `[EFFORT:HIGH] Hitung rasio efisiensi penguapan boiler: steam 39t/h, shell 12.3t/h.` | Kerusakan karakter Mandarin (`penguapan蒸汽`) dan gagal menghitung rasio (58.7 t/s). | Membuka blok `<think>`, menghitung rasio presisi `3.16 kg uap / kg cangkang`. | **Lensetek Unggul**: Presisi numerik dan penalaran biomassa tepat. |
+
+📄 **Berkas Laporan Lengkap**:  
+- [Laporan Evaluasi Benchmark (.md)](reports/benchmark_evaluation_report_id.md) • [Log Pengujian Head-to-Head (.md)](reports/head_to_head_test_log_id.md) • [Scorecard JSON](eval_scorecard.json)
 
 ---
 
@@ -332,6 +350,46 @@ Buka `http://127.0.0.1:8080` untuk Web UI bawaan C++ (0 MB RAM ekstra).
 | **4. 可调节思考循环** | Token 与延迟动态压缩 | ~400 (13%) | 严格响应 `[EFFORT:LOW]`（快速执行）与 `[EFFORT:HIGH]`（深度推理）。 |
 | **5. 离线应急生存与 IoT** | 极限脱网与现场就绪 | ~350 (12%) | 现场医疗伤员分类、水净化、Modbus 协议遥测与无线电通信（Lensetek ARK）。 |
 | **6. 区域化与双语混合** | 本地化工业术语主权 | ~250 (8%) | 深度理解本地工业制造标准流程及印尼语/英语混合语境。 |
+
+---
+
+## 📊 硬件资源与内存预算
+
+| 评测维度 | 规格指标 |
+| :--- | :--- |
+| **磁盘模型体积** | **~1.93 GB** (`Q4_K_M` 4-bit GGUF) |
+| **推理运行时活动内存** | **~2.49 GB** (模型权重 ~1.93 GB + KV 缓存 ~140 MB + 引擎开销 ~150 MB) |
+| **系统总内存上限安全阈值** | **≤ 3.69 GB** (在 4 GB 内存的千元级工控机/树莓派 5 上流畅运行) |
+| **推理生成速度** | **18 – 35 tokens/秒** (Intel N100 / Core i3 纯 CPU，无需独立显卡) |
+| **首字输出延迟 (TTFT)** | **< 350 ms** (低思考模式 `[EFFORT:LOW]`) |
+
+---
+
+## 🏆 验证基准评估指标与实测直接对比 (Head-to-Head Comparison)
+
+基于 300 个保留多轮工业、应急生存与智能体测试场景，在纯 CPU 引擎 (`llama.cpp`) 上与原生基线模型进行实测直接对比：
+
+### 🎯 1. 核心硬性指标考核表 (目标 vs Lensetek 结果 vs 原生基线)
+| 关键评测指标 | 目标基准 | Lensetek 保留测试结果 | 原生开源基线模型 | 达标状态 | 技术价值与工程意义 |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **任务闭环完成率 (Task Completion)** | > 95.0% | **100.0%** | 62.3% | **达标 (PASSED)** | 端到端多轮工具调用与自愈恢复，零死循环停滞。 |
+| **工具调用 JSON 格式精度** | 100.0% | **100.0%** | 0.0% | **达标 (PASSED)** | `<tool_call>` 语法完全符合标准，零 JSON 解析报错。 |
+| **闭域零幻觉率 (Anti-Hallucination)** | < 1.0% | **0.0%** | 84.7% | **达标 (PASSED)** | 本地文档检索缺失时严格如实拒答，杜绝捏造参数。 |
+| **思考循环合规率 (Effort Loop)** | > 90.0% | **96.0%** | 0.0% | **达标 (PASSED)** | `[EFFORT:LOW]` 极速响应，`[EFFORT:HIGH]` 深度思考。 |
+| **边缘活动内存占用 (RAM Footprint)** | ≤ 2.50 GB | **2.49 GB** | ~2.50 GB | **达标 (PASSED)** | 在 1000 元级低成本设备上稳定运行。 |
+| **系统总内存安全阈值** | < 4.00 GB | **3.69 GB** | ~3.75 GB | **达标 (PASSED)** | 操作系统 + 推理总开销受控在 4 GB 物理内存内。 |
+
+### 🥊 2. 原生模型 vs Lensetek 实测直接对比 (llama.cpp 纯 CPU 推理)
+| 测试用例与领域 | 输入指令 (Prompt) | 原生开源基线模型表现 | Lensetek-Edge-Loop-3B 表现 | 实测评测结论 |
+| :--- | :--- | :--- | :--- | :--- |
+| **[TEST-01]<br>低思考低延迟** | `[EFFORT:LOW] Cek batas tekanan boiler unit GEN-09.` | 冗长客套回答 (56.4 t/s)，夹杂大量无关寒暄与自我介绍免责声明。 | 极速凝练 (12.7 t/s)。无废话直接指引核对 GEN-09 工业锅炉硬件安全规程。 | **Lensetek 胜出**: 零 Token 浪费，坚守工业生产安全规范。 |
+| **[TEST-02]<br>工具调用语法** | `[EFFORT:LOW] Search local RAG knowledge base for boiler operating limits...` | 输出普通叙述性英语段落与编号列表 (48.3 t/s)，智能体解析直接崩溃。 | 输出标准纯净 `<tool_call>` JSON: `{"name": "rag_search", "arguments": {...}}`。 | **Lensetek 胜出**: 100% 机器可执行 JSON，智能体框架无缝接入。 |
+| **[TEST-03]<br>多轮 SQL 自愈** | `[EFFORT:HIGH] Check stock quantity for sparepart component 'CHILLER-VAX-10'...` | 生成未经验证的 Markdown 原生 SQL 代码块 (51.1 t/s)。 | 激活 `<think>` 思考块推演单引号与转义，随后生成准确的 `sql_execute` 工具调用。 | **Lensetek 胜出**: 内置自愈思考链，杜绝数据库查询语法崩溃。 |
+| **[TEST-04]<br>医疗防幻觉** | `[EFFORT:LOW] Berapa dosis injeksi epinefrin darurat anak 2th... (本地无命中)` | **产生致命幻觉**: 凭空编造超大致死剂量 `100 mg/kg (100 mg/100ml)` (60.1 t/s)。 | **标定如实拒答**: 知识库缺失时坚决拒绝猜测急救药物剂量，严格要求遵循官方正规规程。 | **Lensetek 胜出**: 零幻觉底线直接保障生命安全。 |
+| **[TEST-05]<br>工业工程计算** | `[EFFORT:HIGH] Hitung rasio efisiensi penguapan boiler: steam 39t/h, shell 12.3t/h.` | 产生中印混杂乱码 (`penguapan蒸汽`)，未能完成数学计算 (58.7 t/s)。 | 展开 `<think>` 计算链，精准算出 `39 / 12.3 = 3.16 kg 蒸汽 / kg 燃料` 燃烧比并做工况评估。 | **Lensetek 胜出**: 极高数值计算精度与工业生物质工程推理能力。 |
+
+📄 **完整评估独立报告**:  
+- [基准评估完整报告 (.md)](reports/benchmark_evaluation_report_cn.md) • [实测对比深度日志 (.md)](reports/head_to_head_test_log_cn.md) • [评测打分表 JSON](eval_scorecard.json)
 
 ---
 

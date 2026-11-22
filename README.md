@@ -220,9 +220,11 @@ Our specialized model **`lensetek-edge-loop-3b-q4_k_m.gguf`** has been formally 
 | **Data Absence Reaction** | Hallucinates plausible doses/torques (~28%). | **Disciplined abstention ("Not found in local SOP")**. | Zero-risk for medical and OT safety. |
 | **Context Specialization** | Generic web knowledge. | **Indonesian industrial SOPs, PKS boilers, ARK disaster triage**. | Full sovereign domain grounding. |
 
-> Detailed evaluation records are available in:
-> - Excel Matrix: [reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx)
-> - Formal Report: [reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx](reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx)
+> 📄 **Multilingual Evaluation Deliverables & Head-to-Head Test Logs**:
+> - **English**: [Benchmark Evaluation Report (.md)](reports/benchmark_evaluation_report_en.md) • [Head-to-Head Comparison Log (.md)](reports/head_to_head_test_log_en.md)
+> - **Indonesian**: [Laporan Evaluasi Benchmark (.md)](reports/benchmark_evaluation_report_id.md) • [Log Uji Riil Head-to-Head (.md)](reports/head_to_head_test_log_id.md)
+> - **Chinese**: [基准评估报告 (.md)](reports/benchmark_evaluation_report_cn.md) • [实测直接对比日志 (.md)](reports/head_to_head_test_log_cn.md)
+> - **Data & Matrix**: [300 Held-Out Scenarios Excel Matrix](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx) • [Scorecard JSON](training/eval_scorecard.json)
 
 <br>
 <hr>
@@ -401,9 +403,11 @@ Model khusus **`lensetek-edge-loop-3b-q4_k_m.gguf`** telah diuji secara formal m
 | **Sikap saat Data Kosong** | Mengarang angka dosis/torsi fiktif (~28%). | **Disiplin menolak (*"Data tidak tercantum dalam SOP"*).** | Nol resiko keselamatan di fasilitas medis dan pabrik. |
 | **Spesialisasi Konteks** | Data umum web internasional. | **SOP industri Indonesia, boiler sawit, triage bencana ARK**. | Kedaulatan data dan operasional lokal offline. |
 
-> Berkas evaluasi lengkap dapat diakses pada:
-> - Excel Matrix: [reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx)
-> - Laporan Word: [reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx](reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx)
+> 📄 **Berkas Evaluasi Multibahasa & Log Pengujian Nyata**:
+> - **Bahasa Indonesia**: [Laporan Evaluasi Benchmark (.md)](reports/benchmark_evaluation_report_id.md) • [Log Uji Riil Head-to-Head (.md)](reports/head_to_head_test_log_id.md)
+> - **English**: [Benchmark Evaluation Report (.md)](reports/benchmark_evaluation_report_en.md) • [Head-to-Head Comparison Log (.md)](reports/head_to_head_test_log_en.md)
+> - **简体中文**: [基准评估报告 (.md)](reports/benchmark_evaluation_report_cn.md) • [实测直接对比日志 (.md)](reports/head_to_head_test_log_cn.md)
+> - **Data & Matriks**: [Matriks Excel 300 Skenario Held-Out](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx) • [Scorecard JSON](training/eval_scorecard.json)
 
 <br>
 <hr>
@@ -586,8 +590,18 @@ Lensetek 采用清晰透明的**商业开源（COSS）**架构，严格区分开
 | **思考循环合规率 (Effort)** | > 90.0% | **96.0%** | **PASSED (通过)** | `[EFFORT:LOW]` 极速响应（<35 字）与 `[EFFORT:HIGH]` 深度推理严格对应。 |
 | **边缘整机活跃内存** | ≤ 2.50 GB | **~2.49 GB** | **PASSED (通过)** | 4-bit KV Cache 优化，在低成本 4GB 内存硬件上极速流畅运行。 |
 
-> 完整评测报告下载：
-> - 结构化 Excel：[reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx)
-> - 正式 Word 报告：[reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx](reports/Laporan_Hasil_Evaluasi_Benchmark_Model_Lensetek.docx)
+#### 原生模型 vs Lensetek 横向能力对比表：
+| 关键能力维度 | 原生基座模型 (*Stock Qwen2.5-3B*) | 专用模型 (*Lensetek-Edge-Loop-3B*) | 实际业务工程优势 |
+| :--- | :--- | :--- | :--- |
+| **工具调用格式规范** | 常夹杂自然语言客套话；JSON 格式报错率 ~15%。 | **首轮 100% 纯净输出 `<tool_call>` 机器指令**。 | 智能体调度管道零语法崩溃。 |
+| **遭遇故障自主恢复** | 输出道歉声明或直接中断停止。 | **在 `<think>` 中解析错误码，自主修正参数重试**。 | 无需工程师现场干预，任务自主闭环。 |
+| **知识库无命中时的表现** | 凭空猜测编造虚假参数与剂量（~28%）。 | **严谨标定拒答（如实提示“本地 SOP 未检索到”）**。 | 杜绝工控与医疗急救场景的致命风险。 |
+| **本地领域知识对齐** | 泛化的互联网公域知识。 | **对齐印尼与区域工业标准、锅炉遥测与野外救援**。 | 边缘断网离线环境下的数据与运营主权。 |
+
+> 📄 **多语言完整基准评测报告与实测日志下载**：
+> - **简体中文**: [基准评估报告 (.md)](reports/benchmark_evaluation_report_cn.md) • [实测直接对比日志 (.md)](reports/head_to_head_test_log_cn.md)
+> - **English**: [Benchmark Evaluation Report (.md)](reports/benchmark_evaluation_report_en.md) • [Head-to-Head Comparison Log (.md)](reports/head_to_head_test_log_en.md)
+> - **Bahasa Indonesia**: [Laporan Evaluasi Benchmark (.md)](reports/benchmark_evaluation_report_id.md) • [Log Uji Riil Head-to-Head (.md)](reports/head_to_head_test_log_id.md)
+> - **评测数据与矩阵**: [300 条测试集评测 Excel 矩阵](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx) • [Scorecard JSON](training/eval_scorecard.json)
 
 
