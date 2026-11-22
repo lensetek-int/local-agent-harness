@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  llm-server:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: local-llm-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/models
+    command: >
+      -m /models/LFM3-Omni-2B-Q4_K_M.gguf
+      --mmproj /models/mmproj-LFM3-Omni-2B-Q8_0.gguf
+      --host 0.0.0.0
+      --port 8080
+      -c 4096
+      --temp 0.1

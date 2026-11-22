@@ -1,0 +1,27 @@
+# Binary & Executables
+bin/
+*.exe
+*.dll
+
+# Models (GGUF, ONNX, GGML, Audio)
+*.gguf
+*.onnx
+*.bin
+voice_models/
+*.wav
+
+# Environment & Secrets (Credential Protection)
+.env
+.env.*
+*.key
+*.pem
+
+# Python & Temporary files
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.log
+*.db
+*.sqlite
+*.sqlite3
