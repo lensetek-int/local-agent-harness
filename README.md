@@ -58,11 +58,24 @@ pip install -r requirements.txt
 
 ### 📦 2. Downloading Models on Demand
 
-Download your preferred GGUF and Voice models directly using the interactive downloader:
+Download your preferred GGUF and Voice models directly using the interactive downloader or dedicated CLI commands:
+
+| Model Name & Profile | Format & Size | Hugging Face Source | One-Click Download Command |
+| :--- | :---: | :---: | :--- |
+| **🧠 Lensetek Edge-Loop 3B** *(Flagship Agent)* | **~1.93 GB** (`Q4_K_M`) | [`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) | `py download_models.py --loop`<br>[**⬇️ Direct Download GGUF**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) |
+| **🪶 Qwen 2.5 0.5B Instruct** *(Ultra-Light)* | ~491 MB (`Q4_K_M`) | [`Qwen/Qwen2.5-0.5B-Instruct-GGUF`](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF) | `py download_models.py --default` |
+| **⭐ Qwen 2.5 3B Instruct** *(General Agent)* | ~2.04 GB (`Q4_K_M`) | [`Qwen/Qwen2.5-3B-Instruct-GGUF`](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF) | `py download_models.py --agent` |
+| **👑 Qwen 2.5 7B Instruct** *(Deep Reasoning)* | ~4.68 GB (`Q4_K_M`) | [`bartowski/Qwen2.5-7B-Instruct-GGUF`](https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF) | `py download_models.py --model qwen2.5-7b` |
+| **👁️ SmolVLM 500M** *(Vision & Image)* | ~545 MB (`Q8_0`) | [`HuggingFaceTB/SmolVLM-500M-Instruct-GGUF`](https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct-GGUF) | `py download_models.py --model smolvlm-500m` |
+| **🎙️ Whisper Base / Small** *(STT Voice)* | 147 MB / 487 MB | [`ggerganov/whisper.cpp`](https://huggingface.co/ggerganov/whisper.cpp) | `py download_models.py --model whisper-base` |
+| **🔊 Kokoro-82M** *(Studio TTS Voice)* | ~337 MB (ONNX) | [`hexgrad/Kokoro-82M`](https://huggingface.co/hexgrad/Kokoro-82M) | `py download_models.py --model kokoro-82m` |
 
 ```bash
 # Interactive menu:
 py download_models.py
+
+# Download Flagship Lensetek Edge-Loop 3B (~1.93 GB):
+py download_models.py --loop
 
 # Download default package (Qwen 2.5 0.5B + Whisper Base ~638 MB):
 py download_models.py --default
@@ -253,11 +266,24 @@ pip install -r requirements.txt
 
 ### 📦 2. Mengunduh Model Sesuai Kebutuhan
 
-Unduh model GGUF dan Audio langsung menggunakan modul interaktif:
+Unduh model GGUF dan Audio langsung menggunakan modul interaktif atau perintah langsung CLI:
+
+| Nama Model & Profil | Format & Ukuran | Sumber Hugging Face | Perintah Unduh Langsung |
+| :--- | :---: | :---: | :--- |
+| **🧠 Lensetek Edge-Loop 3B** *(Flagship Agent)* | **~1.93 GB** (`Q4_K_M`) | [`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) | `py download_models.py --loop`<br>[**⬇️ Unduh Langsung GGUF**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) |
+| **🪶 Qwen 2.5 0.5B Instruct** *(Ultra-Light)* | ~491 MB (`Q4_K_M`) | [`Qwen/Qwen2.5-0.5B-Instruct-GGUF`](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF) | `py download_models.py --default` |
+| **⭐ Qwen 2.5 3B Instruct** *(General Agent)* | ~2.04 GB (`Q4_K_M`) | [`Qwen/Qwen2.5-3B-Instruct-GGUF`](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF) | `py download_models.py --agent` |
+| **👑 Qwen 2.5 7B Instruct** *(Deep Reasoning)* | ~4.68 GB (`Q4_K_M`) | [`bartowski/Qwen2.5-7B-Instruct-GGUF`](https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF) | `py download_models.py --model qwen2.5-7b` |
+| **👁️ SmolVLM 500M** *(Vision & Gambar)* | ~545 MB (`Q8_0`) | [`HuggingFaceTB/SmolVLM-500M-Instruct-GGUF`](https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct-GGUF) | `py download_models.py --model smolvlm-500m` |
+| **🎙️ Whisper Base / Small** *(STT Suara)* | 147 MB / 487 MB | [`ggerganov/whisper.cpp`](https://huggingface.co/ggerganov/whisper.cpp) | `py download_models.py --model whisper-base` |
+| **🔊 Kokoro-82M** *(Studio TTS Suara)* | ~337 MB (ONNX) | [`hexgrad/Kokoro-82M`](https://huggingface.co/hexgrad/Kokoro-82M) | `py download_models.py --model kokoro-82m` |
 
 ```bash
 # Menu interaktif visual:
 py download_models.py
+
+# Unduh Flagship Lensetek Edge-Loop 3B (~1.93 GB):
+py download_models.py --loop
 
 # Unduh paket default (Qwen 2.5 0.5B + Whisper Base ~638 MB):
 py download_models.py --default
@@ -436,11 +462,24 @@ pip install -r requirements.txt
 
 ### 📦 2. 按需下载模型
 
-使用内置的交互式下载脚本直接从 Hugging Face 获取所需的 GGUF 及语音模型：
+使用内置的交互式下载脚本或专属命令行直接从 Hugging Face 获取所需的 GGUF 及语音模型：
+
+| 模型名称与画像 | 格式与体积 | Hugging Face 官方来源 | 一键下载指令 |
+| :--- | :---: | :---: | :--- |
+| **🧠 Lensetek Edge-Loop 3B** *(旗舰智能体)* | **~1.93 GB** (`Q4_K_M`) | [`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) | `py download_models.py --loop`<br>[**⬇️ 直接下载 GGUF 权重**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) |
+| **🪶 Qwen 2.5 0.5B Instruct** *(超轻量)* | ~491 MB (`Q4_K_M`) | [`Qwen/Qwen2.5-0.5B-Instruct-GGUF`](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF) | `py download_models.py --default` |
+| **⭐ Qwen 2.5 3B Instruct** *(通用 Agent)* | ~2.04 GB (`Q4_K_M`) | [`Qwen/Qwen2.5-3B-Instruct-GGUF`](https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF) | `py download_models.py --agent` |
+| **👑 Qwen 2.5 7B Instruct** *(长链推理)* | ~4.68 GB (`Q4_K_M`) | [`bartowski/Qwen2.5-7B-Instruct-GGUF`](https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF) | `py download_models.py --model qwen2.5-7b` |
+| **👁️ SmolVLM 500M** *(多模态视觉)* | ~545 MB (`Q8_0`) | [`HuggingFaceTB/SmolVLM-500M-Instruct-GGUF`](https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct-GGUF) | `py download_models.py --model smolvlm-500m` |
+| **🎙️ Whisper Base / Small** *(语音转文字)* | 147 MB / 487 MB | [`ggerganov/whisper.cpp`](https://huggingface.co/ggerganov/whisper.cpp) | `py download_models.py --model whisper-base` |
+| **🔊 Kokoro-82M** *(离线语音合成)* | ~337 MB (ONNX) | [`hexgrad/Kokoro-82M`](https://huggingface.co/hexgrad/Kokoro-82M) | `py download_models.py --model kokoro-82m` |
 
 ```bash
 # 启动交互式下载菜单:
 py download_models.py
+
+# 下载旗舰模型 Lensetek Edge-Loop 3B (~1.93 GB):
+py download_models.py --loop
 
 # 下载默认轻量级组合 (Qwen 2.5 0.5B + Whisper Base 约 638 MB):
 py download_models.py --default
