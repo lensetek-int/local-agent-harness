@@ -2050,6 +2050,15 @@ HTML_PAGE = """<!DOCTYPE html>
 
       <!-- Grid Cards Preset -->
       <div class="preset-cards-grid">
+        <div class="preset-card" id="cardPresetLensetekLoop" onclick="applyHardwarePreset('lensetek_edge_loop')">
+          <div class="preset-card-title" style="color: #10b981;">🔥 Lensetek Edge-Loop 3B ⭐</div>
+          <div class="preset-card-desc">Looped Agent, Self-Recovery, Zero-Hallucination</div>
+          <div class="preset-card-stats">
+            <span>RAM: <b>~2.49 GB</b></span>
+            <span>Disk: <b>~1.93 GB</b></span>
+          </div>
+        </div>
+
         <div class="preset-card" id="cardPresetUltraLight" onclick="applyHardwarePreset('ultra_light')">
           <div class="preset-card-title">🪶 Ultra-Light</div>
           <div class="preset-card-desc">Qwen 0.5B + Whisper Base + Piper</div>
@@ -3461,6 +3470,18 @@ print(res.content)
     }
 
     const HARDWARE_PRESETS = {
+      "lensetek_edge_loop": {
+        name: "🔥 Lensetek Edge-Loop 3B ⭐",
+        llm: "lensetek-edge-loop-3b-q4_k_m.gguf",
+        whisper: "voice_models/ggml-small.bin",
+        tts_engine: "edge",
+        voice: "id-ID-GadisNeural",
+        ram: "~2.49 GB",
+        disk: "~1.93 GB",
+        cardId: "cardPresetLensetekLoop",
+        engineDesc: "🌐 Edge-TTS (Looped Agent)",
+        modelKey: "lensetek-edge-loop-3b"
+      },
       "ultra_light": {
         name: "🪶 Ultra-Light",
         llm: "qwen2.5-0.5b-instruct-q4_k_m.gguf",

@@ -19,7 +19,7 @@ MODEL_CATALOG = {
         "repo_id": "lensetek/lensetek-edge-loop-3b-GGUF",
         "filename": "lensetek-edge-loop-3b-q4_k_m.gguf",
         "dest": os.path.join(BASE_DIR, "lensetek-edge-loop-3b-q4_k_m.gguf"),
-        "size_mb": 2048,
+        "size_mb": 1930,
         "desc": "🔥 Flagship Edge Agent: Looped Reasoning, Error Recovery & Anti-Hallucination (RAM < 2.5 GB)."
     },
     "qwen2.5-0.5b": {
