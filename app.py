@@ -243,7 +243,9 @@ def stop_llama_server():
                 print("Error stopping process:", e)
             current_process = None
             current_model_name = None
-            time.sleep(1)
+        if sys.platform == "win32":
+            subprocess.run(["taskkill", "/F", "/IM", "llama-server.exe"], capture_output=True)
+        time.sleep(0.5)
 
 def start_llama_server(model_name):
     global current_process, current_model_name
@@ -259,9 +261,7 @@ def start_llama_server(model_name):
             "--host", "127.0.0.1",
             "--port", str(LLAMA_PORT),
             "-c", "4096",
-            "-ctk", "q4_0",
-            "-ctv", "q4_0",
-            "-fa"
+            "-fa", "auto"
         ]
 
         mmproj = get_mmproj_for_model(model_name)
@@ -270,6 +270,8 @@ def start_llama_server(model_name):
 
         if "lfm" in model_name.lower():
             cmd.extend(["--temp", "0.1"])
+        elif "lensetek" in model_name.lower() or "loop" in model_name.lower():
+            cmd.extend(["--temp", "0.4"])
         else:
             cmd.extend(["--temp", "0.7"])
 
@@ -860,6 +862,31 @@ HTML_PAGE = """<!DOCTYPE html>
       display: flex;
       align-items: center;
       gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .btn-llama-nav {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(234, 88, 12, 0.22));
+      border: 1px solid rgba(245, 158, 11, 0.55);
+      color: #fbbf24;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.77rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-llama-nav:hover {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.4), rgba(234, 88, 12, 0.4));
+      color: #fef3c7;
+      border-color: #fcd34d;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
     }
 
     .lang-badge {
@@ -1933,6 +1960,36 @@ HTML_PAGE = """<!DOCTYPE html>
       border-color: #10b981;
       color: #34d399;
     }
+    .btn-effort-toggle {
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid rgba(16, 185, 129, 0.55);
+      color: #34d399;
+      padding: 0 10px;
+      height: 38px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .btn-effort-toggle:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
+    }
+    .btn-effort-toggle.high {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: rgba(245, 158, 11, 0.65);
+      color: #fbbf24;
+    }
+    .btn-effort-toggle.off {
+      background: #1e293b;
+      border-color: var(--border-color);
+      color: var(--text-muted);
+    }
     .rag-modal-overlay {
       position: fixed;
       inset: 0;
@@ -2014,7 +2071,10 @@ HTML_PAGE = """<!DOCTYPE html>
       <button class="btn-realtime-nav" onclick="openRealtimeVoiceModal()" title="Mode Hands-Free Suara Otomatis">
         ⚡ Realtime Voice
       </button>
-      <button id="btnHeaderLang" class="lang-badge" onclick="toggleSettingsPanel()">🇮🇩 ID</button>
+      <a id="btnLlamaWebUI" href="http://127.0.0.1:8080" target="_blank" class="btn-llama-nav" title="Buka WebUI Bawaan Asli Llama.cpp di Tab Baru">
+        🦙 Llama.cpp WebUI ↗
+      </a>
+      <button id="btnHeaderLang" class="lang-badge" onclick="toggleLanguageQuick()" title="Klik untuk berganti cepat antara 🇮🇩 Bahasa Indonesia dan 🇺🇸 English">🇮🇩 ID</button>
       <button class="btn-header" onclick="toggleSettingsPanel()">🎛️ Pengaturan</button>
       <div id="statusBadge" class="status-badge">
         <div class="dot"></div>
@@ -2028,6 +2088,7 @@ HTML_PAGE = """<!DOCTYPE html>
     <div class="btn-group">
       <button id="btnStart" class="btn-start" onclick="handleStart()">▶ Jalankan</button>
       <button id="btnStop" class="btn-stop" onclick="handleStop()" disabled>⏹ Stop</button>
+      <button id="btnNewChat" class="btn-header" onclick="startNewChat()" title="Bersihkan seluruh riwayat obrolan dan mulai chat baru" style="white-space: nowrap;">➕ New Chat</button>
     </div>
   </section>
 
@@ -2315,6 +2376,12 @@ HTML_PAGE = """<!DOCTYPE html>
     </button>
     <button id="btnToggleRagChat" class="btn-rag-toggle active" onclick="toggleRagActiveChat()" title="Pencarian Cerdas Dokumen RAG (Aktif)">
       📚 <span id="lblRagChat">RAG</span>
+    </button>
+    <button id="btnToggleEffort" class="btn-effort-toggle" onclick="cycleEffortMode()" title="Mode Penalaran Lensetek (Klik untuk ubah: LOW / HIGH / OFF)">
+      ⚡ <span id="lblEffortMode">LOW</span>
+    </button>
+    <button id="btnToggleAutoVoice" class="btn-effort-toggle off" onclick="toggleAutoVoice()" title="Suara Narasi Otomatis: OFF (Klik untuk mengaktifkan/mematikan)">
+      🔇 <span id="lblAutoVoice">Suara: OFF</span>
     </button>
     <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
     <button id="btnAttach" class="btn-action" onclick="triggerFileInput()" title="Lampirkan Gambar">
@@ -2864,7 +2931,7 @@ print(res.content)
         preferred_prefix: "id_ID",
         test_text: "Halo, ini adalah pengujian suara lokal dengan setelan slider Anda.",
         placeholder: "Ketik atau bicara dalam bahasa Indonesia...",
-        system_prompt: "You are a helpful AI assistant. Always respond fluently and naturally in Indonesian (Bahasa Indonesia)."
+        system_prompt: "You are a helpful AI assistant. Respond clearly and accurately in Indonesian."
       },
       "en": {
         name: "English",
@@ -3096,6 +3163,69 @@ print(res.content)
 
       // Auto-select or suggest matching voice
       selectMatchingVoiceForLanguage(lang);
+    }
+
+    function toggleLanguageQuick() {
+      const nextLang = currentLang === 'id' ? 'en' : 'id';
+      switchLanguage(nextLang);
+    }
+
+    let currentEffortMode = 'LOW'; // 'LOW' | 'HIGH' | 'OFF'
+
+    function cycleEffortMode() {
+      const btn = document.getElementById('btnToggleEffort');
+      if (currentEffortMode === 'LOW') {
+        currentEffortMode = 'HIGH';
+        btn.className = 'btn-effort-toggle high';
+        btn.innerHTML = '🧠 <span id="lblEffortMode">HIGH</span>';
+        btn.title = 'Effort HIGH: Penalaran mendalam dengan scratchpad <think>';
+      } else if (currentEffortMode === 'HIGH') {
+        currentEffortMode = 'OFF';
+        btn.className = 'btn-effort-toggle off';
+        btn.innerHTML = '⚖️ <span id="lblEffortMode">OFF</span>';
+        btn.title = 'Effort OFF: Tanpa tag effort otomatis';
+      } else {
+        currentEffortMode = 'LOW';
+        btn.className = 'btn-effort-toggle';
+        btn.innerHTML = '⚡ <span id="lblEffortMode">LOW</span>';
+        btn.title = 'Effort LOW: Respon cepat, deterministik, latency rendah';
+      }
+    }
+
+    let isAutoVoiceNarration = false; // Default OFF agar jawaban tidak langsung bersuara
+
+    function toggleAutoVoice() {
+      isAutoVoiceNarration = !isAutoVoiceNarration;
+      const btn = document.getElementById('btnToggleAutoVoice');
+      if (isAutoVoiceNarration) {
+        btn.className = 'btn-effort-toggle';
+        btn.innerHTML = '🔊 <span id="lblAutoVoice">Suara: ON</span>';
+        btn.title = 'Suara Narasi Otomatis: ON (AI langsung membacakan jawaban)';
+      } else {
+        btn.className = 'btn-effort-toggle off';
+        btn.innerHTML = '🔇 <span id="lblAutoVoice">Suara: OFF</span>';
+        btn.title = 'Suara Narasi Otomatis: OFF (Klik untuk mengaktifkan)';
+        if (currentAudioPlayer) {
+          currentAudioPlayer.pause();
+          currentAudioPlayer = null;
+        }
+      }
+    }
+
+    function startNewChat() {
+      chatHistory = [];
+      const container = document.getElementById('chatContainer');
+      container.innerHTML = `
+        <div class="message system">
+          💡 <b>Obrolan Baru Dimulai:</b> Riwayat konteks sebelumnya telah dibersihkan. Silakan ketik pesan atau pilih mode Effort di bawah.
+        </div>
+      `;
+      if (currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer = null;
+      }
+      const input = document.getElementById('promptInput');
+      if (input) input.focus();
     }
 
     function selectMatchingVoiceForLanguage(lang) {
@@ -3851,6 +3981,21 @@ print(res.content)
           btnStop.disabled = true;
           btnSend.disabled = true;
         }
+
+        const btnLlama = document.getElementById('btnLlamaWebUI');
+        if (btnLlama) {
+          if (data.llama_port) {
+            btnLlama.href = `http://127.0.0.1:${data.llama_port}`;
+          }
+          if (isRunning) {
+            btnLlama.style.opacity = '1';
+            btnLlama.style.pointerEvents = 'auto';
+            btnLlama.title = `Buka WebUI Bawaan Llama.cpp (${btnLlama.href}) di Tab Baru`;
+          } else {
+            btnLlama.style.opacity = '0.5';
+            btnLlama.title = 'Jalankan model terlebih dahulu untuk membuka WebUI Llama.cpp';
+          }
+        }
       } catch (err) {
         console.error("Status fetch error:", err);
       }
@@ -4245,8 +4390,15 @@ print(res.content)
             messagesToSend.push({ role: "system", content: langObj.system_prompt });
           }
           messagesToSend = messagesToSend.concat(chatHistory);
-          messagesToSend.push({ role: "user", content: userText });
-          chatHistory.push({ role: "user", content: userText });
+          let voicePromptToSend = userText;
+          const isLensetekVoice = currentModel && (currentModel.toLowerCase().includes('lensetek') || currentModel.toLowerCase().includes('loop'));
+          if (voicePromptToSend && isLensetekVoice && currentEffortMode !== 'OFF' && !voicePromptToSend.startsWith('[EFFORT:')) {
+            const isGreeting = /^(halo|hai|hi|hello|p|tes|test|selamat pagi|selamat siang|selamat malam)$/i.test(voicePromptToSend.trim());
+            const effectiveEffort = (isGreeting && currentEffortMode === 'HIGH') ? 'LOW' : currentEffortMode;
+            voicePromptToSend = `[EFFORT:${effectiveEffort}] ${voicePromptToSend}`;
+          }
+          messagesToSend.push({ role: "user", content: voicePromptToSend });
+          chatHistory.push({ role: "user", content: voicePromptToSend });
 
           setRealtimeOrbState('processing', 'AI Berpikir...', 'Menyiapkan respon suara');
 
@@ -4471,6 +4623,45 @@ print(res.content)
           btn.textContent = '🔊 Putar Suara';
           btn.onclick = () => playAudioBase64(audioBase64);
           footer.appendChild(btn);
+        } else if (role === 'assistant' && text) {
+          const btn = document.createElement('button');
+          btn.className = 'btn-audio-replay';
+          btn.textContent = '🔊 Putar Suara';
+          btn.onclick = async () => {
+            btn.disabled = true;
+            btn.textContent = '⏳ Memuat...';
+            try {
+              const ttsRes = await fetch('/api/voice/synthesize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  text: text,
+                  engine: currentTtsEngine,
+                  edge_voice: currentEdgeVoice,
+                  kokoro_voice: currentKokoroVoice,
+                  auto_adapt_lang: isAutoLangAdaptEnabled,
+                  length_scale: parseFloat(document.getElementById('sliderSpeed').value),
+                  noise_scale: parseFloat(document.getElementById('sliderExpr').value),
+                  noise_w: parseFloat(document.getElementById('sliderNoiseW').value),
+                  sentence_silence: parseFloat(document.getElementById('sliderSilence').value),
+                  voice_model: currentVoiceModel
+                })
+              });
+              const ttsData = await ttsRes.json();
+              if (ttsData.audio) {
+                playAudioBase64(ttsData.audio, ttsData.mime_type || ttsData.format);
+                btn.textContent = '🔊 Putar Ulang';
+                btn.onclick = () => playAudioBase64(ttsData.audio, ttsData.mime_type || ttsData.format);
+              } else {
+                btn.textContent = '🔊 Putar Suara';
+              }
+            } catch (e) {
+              btn.textContent = '🔊 Putar Suara';
+            } finally {
+              btn.disabled = false;
+            }
+          };
+          footer.appendChild(btn);
         }
         div.appendChild(footer);
       }
@@ -4503,15 +4694,23 @@ print(res.content)
 
       appendMessage('user', text, currentImg);
 
+      let promptToSend = text;
+      const isLensetek = currentModel && (currentModel.toLowerCase().includes('lensetek') || currentModel.toLowerCase().includes('loop'));
+      if (text && isLensetek && currentEffortMode !== 'OFF' && !text.startsWith('[EFFORT:')) {
+        const isGreeting = /^(halo|hai|hi|hello|p|tes|test|selamat pagi|selamat siang|selamat malam)$/i.test(text.trim());
+        const effectiveEffort = (isGreeting && currentEffortMode === 'HIGH') ? 'LOW' : currentEffortMode;
+        promptToSend = `[EFFORT:${effectiveEffort}] ${text}`;
+      }
+
       let contentPayload;
       if (currentImg) {
         const langObj = SUPPORTED_LANGS[currentLang] || SUPPORTED_LANGS['id'];
         contentPayload = [
-          { type: "text", text: text || (currentLang === 'en' ? "Describe this image in detail." : "Jelaskan gambar ini secara detail.") },
+          { type: "text", text: promptToSend || (currentLang === 'en' ? "Describe this image in detail." : "Jelaskan gambar ini secara detail.") },
           { type: "image_url", image_url: { url: currentImg } }
         ];
       } else {
-        contentPayload = text;
+        contentPayload = promptToSend;
       }
 
       // Add system prompt dynamically based on selected language
@@ -4545,7 +4744,7 @@ print(res.content)
 
           let audioBase64 = null;
           let langTag = null;
-          if (reply) {
+          if (reply && isAutoVoiceNarration) {
             try {
               const speed = parseFloat(document.getElementById('sliderSpeed').value);
               const expr = parseFloat(document.getElementById('sliderExpr').value);
@@ -4689,7 +4888,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 "current_model": current_model_name,
                 "models": models,
                 "model_meta": meta,
-                "default_model": cfg.get("DEFAULT_MODEL")
+                "default_model": cfg.get("DEFAULT_MODEL"),
+                "llama_port": LLAMA_PORT
             })
         elif path == '/api/config':
             cfg = load_env()
@@ -4913,10 +5113,16 @@ class RequestHandler(BaseHTTPRequestHandler):
             rag_override = data.get('rag_enabled', None)
             augmented_messages, rag_sources = augment_messages_with_rag(messages, top_k=3, enabled_override=rag_override)
 
-            payload = json.dumps({
+            chat_payload = {
                 "messages": augmented_messages,
                 "stream": False
-            }).encode('utf-8')
+            }
+            if current_model_name and ("qwen" in current_model_name.lower() or "lensetek" in current_model_name.lower() or "loop" in current_model_name.lower()):
+                chat_payload["stop"] = ["<|im_end|>", "<|endoftext|>"]
+                chat_payload["temperature"] = 0.4
+                chat_payload["repeat_penalty"] = 1.1
+                chat_payload["top_p"] = 0.9
+            payload = json.dumps(chat_payload).encode('utf-8')
 
             try:
                 req = urllib.request.Request(
