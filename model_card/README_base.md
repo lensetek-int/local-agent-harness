@@ -34,6 +34,16 @@ pipeline_tag: text-generation
 
 ---
 
+### 🌐 Official Ecosystem Navigation / Navigasi Repositori Terkait
+
+| Repository | Role & Description | Format & Target Hardware | Direct Link |
+| :--- | :--- | :--- | :---: |
+| **🧠 [`lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)** | **Edge Quantized Model (Ready-to-Run)**<br>Specialized 4-bit edge weights with 100% tool accuracy & zero-hallucination. | 4-Bit `Q4_K_M` GGUF (~1.93 GB)<br>Runs on Mini PC / SBC / CPU (RAM < 2.5 GB) | [**Download GGUF**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) |
+| **🔬 [`lensetek-edge-loop-3b`](https://huggingface.co/lensetek/lensetek-edge-loop-3b)** *(Current Repo)* | **Base 16-Bit Model (Safetensors)**<br>Full-precision weights for GPU inference (vLLM/SGLang) and domain fine-tuning. | 16-Bit BF16 Safetensors (~6 GB)<br>Cloud & Enterprise GPUs | [**Inspect Weights**](https://huggingface.co/lensetek/lensetek-edge-loop-3b) |
+| **🛠️ [`lensetek-edge-ai-agent`](https://huggingface.co/lensetek/lensetek-edge-ai-agent)** | **Application Hub & Edge Studio**<br>Self-contained workspace with Web UI, air-gapped SQLite RAG, and agent harnesses. | Application Code & Multi-Project Suite<br>(`usecase/edge-ai-agent` & `survival-agent`) | [**Explore Code Hub**](https://huggingface.co/lensetek/lensetek-edge-ai-agent) |
+
+---
+
 > [!TIP]
 > **Looking for the ready-to-run 4-bit Edge GGUF for Ollama or llama.cpp?**  
 > Visit our dedicated edge quantized repository: **[`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)** (Runs in < 2.5 GB RAM on cheap CPUs).
