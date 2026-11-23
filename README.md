@@ -239,6 +239,21 @@ Our specialized model **`lensetek-edge-loop-3b-q4_k_m.gguf`** has been formally 
 > - **Chinese**: [基准评估报告 (.md)](reports/benchmark_evaluation_report_cn.md) • [实测直接对比日志 (.md)](reports/head_to_head_test_log_cn.md)
 > - **Data & Matrix**: [300 Held-Out Scenarios Excel Matrix](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx) • [Scorecard JSON](training/eval_scorecard.json)
 
+---
+
+### 🆕 11. Latest Updates & Changelog (`2026-11-23`)
+
+* **Edge Studio UI & UX Upgrades (`app.py`)**:
+  * **Clean XSS-Safe Markdown Renderer**: Assistant replies now render bold, italic, inline code, fenced code blocks, lists, headings, and collapsible `<think>` reasoning blocks cleanly without raw Markdown tags.
+  * **Animated Processing Indicator**: Added a live typing/loading bubble while the local LLM generates a response.
+  * **Auto-Index Project Folder for RAG (`/api/rag/index_project`)**: 1-click button in the RAG modal to scan and index project documentation/code files (automatically skipping `.env*`, secrets, `.git`, and binary weights), plus clean stripping of `[EFFORT:...]` tags before semantic search.
+  * **New Chat, Voice Narration Toggle & Effort Selector**: Added `➕ New Chat`, `🔇 Suara: OFF/ON` (default OFF with on-demand replay), `⚖️ OFF / ⚡ LOW / 🧠 HIGH` effort toggle, 1-click language switch, and direct `🦙 Llama.cpp WebUI ↗` link.
+  * **Inference Stability**: Removed aggressive `-ctk q4_0 -ctv q4_0` KV cache quantization, added `-fa auto`, Qwen2.5 stop tokens, and automatic zombie `llama-server.exe` cleanup on Windows.
+* **Fine-Tuning Pipeline v3.0 (`training/`)**:
+  * **30% General Conversational Replay (`C7`)**: Regenerated `lensetek_edge_loop_3000.jsonl` & `lensetek_eval_heldout_300.jsonl` with 30% Indonesian/English general chat, arithmetic, RAG grounding, and **Lensetek** identity alignment to prevent catastrophic forgetting.
+  * **Calibrated SFT + Live Colab Sanity Test**: Updated `train_runpod.py` & `lensetek_train_colab.ipynb` to `2 epochs`, `lr=8e-5`, `lora_alpha=16`, cosine schedule, plus a 4-scenario live sanity test before GGUF export.
+  * **Full GRPO RLVR Trainer**: Implemented the `GRPOTrainer` + `GRPOConfig` training loop and GGUF export in `train_grpo_rlvr.py`.
+
 <br>
 <hr>
 
@@ -434,6 +449,21 @@ Model khusus **`lensetek-edge-loop-3b-q4_k_m.gguf`** telah diuji secara formal m
 > - **English**: [Benchmark Evaluation Report (.md)](reports/benchmark_evaluation_report_en.md) • [Head-to-Head Comparison Log (.md)](reports/head_to_head_test_log_en.md)
 > - **简体中文**: [基准评估报告 (.md)](reports/benchmark_evaluation_report_cn.md) • [实测直接对比日志 (.md)](reports/head_to_head_test_log_cn.md)
 > - **Data & Matriks**: [Matriks Excel 300 Skenario Held-Out](reports/Hasil_Evaluasi_Benchmark_300_Skenario_Lensetek.xlsx) • [Scorecard JSON](training/eval_scorecard.json)
+
+---
+
+### 🆕 11. Pembaruan Terbaru / Changelog (`2026-11-23`)
+
+* **Peningkatan Edge Studio UI & RAG (`app.py`)**:
+  * **Render Markdown Bersih & Aman (XSS-Safe)**: Jawaban AI kini tampil rapi (**bold**, *italic*, `code`, blok kode, list, heading) tanpa raw tag Markdown, serta blok `<think>` yang dapat dilipat/dibuka.
+  * **Indikator Loading Animasi**: Menampilkan animasi *typing* saat model sedang memproses jawaban.
+  * **Indeks Folder Proyek Otomatis (`/api/rag/index_project`)**: Tombol 1-klik di modal RAG untuk langsung memindai file dokumen/kode proyek (otomatis melewati `.env*`, file rahasia, `.git`, dan file biner), serta pembersihan tag `[EFFORT:...]` sebelum pencarian semantik RAG.
+  * **Kontrol Lengkap**: Tombol `➕ New Chat`, toggle `🔇 Suara: OFF/ON` (default OFF dengan tombol putar *on-demand*), selector Effort (`⚖️ OFF` / `⚡ LOW` / `🧠 HIGH`), ganti bahasa 1-klik, dan tautan `🦙 Llama.cpp WebUI ↗`.
+  * **Stabilitas Inferensi**: Menghapus kompresi ekstrem `-ctk q4_0 -ctv q4_0`, menggunakan `-fa auto`, stop tokens Qwen2.5, serta pembersihan otomatis proses zombie `llama-server.exe`.
+* **Pipeline Fine-Tuning v3.0 (`training/`)**:
+  * **30% General Conversational Replay (`C7`)**: Regenerasi `lensetek_edge_loop_3000.jsonl` & `lensetek_eval_heldout_300.jsonl` dengan tambahan 30% data chat umum Bahasa Indonesia/Inggris, aritmatika dasar, baca RAG, serta penyelarasan identitas **Lensetek** untuk mencegah *catastrophic forgetting*.
+  * **Kalibrasi SFT & Uji Cepat Colab**: Pembaruan `train_runpod.py` & `lensetek_train_colab.ipynb` ke `2 epoch`, `lr=8e-5`, `lora_alpha=16`, *cosine scheduler*, dan sel uji cepat *live* (Langkah 5B) sebelum ekspor GGUF.
+  * **Implementasi Penuh GRPO RLVR**: Menambahkan loop `GRPOTrainer` + `GRPOConfig` dan ekspor GGUF di `train_grpo_rlvr.py`.
 
 <br>
 <hr>

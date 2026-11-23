@@ -177,8 +177,11 @@ def run_test_rewards():
 def main():
     parser = argparse.ArgumentParser(description="Lensetek GRPO RLVR Training Script")
     parser.add_argument("--test-rewards", action="store_true", help="Run local deterministic unit tests on reward functions")
-    parser.add_argument("--base-model", type=str, default="lensetek_edge_loop_3b_safetensors", help="SFT checkpoint path")
+    parser.add_argument("--base-model", type=str, default="lensetek_edge_loop_3b_safetensors", help="SFT checkpoint path or HF model ID")
+    parser.add_argument("--dataset", type=str, default="lensetek_edge_loop_3000.jsonl", help="Dataset jsonl path for GRPO prompts")
     parser.add_argument("--max-steps", type=int, default=150, help="GRPO training steps")
+    parser.add_argument("--lr", type=float, default=5e-6, help="GRPO learning rate (conservative for RL stability)")
+    parser.add_argument("--output-dir", type=str, default="outputs_lensetek_grpo", help="GRPO checkpoint directory")
     parser.add_argument("--dry-run", action="store_true", help="Dry run validation")
     args = parser.parse_args()
 
@@ -187,22 +190,101 @@ def main():
         return
 
     print("=" * 65)
-    print(" 🚀 LENSETEK GRPO RLVR RUNPOD EXECUTION PIPELINE")
+    print(" 🚀 LENSETEK GRPO RLVR RUNPOD EXECUTION PIPELINE (v3.0)")
+    print(f" -> Base SFT Model : {args.base_model}")
+    print(f" -> Max Steps      : {args.max_steps}")
+    print(f" -> Learning Rate  : {args.lr}")
     print("=" * 65)
 
     try:
-        from unsloth import FastLanguageModel
+        import torch
+        from unsloth import FastLanguageModel, PatchFastRL
+        from datasets import load_dataset
         from trl import GRPOTrainer, GRPOConfig
     except ImportError:
         print("[NOTE] TRL / Unsloth not installed in local environment.")
         print("To run in RunPod GPU cloud, execute:")
-        print("pip install trl unsloth")
+        print("pip install trl unsloth datasets")
         print("Local dry-test can be verified with: python train_grpo_rlvr.py --test-rewards")
         sys.exit(0)
 
-    print(f"[INFO] Initializing GRPO with rewards on {args.base_model}...")
-    # Training pipeline follows in RunPod environment
-    print("GRPO Pipeline Ready for RunPod Execution.")
+    if args.dry_run:
+        run_test_rewards()
+        print("[DRY-RUN] Dependencies detected and reward functions verified.")
+        return
+
+    PatchFastRL("GRPO", FastLanguageModel)
+
+    print(f"\n[1/4] Loading SFT checkpoint: {args.base_model}...")
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name=args.base_model,
+        max_seq_length=2048,
+        load_in_4bit=True,
+        fast_inference=False,
+    )
+    model = FastLanguageModel.get_peft_model(
+        model,
+        r=16,
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        lora_alpha=16,
+        use_gradient_checkpointing="unsloth",
+        random_state=3407,
+    )
+
+    print(f"\n[2/4] Preparing GRPO prompt dataset from {args.dataset}...")
+    dataset_path = args.dataset
+    if not os.path.exists(dataset_path):
+        dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), args.dataset)
+    raw_ds = load_dataset("json", data_files=dataset_path, split="train")
+
+    def to_grpo_prompt(example):
+        msgs = example.get("messages", [])
+        prompt_msgs = []
+        for m in msgs:
+            if m.get("role") in ("system", "user"):
+                prompt_msgs.append({"role": m["role"], "content": m["content"]})
+                if m.get("role") == "user":
+                    break
+        return {"prompt": prompt_msgs}
+
+    grpo_ds = raw_ds.map(to_grpo_prompt, remove_columns=raw_ds.column_names)
+
+    print("\n[3/4] Starting GRPO RLVR Training with 3 Verifiable Rewards...")
+    grpo_config = GRPOConfig(
+        learning_rate=args.lr,
+        per_device_train_batch_size=1,
+        gradient_accumulation_steps=4,
+        num_generations=4,
+        max_prompt_length=768,
+        max_completion_length=512,
+        max_steps=args.max_steps,
+        warmup_ratio=0.1,
+        lr_scheduler_type="cosine",
+        optim="adamw_8bit",
+        bf16=torch.cuda.is_bf16_supported(),
+        fp16=not torch.cuda.is_bf16_supported(),
+        logging_steps=5,
+        output_dir=args.output_dir,
+        report_to="none",
+    )
+
+    trainer = GRPOTrainer(
+        model=model,
+        processing_class=tokenizer,
+        reward_funcs=[
+            reward_tool_json_schema,
+            reward_calibrated_abstention,
+            reward_adaptive_effort,
+        ],
+        args=grpo_config,
+        train_dataset=grpo_ds,
+    )
+    trainer.train()
+
+    print("\n[4/4] Exporting GRPO-aligned model to 16-bit Safetensors & Q4_K_M GGUF...")
+    model.save_pretrained_merged("lensetek_edge_loop_3b_grpo_safetensors", tokenizer, save_method="merged_16bit")
+    model.save_pretrained_gguf("lensetek_edge_loop_3b_grpo_gguf", tokenizer, quantization_method="q4_k_m")
+    print("🎉 GRPO RLVR Training & GGUF Export Finished Successfully!")
 
 
 if __name__ == "__main__":

@@ -14,13 +14,14 @@ import argparse
 import torch
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Lensetek Cloud Training Pipeline")
+    parser = argparse.ArgumentParser(description="Lensetek Cloud Training Pipeline (v3.0)")
     parser.add_argument("--base-model", type=str, default="Qwen/Qwen2.5-3B-Instruct", help="Hugging Face base model ID")
     parser.add_argument("--dataset", type=str, default="lensetek_edge_loop_3000.jsonl", help="Dataset filename or path")
-    parser.add_argument("--max-steps", type=int, default=400, help="Max SFT training steps")
+    parser.add_argument("--epochs", type=float, default=2.0, help="Number of full SFT training epochs (default: 2.0)")
+    parser.add_argument("--max-steps", type=int, default=-1, help="Optional max steps override (-1 = use full epochs)")
     parser.add_argument("--batch-size", type=int, default=2, help="Per device batch size")
     parser.add_argument("--grad-accum", type=int, default=4, help="Gradient accumulation steps")
-    parser.add_argument("--lr", type=float, default=2e-4, help="Learning rate")
+    parser.add_argument("--lr", type=float, default=8e-5, help="Learning rate (8e-5 prevents catastrophic forgetting on 3B)")
     parser.add_argument("--skip-push", action="store_true", help="Skip pushing to Hugging Face (local export only)")
     return parser.parse_args()
 
@@ -67,7 +68,7 @@ def main():
         model,
         r=16,
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-        lora_alpha=32,
+        lora_alpha=16,
         lora_dropout=0,
         bias="none",
         use_gradient_checkpointing="unsloth",
@@ -103,7 +104,8 @@ def main():
     training_args = TrainingArguments(
         per_device_train_batch_size=args.batch_size,
         gradient_accumulation_steps=args.grad_accum,
-        warmup_steps=15,
+        warmup_ratio=0.05,
+        num_train_epochs=args.epochs,
         max_steps=args.max_steps,
         learning_rate=args.lr,
         fp16=not torch.cuda.is_bf16_supported(),

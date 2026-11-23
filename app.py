@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import glob
 import json
@@ -371,17 +372,17 @@ def augment_messages_with_rag(messages, top_k=3, enabled_override=None):
             last_user_idx = i
             break
 
-    user_query = user_query.strip()
+    user_query = re.sub(r'\[EFFORT:(LOW|HIGH)\]\s*', '', user_query, flags=re.IGNORECASE).strip()
     if not user_query or last_user_idx == -1:
         return messages, []
 
-    hits = rag_engine.search(user_query, top_k=top_k, min_similarity=0.12)
+    hits = rag_engine.search(user_query, top_k=top_k, min_similarity=0.18)
     if not hits:
         return messages, []
 
     context_lines = [
-        "=== BASIS PENGETAHUAN LOKAL (RETRIEVED CONTEXT) ===",
-        "Gunakan informasi relevan berikut ini dari dokumen internal untuk melengkapi jawaban Anda:"
+        "=== KONTEKS DOKUMEN LOKAL ===",
+        "Gunakan fakta di bawah ini jika relevan dengan pertanyaan pengguna. Jangan mengarang nama file atau angka yang tidak tertulis:"
     ]
     sources = []
     for h in hits:
@@ -393,8 +394,8 @@ def augment_messages_with_rag(messages, top_k=3, enabled_override=None):
             "chunk_id": h['chunk_id'],
             "chunk_index": h['chunk_index']
         })
-        context_lines.append(f"\n[Sumber: {h['filename']} (Bagian {h['chunk_index']+1}) | Relevansi: {pct}%]\n{h['content']}")
-    context_lines.append("=== AKHIR KONTEKS DOKUMEN ===\n")
+        context_lines.append(f"\n--- Dokumen: {h['filename']} ---\n{h['content']}")
+    context_lines.append("=== AKHIR KONTEKS ===\n")
 
     rag_context_text = "\n".join(context_lines)
 
@@ -1990,6 +1991,24 @@ HTML_PAGE = """<!DOCTYPE html>
       border-color: var(--border-color);
       color: var(--text-muted);
     }
+    /* MARKDOWN & LOADING INDICATOR STYLES */
+    .md-content { line-height: 1.55; word-break: break-word; }
+    .md-content p { margin: 0 0 8px 0; }
+    .md-content p:last-child { margin-bottom: 0; }
+    .md-content ul, .md-content ol { margin: 6px 0 8px 20px; padding: 0; }
+    .md-content li { margin-bottom: 4px; }
+    .md-content h1, .md-content h2, .md-content h3 { margin: 8px 0 6px 0; font-size: 0.98rem; color: #93c5fd; }
+    .md-content code { background: rgba(15, 23, 42, 0.85); color: #38bdf8; padding: 1px 5px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.85em; }
+    .md-content pre { background: #0b1120; border: 1px solid #334155; border-radius: 8px; padding: 10px; overflow-x: auto; margin: 8px 0; }
+    .md-content pre code { background: transparent; padding: 0; color: #e2e8f0; font-size: 0.82rem; }
+    .think-block { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 6px 10px; margin-bottom: 8px; font-size: 0.82rem; color: #cbd5e1; }
+    .think-block summary { cursor: pointer; font-weight: 700; color: #fbbf24; user-select: none; }
+    .loading-bubble { display: inline-flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.85rem; }
+    .typing-dots { display: inline-flex; gap: 4px; align-items: center; }
+    .typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; animation: typingBounce 1.2s infinite ease-in-out; }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1.1); opacity: 1; } }
     .rag-modal-overlay {
       position: fixed;
       inset: 0;
@@ -2377,8 +2396,8 @@ HTML_PAGE = """<!DOCTYPE html>
     <button id="btnToggleRagChat" class="btn-rag-toggle active" onclick="toggleRagActiveChat()" title="Pencarian Cerdas Dokumen RAG (Aktif)">
       📚 <span id="lblRagChat">RAG</span>
     </button>
-    <button id="btnToggleEffort" class="btn-effort-toggle" onclick="cycleEffortMode()" title="Mode Penalaran Lensetek (Klik untuk ubah: LOW / HIGH / OFF)">
-      ⚡ <span id="lblEffortMode">LOW</span>
+    <button id="btnToggleEffort" class="btn-effort-toggle off" onclick="cycleEffortMode()" title="Effort OFF: Chat normal tanpa tag effort (Klik untuk ubah: OFF / LOW / HIGH)">
+      ⚖️ <span id="lblEffortMode">OFF</span>
     </button>
     <button id="btnToggleAutoVoice" class="btn-effort-toggle off" onclick="toggleAutoVoice()" title="Suara Narasi Otomatis: OFF (Klik untuk mengaktifkan/mematikan)">
       🔇 <span id="lblAutoVoice">Suara: OFF</span>
@@ -2646,6 +2665,17 @@ print(res.content)
           <div id="ragUploadLoading" style="display: none; margin-top: 8px; font-size: 0.75rem; color: #38bdf8; font-weight: 600;">
             ⏳ Mengekstrak teks & menghitung vektor embedding...
           </div>
+        </div>
+
+        <!-- Auto-Index Project Folder -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; background: rgba(37, 99, 235, 0.12); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 10px 12px;">
+          <div style="font-size: 0.76rem; color: #cbd5e1;">
+            <b>📂 Indeks Folder Proyek Otomatis</b><br>
+            <span style="font-size: 0.7rem; color: #94a3b8;">Baca dokumen `.md`, `.txt`, `.py`, `.json` di folder proyek ini (file rahasia `.env` & biner dilewati otomatis).</span>
+          </div>
+          <button id="btnIndexProject" onclick="indexProjectFolder()" style="background: #2563eb; color: white; border: none; padding: 7px 12px; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap;">
+            📂 Scan & Indeks Proyek
+          </button>
         </div>
 
         <!-- Real-time Test Query Search -->
@@ -2931,7 +2961,7 @@ print(res.content)
         preferred_prefix: "id_ID",
         test_text: "Halo, ini adalah pengujian suara lokal dengan setelan slider Anda.",
         placeholder: "Ketik atau bicara dalam bahasa Indonesia...",
-        system_prompt: "You are a helpful AI assistant. Respond clearly and accurately in Indonesian."
+        system_prompt: "Kamu adalah Lensetek, asisten AI lokal yang berjalan secara offline. Jawablah selalu dengan jelas, ramah, dan akurat dalam bahasa Indonesia."
       },
       "en": {
         name: "English",
@@ -2941,7 +2971,7 @@ print(res.content)
         preferred_prefix: "en_US",
         test_text: "Hello! This is a test of my voice using your current slider settings.",
         placeholder: "Type or speak in English...",
-        system_prompt: "You are a helpful AI assistant. Always respond fluently and naturally in clear English."
+        system_prompt: "You are Lensetek, a local offline AI assistant. Always respond clearly, helpfully, and accurately in English."
       },
       "ja": {
         name: "日本語 (Japanese)",
@@ -3170,7 +3200,33 @@ print(res.content)
       switchLanguage(nextLang);
     }
 
-    let currentEffortMode = 'LOW'; // 'LOW' | 'HIGH' | 'OFF'
+    let currentEffortMode = 'OFF'; // Default OFF untuk chat normal agar tag tidak mengganggu
+
+    async function indexProjectFolder() {
+      const btn = document.getElementById('btnIndexProject');
+      const loading = document.getElementById('ragUploadLoading');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Memindai...'; }
+      if (loading) { loading.style.display = 'block'; loading.textContent = '⏳ Memindai & mengindeks file folder proyek...'; }
+      try {
+        const res = await fetch('/api/rag/index_project', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        if (data.success) {
+          appendSystemMessage(`📂 Proyek berhasil diindeks ke RAG: ${data.indexed_count} file (${data.total_chunks} chunks).`);
+          await fetchRagDocuments();
+        } else {
+          alert('Gagal mengindeks folder proyek: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error indeks proyek: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '📂 Scan & Indeks Proyek'; }
+        if (loading) { loading.style.display = 'none'; loading.textContent = '⏳ Mengekstrak teks & menghitung vektor embedding...'; }
+      }
+    }
 
     function cycleEffortMode() {
       const btn = document.getElementById('btnToggleEffort');
@@ -4571,6 +4627,108 @@ print(res.content)
       audio.play().catch(e => console.log("Audio play error:", e));
     }
 
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderMarkdownSafe(rawText) {
+      if (!rawText) return '';
+      let text = String(rawText);
+
+      // Ekstrak blok <think>...</think> sebelum escape HTML
+      const thinkBlocks = [];
+      text = text.replace(/<think>([\\s\\S]*?)<\\/think>/gi, (_, inner) => {
+        const idx = thinkBlocks.length;
+        thinkBlocks.push(escapeHtml(inner.trim()).replace(/\\n/g, '<br>'));
+        return `@@THINK_BLOCK_${idx}@@`;
+      });
+
+      // Ekstrak fenced code blocks ```...```
+      const codeBlocks = [];
+      text = text.replace(/```(\\w*)\\n?([\\s\\S]*?)```/g, (_, lang, code) => {
+        const idx = codeBlocks.length;
+        codeBlocks.push(`<pre><code>${escapeHtml(code.trimEnd())}</code></pre>`);
+        return `@@CODE_BLOCK_${idx}@@`;
+      });
+
+      let html = escapeHtml(text);
+
+      // Inline code `...`
+      html = html.replace(/`([^`\\n]+)`/g, '<code>$1</code>');
+      // Bold **...**
+      html = html.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
+      // Italic *...*
+      html = html.replace(/(^|[^*])\\*([^*\\n]+)\\*(?!\\*)/g, '$1<em>$2</em>');
+      // Headings
+      html = html.replace(/^###\\s+(.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^##\\s+(.+)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^#\\s+(.+)$/gm, '<h1>$1</h1>');
+
+      // Bullet & numbered lists
+      const lines = html.split('\\n');
+      const out = [];
+      let inUl = false;
+      let inOl = false;
+      for (const line of lines) {
+        const ulMatch = line.match(/^\\s*[-*•]\\s+(.+)$/);
+        const olMatch = line.match(/^\\s*\\d+\\.\\s+(.+)$/);
+        if (ulMatch) {
+          if (inOl) { out.push('</ol>'); inOl = false; }
+          if (!inUl) { out.push('<ul>'); inUl = true; }
+          out.push(`<li>${ulMatch[1]}</li>`);
+        } else if (olMatch) {
+          if (inUl) { out.push('</ul>'); inUl = false; }
+          if (!inOl) { out.push('<ol>'); inOl = true; }
+          out.push(`<li>${olMatch[1]}</li>`);
+        } else {
+          if (inUl) { out.push('</ul>'); inUl = false; }
+          if (inOl) { out.push('</ol>'); inOl = false; }
+          if (line.trim() === '') {
+            out.push('<br>');
+          } else {
+            out.push(`<p>${line}</p>`);
+          }
+        }
+      }
+      if (inUl) out.push('</ul>');
+      if (inOl) out.push('</ol>');
+
+      html = out.join('');
+
+      // Kembalikan code blocks & think blocks
+      codeBlocks.forEach((blk, idx) => {
+        html = html.replace(`@@CODE_BLOCK_${idx}@@`, blk);
+      });
+      thinkBlocks.forEach((blk, idx) => {
+        html = html.replace(
+          `@@THINK_BLOCK_${idx}@@`,
+          `<details class="think-block"><summary>🧠 Proses Penalaran (&lt;think&gt;)</summary><div style="margin-top:6px;">${blk}</div></details>`
+        );
+      });
+
+      return html;
+    }
+
+    function showLoadingBubble() {
+      removeLoadingBubble();
+      const container = document.getElementById('chatContainer');
+      const div = document.createElement('div');
+      div.id = 'aiLoadingBubble';
+      div.className = 'message assistant';
+      div.innerHTML = `<div class="loading-bubble"><div class="typing-dots"><span></span><span></span><span></span></div><span>AI sedang memproses jawaban...</span></div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function removeLoadingBubble() {
+      const el = document.getElementById('aiLoadingBubble');
+      if (el) el.remove();
+    }
+
     function appendMessage(role, text, imgSrc, speed, audioBase64, langTag, ragSources) {
       const container = document.getElementById('chatContainer');
       const div = document.createElement('div');
@@ -4585,7 +4743,12 @@ print(res.content)
 
       if (text) {
         const span = document.createElement('div');
-        span.textContent = text;
+        if (role === 'assistant') {
+          span.className = 'md-content';
+          span.innerHTML = renderMarkdownSafe(text);
+        } else {
+          span.textContent = text;
+        }
         div.appendChild(span);
       }
 
@@ -4727,6 +4890,7 @@ print(res.content)
       isGenerating = true;
       document.getElementById('btnSend').disabled = true;
       const startTime = performance.now();
+      showLoadingBubble();
 
       try {
         const res = await fetch('/api/chat', {
@@ -4737,6 +4901,7 @@ print(res.content)
 
         const data = await res.json();
         const durationSec = ((performance.now() - startTime) / 1000).toFixed(1);
+        removeLoadingBubble();
 
         if (data.choices && data.choices[0]) {
           const reply = data.choices[0].message.content;
@@ -4789,6 +4954,7 @@ print(res.content)
       } catch (err) {
         appendSystemMessage(`Gagal menghubungi server: ${err.message}`);
       } finally {
+        removeLoadingBubble();
         isGenerating = false;
         document.getElementById('btnSend').disabled = false;
       }
@@ -5188,6 +5354,40 @@ class RequestHandler(BaseHTTPRequestHandler):
             val = "1" if enabled else "0"
             save_env_value("RAG_ENABLED", val)
             self._send_json({"success": True, "rag_enabled": (val == "1")})
+
+        elif path == '/api/rag/index_project':
+            try:
+                allowed_exts = {'.md', '.txt', '.py', '.json', '.csv', '.yml', '.yaml'}
+                skip_dirs = {'.git', 'bin', 'blobs', 'voice_models', '__pycache__', 'node_modules', '.venv', 'venv', 'training'}
+                secret_markers = ('.env', 'secret', 'credential', 'token', '.key', '.pem', 'password')
+                indexed_count = 0
+                total_chunks = 0
+                max_file_bytes = 150 * 1024
+
+                for root, dirs, files in os.walk(BASE_DIR):
+                    dirs[:] = [d for d in dirs if d not in skip_dirs and not d.startswith('.')]
+                    for fname in files:
+                        low = fname.lower()
+                        ext = os.path.splitext(low)[1]
+                        if ext not in allowed_exts:
+                            continue
+                        if any(m in low for m in secret_markers):
+                            continue
+                        fpath = os.path.join(root, fname)
+                        try:
+                            if os.path.getsize(fpath) > max_file_bytes or os.path.getsize(fpath) == 0:
+                                continue
+                            rel_name = os.path.relpath(fpath, BASE_DIR).replace('\\', '/')
+                            with open(fpath, 'rb') as rf:
+                                fbytes = rf.read()
+                            res = rag_engine.add_document(rel_name, fbytes)
+                            indexed_count += 1
+                            total_chunks += int(res.get('chunks', 0)) if isinstance(res, dict) else 0
+                        except Exception:
+                            continue
+                self._send_json({"success": True, "indexed_count": indexed_count, "total_chunks": total_chunks})
+            except Exception as e:
+                self._send_json({"success": False, "error": str(e)}, 500)
 
         elif path == '/api/voice/transcribe':
             audio_b64 = data.get('audio')

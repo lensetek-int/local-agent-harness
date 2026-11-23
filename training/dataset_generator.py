@@ -396,6 +396,133 @@ def gen_c6_sample(assets, is_eval=False):
     ]
 
 
+# ------------------------------------------------------------------------------
+# CLUSTER 7: GENERAL CONVERSATIONAL & REASONING REPLAY (ANTI-CATASTROPHIC FORGETTING)
+# ------------------------------------------------------------------------------
+GENERAL_SYSTEM_PROMPTS = [
+    "You are a helpful AI assistant. Respond clearly and accurately in Indonesian.",
+    "You are a helpful AI assistant. Always respond fluently and naturally in clear English.",
+    "Kamu adalah asisten AI lokal yang cerdas, ramah, dan jujur. Jawablah pertanyaan dengan bahasa Indonesia yang jelas.",
+    SYSTEM_PROMPT,
+]
+
+def gen_c7_sample(is_eval=False):
+    """
+    Menghasilkan sampel percakapan umum, aritmatika sederhana, tanya-jawab pengetahuan,
+    serta kepatuhan [EFFORT:LOW]/[EFFORT:HIGH] pada pertanyaan kasual agar model 3B
+    tidak mengalami catastrophic forgetting saat fine-tuning.
+    """
+    sys_p = random.choice(GENERAL_SYSTEM_PROMPTS)
+    sub_type = random.choice(["greeting", "arithmetic", "qa_id", "qa_en", "effort_general", "rag_grounded"])
+
+    if sub_type == "greeting":
+        pairs = [
+            ("halo", "Halo! Saya Lensetek, asisten AI lokal Anda. Ada yang bisa saya bantu hari ini?"),
+            ("Halo, kamu siapa?", "Halo! Saya adalah **Lensetek** (Lensetek Edge-Loop), asisten AI lokal yang berjalan secara offline. Saya siap membantu menjawab pertanyaan, analisis dokumen, maupun tugas teknis Anda."),
+            ("Siapa namamu?", "Nama saya **Lensetek**, asisten AI lokal berbasis edge computing yang berjalan sepenuhnya offline di perangkat Anda."),
+            ("Selamat pagi", "Selamat pagi! Saya Lensetek. Ada hal apa yang ingin kita bahas atau kerjakan hari ini?"),
+            ("Hi, who are you?", "Hello! I am **Lensetek**, a local AI assistant running offline on your device. How can I help you today?"),
+            ("What is your name?", "My name is **Lensetek**, an offline local AI assistant engineered for edge computing."),
+            ("terima kasih banyak", "Sama-sama! Jika ada pertanyaan atau tugas lain yang perlu dibantu, silakan beri tahu saya."),
+            ("hai, bisa bantu saya?", "Hai! Tentu saja, saya Lensetek. Silakan sampaikan apa yang sedang Anda butuhkan."),
+        ]
+        u, a = random.choice(pairs)
+        return [
+            {"role": "system", "content": sys_p},
+            {"role": "user", "content": u},
+            {"role": "assistant", "content": a},
+        ]
+
+    elif sub_type == "arithmetic":
+        x = random.randint(1, 250)
+        y = random.randint(1, 250)
+        op = random.choice(["+", "-", "*"])
+        if op == "+":
+            ans = x + y
+            op_word = "ditambah"
+        elif op == "-":
+            ans = x - y
+            op_word = "dikurangi"
+        else:
+            x = random.randint(2, 30)
+            y = random.randint(2, 30)
+            ans = x * y
+            op_word = "dikali"
+
+        use_high = random.random() < 0.35
+        if use_high:
+            return [
+                {"role": "system", "content": sys_p},
+                {"role": "user", "content": f"[EFFORT:HIGH] Berapa hasil dari {x} {op} {y}?"},
+                {"role": "assistant", "content": f"<think>\nMenghitung operasi matematika dasar: {x} {op} {y} = {ans}.\n</think>\nHasil dari **{x} {op} {y}** adalah **{ans}**."},
+            ]
+        else:
+            q_variant = random.choice([
+                f"{x} {op} {y} berapa?",
+                f"Berapa {x} {op_word} {y}?",
+                f"[EFFORT:LOW] {x} {op} {y}",
+            ])
+            return [
+                {"role": "system", "content": sys_p},
+                {"role": "user", "content": q_variant},
+                {"role": "assistant", "content": f"Hasil dari {x} {op} {y} adalah **{ans}**."},
+            ]
+
+    elif sub_type == "qa_id":
+        qa_pairs = [
+            ("Apa itu edge computing?", "**Edge computing** adalah arsitektur komputasi yang memproses data langsung di perangkat lokal (dekat dengan sumber data) alih-alih mengirim semuanya ke cloud. Keunggulannya adalah latensi rendah, privasi data terjaga, dan tetap bisa berjalan tanpa koneksi internet."),
+            ("Jelaskan secara singkat apa itu RAG dalam AI.", "**RAG (Retrieval-Augmented Generation)** adalah teknik menggabungkan pencarian dokumen lokal dengan model bahasa (LLM). Sebelum menjawab, sistem mencari potongan teks yang relevan dari database dokumen, lalu memberikannya ke AI agar jawaban akurat dan berbasis fakta."),
+            ("Bagaimana cara membuat fungsi sederhana di Python?", "Di Python, fungsi dibuat menggunakan kata kunci `def`. Contoh:\n\n```python\ndef sapa(nama):\n    return f'Halo, {nama}!'\n\nprint(sapa('Budi'))\n```"),
+            ("Apa perbedaan RAM dan penyimpanan (SSD/HDD)?", "**RAM** adalah memori sementara berkecepatan tinggi yang digunakan komputer saat menjalankan program (datanya hilang saat mati). **SSD/HDD** adalah penyimpanan permanen untuk menyimpan sistem operasi, aplikasi, dan file Anda."),
+            ("Mengapa menjaga privasi kredensial API itu penting?", "Jika API key atau kredensial bocor ke publik (misalnya di kode frontend atau repositori terbuka), pihak tidak bertanggung jawab bisa menyalahgunakan kuota, mengakses data sensitif, atau menimbulkan kerugian finansial."),
+        ]
+        u, a = random.choice(qa_pairs)
+        return [
+            {"role": "system", "content": sys_p},
+            {"role": "user", "content": u},
+            {"role": "assistant", "content": a},
+        ]
+
+    elif sub_type == "qa_en":
+        qa_pairs = [
+            ("What is quantization in LLMs?", "**Quantization** reduces the numerical precision of model weights (e.g., from 16-bit floats to 4-bit integers like Q4_K_M). This shrinks memory usage and speeds up inference on edge hardware with minimal accuracy loss."),
+            ("How do I write a simple loop in Python?", "You can use a `for` loop in Python:\n\n```python\nfor i in range(5):\n    print(i)\n```"),
+            ("Why run an LLM locally instead of using cloud APIs?", "Running an LLM locally gives you full data privacy, zero per-token API costs, offline availability, and low-latency control over your own hardware."),
+        ]
+        u, a = random.choice(qa_pairs)
+        return [
+            {"role": "system", "content": sys_p},
+            {"role": "user", "content": u},
+            {"role": "assistant", "content": a},
+        ]
+
+    elif sub_type == "effort_general":
+        n1 = random.randint(10, 90)
+        n2 = random.randint(2, 9)
+        total = n1 * n2
+        if random.random() < 0.5:
+            return [
+                {"role": "system", "content": sys_p},
+                {"role": "user", "content": f"[EFFORT:LOW] Jika ada {n2} kotak dan tiap kotak berisi {n1} baut, berapa total bautnya?"},
+                {"role": "assistant", "content": f"Total baut adalah **{total} buah** ({n2} × {n1})."},
+            ]
+        else:
+            return [
+                {"role": "system", "content": sys_p},
+                {"role": "user", "content": f"[EFFORT:HIGH] Jika ada {n2} kotak dan tiap kotak berisi {n1} baut, berapa total bautnya?"},
+                {"role": "assistant", "content": f"<think>\n1. Jumlah kotak = {n2}\n2. Isi per kotak = {n1} baut\n3. Total = {n2} * {n1} = {total} baut.\n</think>\nTotal seluruh baut adalah **{total} buah**."},
+            ]
+
+    else:  # rag_grounded
+        port = random.choice([3000, 8000, 8080, 5000])
+        doc_name = random.choice(["README.md", "panduan_server.txt", "arsitektur.md"])
+        return [
+            {"role": "system", "content": sys_p},
+            {"role": "user", "content": f"=== KONTEKS DOKUMEN LOKAL ===\n--- Dokumen: {doc_name} ---\nServer web lokal berjalan pada port {port} dengan antarmuka OpenAI-compatible di /v1/chat/completions.\n=== AKHIR KONTEKS ===\n\nPertanyaan Pengguna:\nDi port berapa server web lokal berjalan?"},
+            {"role": "assistant", "content": f"Berdasarkan dokumen `{doc_name}`, server web lokal berjalan di **port {port}** dengan endpoint `/v1/chat/completions`."},
+        ]
+
+
 def build_dataset(samples_count_dict, assets, drugs, freqs, seed, is_eval=False):
     random.seed(seed)
     dataset = []
@@ -408,6 +535,7 @@ def build_dataset(samples_count_dict, assets, drugs, freqs, seed, is_eval=False)
         "C4": lambda idx: {"cluster_id": "C4_TUNABLE_EFFORT_LOOPS", "messages": gen_c4_sample(is_eval)},
         "C5": lambda idx: {"cluster_id": "C5_OFFLINE_SURVIVAL_ARK", "messages": gen_c5_sample(freqs, is_eval)},
         "C6": lambda idx: {"cluster_id": "C6_REGIONAL_SOVEREIGNTY", "messages": gen_c6_sample(assets, is_eval)},
+        "C7": lambda idx: {"cluster_id": "C7_GENERAL_CONVERSATIONAL_REPLAY", "messages": gen_c7_sample(is_eval)},
     }
 
     for cluster_key, count in samples_count_dict.items():
@@ -445,11 +573,12 @@ def save_jsonl(data, filepath):
 
 def main():
     print("=" * 65)
-    print(" 🚀 LENSETEK PARAMETRIC COMBINATORIAL DATASET GENERATOR (v2.0)")
+    print(" 🚀 LENSETEK PARAMETRIC COMBINATORIAL DATASET GENERATOR (v3.0)")
+    print(" -> Includes 30% General Replay (C7) to prevent catastrophic forgetting")
     print("=" * 65)
 
-    train_counts = {"C1": 500, "C2": 1000, "C3": 500, "C4": 400, "C5": 350, "C6": 250}
-    eval_counts = {"C1": 50, "C2": 100, "C3": 50, "C4": 40, "C5": 35, "C6": 25}
+    train_counts = {"C1": 350, "C2": 700, "C3": 350, "C4": 300, "C5": 250, "C6": 150, "C7": 900}
+    eval_counts = {"C1": 35, "C2": 70, "C3": 35, "C4": 30, "C5": 25, "C6": 15, "C7": 90}
 
     print("\n[1/2] Generating 3,000 unique training samples (seed=42)...")
     train_data = build_dataset(train_counts, TRAIN_ASSETS, TRAIN_DRUGS, TRAIN_FREQS, seed=42, is_eval=False)
