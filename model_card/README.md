@@ -187,6 +187,21 @@ print(response["choices"][0]["message"]["content"])
 
 ---
 
+## 🆕 Revision v3.0 Changelog — Previous Issues & Fixes (`2026-11-23`)
+
+> **Important Notice**: The previous v1/v2 `lensetek-edge-loop-3b-q4_k_m.gguf` weight has been **removed and replaced** with the verified **v3.0** build.
+
+### ⚠️ Issues Identified in Previous v1/v2 Weights
+* **Catastrophic Forgetting**: Training on 100% synthetic domain templates with `lr=2e-4` (< 1 epoch) degraded casual Indonesian fluency and basic arithmetic.
+* **Identity Drift**: Absent conversational identity samples caused base pretraining name residue on greetings.
+* **4-Bit KV Cache Instability**: Running Qwen2.5-3B (2 KV heads) with `-ctk q4_0 -ctv q4_0` corrupted attention logits and caused word-salad output.
+
+### ✅ Fixes Verified in v3.0 (`2026-11-23`)
+* **30% General Conversational Replay (`Cluster C7`)**: Retrained on v3.0 dataset (Indonesian/English chat, arithmetic, RAG grounding, and **Lensetek** identity alignment) for **2 full epochs** at conservative **`lr=8e-5`** and `lora_alpha=16`.
+* **Live Verification Passed**: Verified on `llama-server.exe` (`-fa auto`, default `f16` KV cache) for **Lensetek** identity, accurate basic arithmetic (`1 + 15 = 16`), and calibrated 0-hit medical anti-hallucination.
+
+---
+
 ## 🔗 Related Repositories
 * **Base 16-Bit Model (Safetensors)**: [lensetek/lensetek-edge-loop-3b](https://huggingface.co/lensetek/lensetek-edge-loop-3b) (Unquantized BF16 weights for researchers, vLLM, and further fine-tuning).
 * **Application Hub**: [lensetek/lensetek-edge-ai-agent](https://huggingface.co/lensetek/lensetek-edge-ai-agent) (Full application workspace with Edge Studio Web UI, SQLite RAG, and multi-project harnesses).

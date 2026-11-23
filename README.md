@@ -241,18 +241,22 @@ Our specialized model **`lensetek-edge-loop-3b-q4_k_m.gguf`** has been formally 
 
 ---
 
-### 🆕 11. Latest Updates & Changelog (`2026-11-23`)
+### 🆕 11. Revision v3.0 Changelog — Previous Issues & Fixes (`2026-11-23`)
 
-* **Edge Studio UI & UX Upgrades (`app.py`)**:
-  * **Clean XSS-Safe Markdown Renderer**: Assistant replies now render bold, italic, inline code, fenced code blocks, lists, headings, and collapsible `<think>` reasoning blocks cleanly without raw Markdown tags.
-  * **Animated Processing Indicator**: Added a live typing/loading bubble while the local LLM generates a response.
-  * **Auto-Index Project Folder for RAG (`/api/rag/index_project`)**: 1-click button in the RAG modal to scan and index project documentation/code files (automatically skipping `.env*`, secrets, `.git`, and binary weights), plus clean stripping of `[EFFORT:...]` tags before semantic search.
-  * **New Chat, Voice Narration Toggle & Effort Selector**: Added `➕ New Chat`, `🔇 Suara: OFF/ON` (default OFF with on-demand replay), `⚖️ OFF / ⚡ LOW / 🧠 HIGH` effort toggle, 1-click language switch, and direct `🦙 Llama.cpp WebUI ↗` link.
-  * **Inference Stability**: Removed aggressive `-ctk q4_0 -ctv q4_0` KV cache quantization, added `-fa auto`, Qwen2.5 stop tokens, and automatic zombie `llama-server.exe` cleanup on Windows.
-* **Fine-Tuning Pipeline v3.0 (`training/`)**:
-  * **30% General Conversational Replay (`C7`)**: Regenerated `lensetek_edge_loop_3000.jsonl` & `lensetek_eval_heldout_300.jsonl` with 30% Indonesian/English general chat, arithmetic, RAG grounding, and **Lensetek** identity alignment to prevent catastrophic forgetting.
-  * **Calibrated SFT + Live Colab Sanity Test**: Updated `train_runpod.py` & `lensetek_train_colab.ipynb` to `2 epochs`, `lr=8e-5`, `lora_alpha=16`, cosine schedule, plus a 4-scenario live sanity test before GGUF export.
-  * **Full GRPO RLVR Trainer**: Implemented the `GRPOTrainer` + `GRPOConfig` training loop and GGUF export in `train_grpo_rlvr.py`.
+#### ⚠️ Previous Issues Identified in v1/v2
+1. **Catastrophic Forgetting on General Indonesian & Basic Math**: Training exclusively on 100% synthetic domain templates with an aggressive `lr=2e-4` and `< 1 epoch` caused the 3B model to degrade on casual Indonesian conversation, simple arithmetic, and general RAG summaries, occasionally outputting garbled tokens or reversing `[EFFORT:LOW/HIGH]` definitions.
+2. **Model Identity Drift**: Because conversational identity samples were absent, the model occasionally introduced itself using base pretraining residue names instead of **Lensetek**.
+3. **4-Bit KV Cache Corruption (`-ctk q4_0 -ctv q4_0`) & Zombie Processes**: Quantizing KV cache to `q4_0` on Qwen2.5-3B (which only has 2 KV heads) corrupted attention logits and produced incoherent word salad; orphaned `llama-server.exe` processes also held port `8080` across restarts.
+4. **RAG Query Pollution & Raw Markdown UI**: `[EFFORT:HIGH]` tags leaked into `rag_engine.search()`, causing unrelated chunks containing that tag to match, while chat bubbles displayed raw Markdown (`**`, `*`) without a loading indicator.
+
+#### ✅ Fixes Applied in Revision v3.0 (`2026-11-23`)
+* **Model Weights v3.0 Replaced (Old v1/v2 Weights Removed)**:
+  * Added **30% General Conversational Replay (`C7`)** to `lensetek_edge_loop_3000.jsonl` & `lensetek_eval_heldout_300.jsonl` plus **Lensetek** identity alignment.
+  * Retrained with conservative `lr=8e-5`, `lora_alpha=16`, `2 full epochs`, cosine scheduler, and verified live on Indonesian identity, arithmetic (`1 + 15 = 16`), and 0-hit medical anti-hallucination before exporting the new `Q4_K_M` GGUF.
+  * Implemented full `GRPOTrainer` + `GRPOConfig` loop and GGUF export in `training/train_grpo_rlvr.py`.
+* **Edge Studio UI & Runtime Fixes (`app.py`)**:
+  * Removed `-ctk q4_0 -ctv q4_0`, switched to `-fa auto`, added Qwen2.5 stop tokens (`<|im_end|>`, `<|endoftext|>`), `repeat_penalty=1.1`, and automatic zombie `llama-server.exe` cleanup on Windows.
+  * Added **XSS-safe Markdown Renderer** (with collapsible `<think>` blocks), **animated loading bubble**, **RAG `[EFFORT:...]` tag stripping**, **1-click Project Folder Auto-Indexer (`/api/rag/index_project`)**, `➕ New Chat`, `🔇 Suara: OFF/ON` toggle, Effort selector (`OFF / LOW / HIGH`), and `🦙 Llama.cpp WebUI ↗` link.
 
 <br>
 <hr>
@@ -452,18 +456,22 @@ Model khusus **`lensetek-edge-loop-3b-q4_k_m.gguf`** telah diuji secara formal m
 
 ---
 
-### 🆕 11. Pembaruan Terbaru / Changelog (`2026-11-23`)
+### 🆕 11. Catatan Revisi v3.0 — Permasalahan Sebelumnya & Perbaikannya (`2026-11-23`)
 
-* **Peningkatan Edge Studio UI & RAG (`app.py`)**:
-  * **Render Markdown Bersih & Aman (XSS-Safe)**: Jawaban AI kini tampil rapi (**bold**, *italic*, `code`, blok kode, list, heading) tanpa raw tag Markdown, serta blok `<think>` yang dapat dilipat/dibuka.
-  * **Indikator Loading Animasi**: Menampilkan animasi *typing* saat model sedang memproses jawaban.
-  * **Indeks Folder Proyek Otomatis (`/api/rag/index_project`)**: Tombol 1-klik di modal RAG untuk langsung memindai file dokumen/kode proyek (otomatis melewati `.env*`, file rahasia, `.git`, dan file biner), serta pembersihan tag `[EFFORT:...]` sebelum pencarian semantik RAG.
-  * **Kontrol Lengkap**: Tombol `➕ New Chat`, toggle `🔇 Suara: OFF/ON` (default OFF dengan tombol putar *on-demand*), selector Effort (`⚖️ OFF` / `⚡ LOW` / `🧠 HIGH`), ganti bahasa 1-klik, dan tautan `🦙 Llama.cpp WebUI ↗`.
-  * **Stabilitas Inferensi**: Menghapus kompresi ekstrem `-ctk q4_0 -ctv q4_0`, menggunakan `-fa auto`, stop tokens Qwen2.5, serta pembersihan otomatis proses zombie `llama-server.exe`.
-* **Pipeline Fine-Tuning v3.0 (`training/`)**:
-  * **30% General Conversational Replay (`C7`)**: Regenerasi `lensetek_edge_loop_3000.jsonl` & `lensetek_eval_heldout_300.jsonl` dengan tambahan 30% data chat umum Bahasa Indonesia/Inggris, aritmatika dasar, baca RAG, serta penyelarasan identitas **Lensetek** untuk mencegah *catastrophic forgetting*.
-  * **Kalibrasi SFT & Uji Cepat Colab**: Pembaruan `train_runpod.py` & `lensetek_train_colab.ipynb` ke `2 epoch`, `lr=8e-5`, `lora_alpha=16`, *cosine scheduler*, dan sel uji cepat *live* (Langkah 5B) sebelum ekspor GGUF.
-  * **Implementasi Penuh GRPO RLVR**: Menambahkan loop `GRPOTrainer` + `GRPOConfig` dan ekspor GGUF di `train_grpo_rlvr.py`.
+#### ⚠️ Permasalahan yang Ditemukan pada Versi Sebelumnya (v1/v2)
+1. ***Catastrophic Forgetting* pada Bahasa Indonesia & Logika Dasar**: Pelatihan sebelumnya memakai 100% template sintetis tanpa sampel obrolan umum dengan `lr=2e-4` (< 1 epoch), sehingga model 3B kehilangan keluwesan Bahasa Indonesia, keliru pada hitungan sederhana, dan sempat bingung/membalik definisi `[EFFORT:LOW/HIGH]`.
+2. **Pergeseran Identitas Model**: Karena belum ada sampel penguatan identitas, model sempat memperkenalkan diri menggunakan residu nama model dasar, bukan **Lensetek**.
+3. **Korupsi KV Cache 4-Bit (`-ctk q4_0 -ctv q4_0`) & Proses Zombie**: Kompresi KV Cache `q4_0` pada arsitektur Qwen2.5-3B (2 KV Heads) merusak matriks *attention* sehingga memicu keluaran kata acak (*word salad*), ditambah proses zombie `llama-server.exe` yang tetap menahan port `8080`.
+4. **Pencemaran Kueri RAG & Tampilan Raw Markdown**: Tag `[EFFORT:HIGH]` ikut terbawa ke pencarian `rag_engine.search()` sehingga menarik potongan dokumen yang tidak relevan, sementara balasan chat masih tampil mentah (`**`, `*`) tanpa indikator loading.
+
+#### ✅ Perbaikan pada Revisi v3.0 (`2026-11-23`)
+* **Pembaruan Bobot Model v3.0 (Bobot Lama v1/v2 Dihapus & Diganti)**:
+  * Menambahkan **30% General Conversational Replay (`Cluster C7`)** ke dataset `lensetek_edge_loop_3000.jsonl` & `lensetek_eval_heldout_300.jsonl` beserta penyelarasan identitas **Lensetek**.
+  * Dilatih ulang dengan `lr=8e-5`, `lora_alpha=16`, `2 epoch penuh`, *cosine scheduler*, dan telah lulus uji *live* (identitas Lensetek, aritmatika `1 + 15 = 16`, serta penolakan anti-halusinasi medis 0 hits) sebelum diekspor ke GGUF `Q4_K_M` baru.
+  * Mengimplementasikan loop penuh `GRPOTrainer` + `GRPOConfig` di `training/train_grpo_rlvr.py`.
+* **Perbaikan Edge Studio & Runtime (`app.py`)**:
+  * Menghapus `-ctk q4_0 -ctv q4_0`, beralih ke `-fa auto`, menambahkan stop tokens Qwen2.5 (`<|im_end|>`, `<|endoftext|>`), `repeat_penalty=1.1`, dan pembersih otomatis proses zombie `llama-server.exe`.
+  * Menambahkan **Render Markdown XSS-safe** (dengan blok `<think>` yang bisa dilipat), **indikator loading animasi**, **pembersihan tag `[EFFORT:...]` sebelum pencarian RAG**, **Indeks Folder Proyek otomatis (`/api/rag/index_project`)**, tombol `➕ New Chat`, toggle `🔇 Suara: OFF/ON`, selector Effort (`OFF / LOW / HIGH`), dan tautan `🦙 Llama.cpp WebUI ↗`.
 
 <br>
 <hr>

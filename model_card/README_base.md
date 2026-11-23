@@ -170,7 +170,11 @@ Repositori ini ditujukan untuk para peneliti AI, teknisi enterprise, dan pengemb
 3. Melakukan *continual pre-training* atau penyesuaian adaptor LoRA lanjutan untuk domain spesifik.
 
 > [!NOTE]
-> Jika Anda mencari versi **4-bit GGUF siap pakai di CPU murah / Ollama dengan konsumsi RAM di bawah 2.5 GB**, silakan kunjungi repositori: **[`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)**.
+> Jika Anda mencari versi **4-bit GGUF v3.0 (`2026-11-23`) siap pakai di CPU murah / Edge Studio dengan konsumsi RAM di bawah 2.5 GB** (yang telah memperbaiki *catastrophic forgetting* v1/v2 melalui 30% *General Replay C7*, `lr=8e-5`, 2 epoch, dan identitas **Lensetek**), silakan kunjungi repositori: **[`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)**.
+
+### 🆕 Catatan Revisi v3.0 (`2026-11-23`)
+* **Permasalahan v1/v2**: Dataset 100% sintetis tanpa replay percakapan umum serta `lr=2e-4` menyebabkan degradasi Bahasa Indonesia & kebingungan identitas; kompresi KV cache `q4_0` pada runtime merusak *attention* 2 KV heads.
+* **Perbaikan v3.0**: Menambahkan **30% General Replay (`C7`)** + identitas **Lensetek**, menurunkan `lr=8e-5` (2 epoch penuh), mengimplementasikan loop penuh `GRPOTrainer` di `training/train_grpo_rlvr.py`, serta memverifikasi *live* model GGUF v3.0 (bobot GGUF lama v1/v2 telah dihapus dan diganti).
 
 ---
 
