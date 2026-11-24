@@ -439,6 +439,132 @@
     }
 
     /* ==================================================================== */
+    /* WHY LEAN SECTION & ARCHITECTURAL COMPARISON                          */
+    /* ==================================================================== */
+    .why-lean-section {
+      margin: 10px 0 70px;
+    }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 30px;
+    }
+    .comparison-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+    }
+    .comparison-card.conventional {
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.04) 0%, rgba(13, 19, 31, 0.95) 100%);
+    }
+    .comparison-card.lean {
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      background: linear-gradient(180deg, rgba(0, 240, 255, 0.05) 0%, rgba(13, 19, 31, 0.95) 100%);
+      box-shadow: 0 12px 35px -10px rgba(0, 240, 255, 0.12);
+    }
+    .comp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .comp-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .comp-badge.bad {
+      background: rgba(239, 68, 68, 0.14);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .comp-badge.good {
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--accent-green);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+    .comp-tag {
+      font-size: 0.76rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+    .comp-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.35;
+    }
+    .comp-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 0;
+      padding: 0;
+    }
+    .comp-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+    .comp-icon {
+      font-size: 1.05rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .comp-list strong {
+      display: block;
+      color: #fff;
+      font-size: 0.9rem;
+      margin-bottom: 3px;
+    }
+    .comp-list p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 0.85rem;
+    }
+    .reality-banner {
+      background: #0b121e;
+      border: 1px solid #1e293b;
+      border-left: 4px solid var(--accent-cyan);
+      border-radius: var(--radius-sm);
+      padding: 18px 22px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+    .reality-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+    .reality-text strong {
+      color: var(--accent-cyan);
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .reality-text em {
+      color: #fff;
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    /* ==================================================================== */
     /* INTERACTIVE TERMINAL PREVIEW                                         */
     /* ==================================================================== */
     .terminal-section {
@@ -686,6 +812,18 @@
     /* ==================================================================== */
     /* RESPONSIVE POLISH (Mobile First)                                     */
     /* ==================================================================== */
+    @media (max-width: 860px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+      .reality-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+
     @media (max-width: 680px) {
       .install-row {
         grid-template-columns: 1fr;
@@ -723,6 +861,7 @@
       </a>
       <div class="nav-links">
         <a href="#install">Install</a>
+        <a href="#why-lean">Why Lean?</a>
         <a href="#showcase">Terminal UI</a>
         <a href="#features">Architecture</a>
         <a href="#commands">Commands</a>
@@ -848,6 +987,119 @@
           </div>
         </div>
       </section>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- WHY LEAN AGENT: SLM REALITY & EDGE ADVANTAGE               -->
+    <!-- ========================================================== -->
+    <section id="why-lean" class="why-lean-section">
+      <div style="text-align: center;">
+        <div class="badge-pill" style="margin-bottom: 14px;">
+          <span class="pulse-dot"></span>
+          <span>THE ARCHITECTURAL DIFFERENCE</span>
+        </div>
+      </div>
+      <h2 class="section-title">Why Conventional Harnesses Fail on SLMs — And Why Lean Works</h2>
+      <p class="section-desc">
+        Most agent frameworks were built for massive 100B+ cloud API models with 128k context windows. On small edge models (SLMs), their heavy token overhead causes instant failure. Here is the realistic engineering behind our lean edge-first approach.
+      </p>
+
+      <!-- Side-by-Side Comparison Grid -->
+      <div class="comparison-grid">
+        <!-- Card 1: Conventional Harnesses -->
+        <div class="comparison-card conventional">
+          <div class="comp-header">
+            <span class="comp-badge bad">Conventional Frameworks</span>
+            <span class="comp-tag">Cloud-First / API-Centric</span>
+          </div>
+          <h3 class="comp-title">LangChain, CrewAI, AutoGPT, OpenHands</h3>
+          <ul class="comp-list">
+            <li>
+              <div class="comp-icon red">❌</div>
+              <div>
+                <strong>Massive Initial Token Bloat (4,000 – 8,000+ tokens)</strong>
+                <p>Injects verbose JSON schemas, dozens of tool definitions, and dense few-shot examples into the system prompt before the user even types a single word.</p>
+              </div>
+            </li>
+            <li>
+              <div class="comp-icon red">❌</div>
+              <div>
+                <strong>Context Collapse &amp; Hallucination on SLMs (3B Models)</strong>
+                <p>Small language models suffer from attention dilution and context saturation. They hallucinate non-existent tool arguments, emit malformed JSON, or freeze in infinite loops.</p>
+              </div>
+            </li>
+            <li>
+              <div class="comp-icon red">❌</div>
+              <div>
+                <strong>Heavy Infrastructure &amp; Tool Dependencies</strong>
+                <p>Often requires Docker daemon, Redis message queues, external vector databases, and massive Node.js/Python dependency trees just to boot.</p>
+              </div>
+            </li>
+            <li>
+              <div class="comp-icon red">❌</div>
+              <div>
+                <strong>Cloud Cost &amp; Privacy Leakage</strong>
+                <p>Requires ongoing paid cloud API tokens (OpenAI / Anthropic). Private code, proprietary data, and prompts are continuously streamed to third-party cloud servers.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 2: Lensetek Lean Agent -->
+        <div class="comparison-card lean">
+          <div class="comp-header">
+            <span class="comp-badge good">Lensetek Lean Harness</span>
+            <span class="comp-tag">Edge-First / Autonomous</span>
+          </div>
+          <h3 class="comp-title">Purpose-Built for Local SLMs &amp; Local LLMs</h3>
+          <ul class="comp-list">
+            <li>
+              <div class="comp-icon green">✅</div>
+              <div>
+                <strong>Ultra-Lean Token Budgeting (&lt; 350 tokens initial prompt)</strong>
+                <p>Minimalist ReAct instruction set. Leaves &gt;90% of the context window wide open for actual user prompts, file contents, and step-by-step reasoning.</p>
+              </div>
+            </li>
+            <li>
+              <div class="comp-icon green">✅</div>
+              <div>
+                <strong>Runs Edge SLMs (3B) with Scalability to Local LLMs (7B / 14B)</strong>
+                <p>Flawlessly drives 3B edge models on modest hardware, yet instantly scales to 7B or custom local GGUF models via <code>/model switch</code> and <code>/model add</code>.</p>
+              </div>
+            </li>
+            <li>
+              <div class="comp-icon green">✅</div>
+              <div>
+                <strong>Zero GPU Requirement &amp; Low RAM (&lt; 2.5 GB)</strong>
+                <p>Optimized for commodity CPUs (everyday laptops, mini PCs, SBCs). Pure GGUF execution with 8-bit KV cache compression without requiring discrete GPUs.</p>
+              </div>
+            </li>
+            <li>
+              <div class="comp-icon green">✅</div>
+              <div>
+                <strong>Built-in Anti-Hallucination &amp; Loop Circuit-Breakers</strong>
+                <p>Small models can spiral when a tool fails. Our harness includes runtime interceptors and retry caps that detect failure patterns and rescue the agent.</p>
+              </div>
+            </li>
+            <li>
+              <div class="comp-icon green">✅</div>
+              <div>
+                <strong>100% Air-Gapped &amp; True Data Sovereignty</strong>
+                <p>Runs entirely offline with zero cloud telemetry. Your source code, sensitive documents, and prompt thoughts never leave your local machine.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Realistic Positioning Banner -->
+      <div class="reality-banner">
+        <div class="reality-icon">🎯</div>
+        <div class="reality-text">
+          <strong>Realistic Edge Positioning:</strong>
+          <span>We don't claim to replace trillion-parameter cloud clusters with 200 microservices. Our mission is distinct: delivering a <em>truly autonomous, lightweight AI agent harness</em> that actually executes reliably on everyday edge devices and local small models without breaking your RAM, budget, or privacy.</span>
+        </div>
+      </div>
     </section>
 
     <!-- ========================================================== -->
