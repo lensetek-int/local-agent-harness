@@ -1,0 +1,49 @@
+{
+  "default_model": "lensetek-edge-loop-3b-q4_k_m.gguf",
+  "models": [
+    {
+      "id": "lensetek-edge-loop-3b",
+      "name": "Lensetek Edge-Loop 3B (Flagship Edge Agent)",
+      "filename": "lensetek-edge-loop-3b-q4_k_m.gguf",
+      "size_display": "1.93 GB",
+      "quantization": "Q4_K_M",
+      "recommended": true,
+      "description": "Flagship 3B agent model optimized for commodity CPUs, low RAM (< 2.5 GB), 100% deterministic tool calling and zero hallucination.",
+      "repo": "lensetek/lensetek-edge-loop-3b-GGUF",
+      "url": "https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true"
+    },
+    {
+      "id": "qwen2.5-0.5b",
+      "name": "Qwen 2.5 0.5B Instruct (Ultra-Lightweight)",
+      "filename": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+      "size_display": "491 MB",
+      "quantization": "Q4_K_M",
+      "recommended": false,
+      "description": "Ultra-lightweight model for embedded devices with tight RAM limits.",
+      "repo": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true"
+    },
+    {
+      "id": "qwen2.5-3b",
+      "name": "Qwen 2.5 3B Instruct (General Agent)",
+      "filename": "qwen2.5-3b-instruct-q4_k_m.gguf",
+      "size_display": "2.04 GB",
+      "quantization": "Q4_K_M",
+      "recommended": false,
+      "description": "Versatile 3B model for structured JSON and function calling.",
+      "repo": "Qwen/Qwen2.5-3B-Instruct-GGUF",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf?download=true"
+    },
+    {
+      "id": "qwen2.5-7b",
+      "name": "Qwen 2.5 7B Instruct (Deep Reasoning)",
+      "filename": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+      "size_display": "4.68 GB",
+      "quantization": "Q4_K_M",
+      "recommended": false,
+      "description": "Deep reasoning model for desktop PCs with 8GB+ RAM.",
+      "repo": "bartowski/Qwen2.5-7B-Instruct-GGUF",
+      "url": "https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf?download=true"
+    }
+  ]
+}

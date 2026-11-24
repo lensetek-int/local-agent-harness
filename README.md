@@ -68,7 +68,7 @@ The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous age
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Direct Python launch with `prompt_toolkit` |
 
 #### 🛠️ Key Agentic Features:
-- **Multi-Model Local Support**: Seamlessly switch between 3B edge SLMs, 7B reasoning models, and custom local GGUFs via `/model` and `/model add <path>`.
+- **Multi-Model Auto-Downloader (list.json)**: Fresh installs automatically download the flagship Lensetek Edge-Loop 3B (~1.93 GB) from Hugging Face if no local model is found. Use `/model download` to browse or `/model add <path>` to register models.
 - **Universal MCP Orchestrator**: Manage and connect Stdio MCP servers dynamically via `/mcp` (`fetch`, `playwright-headless`, etc.).
 - **Headless Web Search**: Built-in Bing & Google headless search via `/search <query>` and native `web_search` tool without external API keys.
 - **Extensible Skills Architecture**: Create domain skills via `/skill create <name>`, execute bundled skills (`/code-review`, `/web-research`), or link local skill directories.
@@ -331,7 +331,7 @@ Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (visi
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Jalankan langsung via Python & prompt_toolkit |
 
 #### 🛠️ Fitur-Fitur Utama Agen:
-- **Dukungan Multi-Model Lokal**: Beralih fleksibel antara model edge 3B, model reasoning 7B, dan file GGUF kustom via `/model` dan `/model add <path>`.
+- **Pengunduh Model Otomatis (list.json)**: Instalasi baru otomatis mengunduh model unggulan Lensetek Edge-Loop 3B (~1.93 GB) dari Hugging Face jika belum ada model lokal. Gunakan `/model download` atau `/model add <path>` untuk mengelola model.
 - **Universal MCP Orchestrator**: Pasang dan operasikan server MCP secara dinamis via `/mcp` (`fetch`, `playwright-headless`, dll.).
 - **Pencarian Web Headless**: Fitur pencarian Bing & Google tanpa API key melalui `/search <kueri>` dan tool bawaan `web_search`.
 - **Arsitektur Skill Ekstensibel**: Buat skill kustom dengan `/skill create <nama>`, jalankan skill lokal bawaan (`/code-review`, `/web-research`), atau hubungkan folder skill eksternal.

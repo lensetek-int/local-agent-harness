@@ -53,7 +53,7 @@ def get_slash_items(skills_mgr: SkillManager) -> list[tuple[str, str, str]]:
         ("/auto-approve", "Mode otomatis setuju aksi dalam workspace", "SAFETY"),
         ("/yolo", "Mode tanpa konfirmasi (kecuali perintah fatal)", "SAFETY"),
         ("/workspace", "Ganti folder kerja aktif", "WORKSPACE"),
-        ("/model", "Pilih dan ganti model GGUF", "MODEL"),
+        ("/model", "Pilih, ganti, atau unduh model lokal (/model download, /model add)", "MODEL"),
         ("/ctx", "Ubah context window (4096, 8192, 16384)", "MODEL"),
         ("/clear", "Bersihkan riwayat percakapan", "CHAT"),
         ("/exit", "Keluar dari CLI dan matikan server dengan aman", "SISTEM"),
@@ -177,8 +177,16 @@ def main():
     workspace_path = Path(args.workspace).resolve()
     model_name = args.model or config.pick_default_model()
     if not model_name:
-        print(f"{C_RED}[ERROR] No *.gguf models found in root directory!{C_RESET}")
-        sys.exit(1)
+        print(f"\n{C_YELLOW}[!] Belum ada model *.gguf yang terdeteksi di direktori lokal.{C_RESET}")
+        print(f"{C_CYAN}[i] Mengunduh otomatis model default: Lensetek Edge-Loop 3B (~1.93 GB) dari list.json...{C_RESET}")
+        ok, msg, path_res = config.download_model_from_catalog()
+        if ok and path_res:
+            model_name = path_res
+            print(f"{C_GREEN}✓ Model siap digunakan: {Path(model_name).name}{C_RESET}\n")
+        else:
+            print(f"{C_RED}[ERROR] Gagal mengunduh model otomatis: {msg}{C_RESET}")
+            print(f"{C_DIM}Silakan periksa koneksi internet atau unduh manual via list.json / py download_models.py --loop{C_RESET}\n")
+            sys.exit(1)
 
     # Baca preferensi bahasa pengguna (default: en)
     active_language = config.get_active_language()
@@ -555,6 +563,31 @@ def main():
                             print(f"{C_RED}{msg}{C_RESET}\n")
                         continue
 
+                    if sub_cmd == "download":
+                        if sub_val:
+                            ok, msg, path_res = config.download_model_from_catalog(sub_val)
+                            if ok and path_res:
+                                print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                                ask_sw = input("Apakah Anda ingin langsung beralih ke model ini? [Y/n]: ").strip().lower()
+                                if ask_sw in ("", "y", "yes") and server_mgr:
+                                    chosen_name = Path(path_res).name
+                                    server_mgr.start(path_res)
+                                    model_name = chosen_name
+                                    agent.model_name = chosen_name
+                                    agent.reset_session()
+                                    print(f"{C_GREEN}✓ Active model updated to: {model_name}{C_RESET}\n")
+                            else:
+                                print(f"{C_RED}Gagal mengunduh: {msg}{C_RESET}\n")
+                        else:
+                            catalog = config.load_model_catalog()
+                            print(f"\n{C_BOLD}Model Tersedia di Katalog Unduhan (list.json):{C_RESET}")
+                            for m in catalog.get("models", []):
+                                rec = f" {C_GREEN}* Rekomendasi Edge (Default){C_RESET}" if m.get("recommended") else ""
+                                print(f"  • {C_CYAN}{m.get('id')}{C_RESET} ({m.get('size_display')}): {m.get('name')}{rec}")
+                                print(f"    {C_DIM}{m.get('description')}{C_RESET}")
+                            print(f"\n{C_DIM}Gunakan '/model download <id>' untuk mengunduh model pilihan Anda.{C_RESET}\n")
+                        continue
+
                     available = config.list_gguf_models()
                     print(f"\n{C_BOLD}Available Local Models (3B, 7B & Custom):{C_RESET}")
                     for idx, m in enumerate(available, start=1):
@@ -571,7 +604,7 @@ def main():
                         marker = f"{C_GREEN}* active{C_RESET}" if m == model_name or p.name == model_name else ""
                         print(f"  [{idx}] {m_display} {C_DIM}{size_str}{C_RESET} {marker}")
 
-                    print(f"\n{C_DIM}Tips: Use '/model add <file.gguf|folder>' to register new 3B/7B models.{C_RESET}")
+                    print(f"\n{C_DIM}Tips: Use '/model download' to download from list.json, or '/model add <path>' to register existing models.{C_RESET}")
                     choice = input(f"Select model number (1-{len(available)}), or press enter to cancel: ").strip()
 
                     if choice.lower().startswith("add "):

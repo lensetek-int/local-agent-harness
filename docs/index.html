@@ -1232,9 +1232,9 @@
               <td>Switch agent response &amp; prompt language (English, Indonesian, Chinese). Saved persistently.</td>
             </tr>
             <tr>
-              <td><code>/model [add|switch]</code></td>
+              <td><code>/model [download|add]</code></td>
               <td><span class="cat-badge">MODEL</span></td>
-              <td>List local models (3B, 7B), switch active model, or register custom paths with <code>/model add &lt;path&gt;</code>.</td>
+              <td>Manage local models. Auto-downloads flagship 3B on first run from <code>list.json</code>. Browse downloads via <code>/model download</code> or add paths with <code>/model add &lt;path&gt;</code>.</td>
             </tr>
             <tr>
               <td><code>/search &lt;query&gt;</code></td>
@@ -1411,7 +1411,7 @@
 <span class="term-bold">Available Local Models (3B, 7B &amp; Custom):</span><br>
   [1] lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(1.93 GB)</span> <span class="term-green">* active</span><br>
   [2] Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf <span class="term-dim">(4.68 GB)</span><br>
-<span class="term-dim">Tip: Use '/model add &lt;path&gt;' to register new 3B/7B GGUF models anytime.</span><br>
+<span class="term-dim">Tip: Auto-downloads flagship 3B on fresh launch. Use '/model download' to browse list.json or '/model add &lt;path&gt;' anytime.</span><br>
 `;
       } else if (cmd === '/skills' || cmd.startsWith('/skills')) {
         output = `

@@ -116,6 +116,133 @@ def add_custom_model_path(path_str: str) -> tuple[bool, str]:
             return True, f"Direktori model '{p}' berhasil didaftarkan ke daftar pencarian model."
     return True, f"Path '{resolved_str}' sudah terdaftar sebelumnya."
 
+def load_model_catalog() -> dict:
+    """Membaca daftar model yang dapat diunduh dari list.json."""
+    candidates = [CLI_DIR / "list.json", REPO_ROOT / "list.json"]
+    for c in candidates:
+        if c.exists():
+            try:
+                with open(c, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"[WARN] Gagal membaca {c.name}: {e}")
+    return {"default_model": "lensetek-edge-loop-3b-q4_k_m.gguf", "models": []}
+
+def download_model_from_catalog(target_id: str = None, dest_dir: Path = None) -> tuple[bool, str, str]:
+    """
+    Mengunduh model dari list.json langsung dari Hugging Face ke folder tujuan.
+    Mengembalikan (success, message, filepath_or_empty).
+    """
+    import time
+    import urllib.request
+
+    catalog = load_model_catalog()
+    models = catalog.get("models", [])
+    if not models:
+        return False, "Katalog list.json kosong atau tidak ditemukan.", ""
+
+    # Pilih target model
+    selected = None
+    if target_id:
+        tid_lower = target_id.lower().strip()
+        for m in models:
+            if m.get("id", "").lower() == tid_lower or m.get("filename", "").lower() == tid_lower or tid_lower in m.get("name", "").lower():
+                selected = m
+                break
+        if not selected:
+            return False, f"Model ID '{target_id}' tidak ditemukan di list.json.", ""
+    else:
+        # Default: ambil recommended atau default_model
+        def_name = catalog.get("default_model", "lensetek-edge-loop-3b-q4_k_m.gguf")
+        for m in models:
+            if m.get("filename") == def_name or m.get("recommended"):
+                selected = m
+                break
+        if not selected:
+            selected = models[0]
+
+    filename = selected.get("filename")
+    url = selected.get("url")
+    display_name = selected.get("name", filename)
+
+    if not dest_dir:
+        # Simpan di REPO_ROOT / models jika ada, jika tidak langsung di REPO_ROOT
+        models_dir = REPO_ROOT / "models"
+        if models_dir.exists() and models_dir.is_dir():
+            dest_dir = models_dir
+        else:
+            dest_dir = REPO_ROOT
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    target_path = dest_dir / filename
+    part_path = dest_dir / f"{filename}.part"
+
+    if target_path.exists() and target_path.stat().st_size > 1024 * 1024:
+        return True, f"Model '{display_name}' sudah ada di: {target_path}", str(target_path)
+
+    print(f"\n\033[1;36m[DOWNLOAD]\033[0m Mengunduh {display_name} ({selected.get('size_display', '')})")
+    print(f"\033[2mSource: {url}\033[0m")
+    print(f"\033[2mDestination: {target_path}\033[0m\n")
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) LensetekHarness/2.0"})
+        start_time = time.time()
+        with urllib.request.urlopen(req, timeout=30) as resp, open(part_path, "wb") as f_out:
+            total_size = int(resp.headers.get("Content-Length", 0))
+            downloaded = 0
+            block_size = 1024 * 512 # 512 KB
+            last_print = 0
+
+            while True:
+                chunk = resp.read(block_size)
+                if not chunk:
+                    break
+                f_out.write(chunk)
+                downloaded += len(chunk)
+                
+                now = time.time()
+                if now - last_print > 0.3 or downloaded == total_size:
+                    last_print = now
+                    elapsed = max(0.1, now - start_time)
+                    speed_mb = (downloaded / (1024 * 1024)) / elapsed
+                    if total_size > 0:
+                        pct = (downloaded / total_size) * 100
+                        mb_down = downloaded / (1024 * 1024)
+                        mb_total = total_size / (1024 * 1024)
+                        bar_len = 28
+                        filled = int(bar_len * downloaded / total_size)
+                        bar = "=" * filled + (">" if filled < bar_len else "") + " " * (bar_len - filled - (1 if filled < bar_len else 0))
+                        sys.stdout.write(f"\r  [\033[32m{bar}\033[0m] {pct:5.1f}% ({mb_down:6.1f} / {mb_total:6.1f} MB) @ {speed_mb:5.1f} MB/s ")
+                    else:
+                        mb_down = downloaded / (1024 * 1024)
+                        sys.stdout.write(f"\r  Mengunduh: {mb_down:6.1f} MB @ {speed_mb:5.1f} MB/s ")
+                    sys.stdout.flush()
+
+        # Rename part to final target
+        if part_path.exists():
+            if target_path.exists():
+                target_path.unlink()
+            part_path.rename(target_path)
+
+        print(f"\n\033[32m✓ Unduhan selesai!\033[0m File tersimpan di: {target_path}\n")
+        return True, f"Berhasil mengunduh {display_name}", str(target_path)
+    except KeyboardInterrupt:
+        print(f"\n\033[31m[!] Pengunduhan dibatalkan oleh pengguna.\033[0m")
+        if part_path.exists():
+            try:
+                part_path.unlink()
+            except Exception:
+                pass
+        return False, "Pengunduhan dibatalkan.", ""
+    except Exception as e:
+        print(f"\n\033[31m[ERROR] Gagal mengunduh file: {e}\033[0m")
+        if part_path.exists():
+            try:
+                part_path.unlink()
+            except Exception:
+                pass
+        return False, str(e), ""
+
 def pick_default_model() -> str | None:
     """Prioritaskan lensetek-edge-loop-3b-q4_k_m.gguf jika ada, jika tidak ambil model pertama."""
     models = list_gguf_models()
