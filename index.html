@@ -150,10 +150,15 @@
     }
     .nav-links {
       display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .desktop-nav-links {
+      display: flex;
       gap: 18px;
       align-items: center;
     }
-    .nav-links a {
+    .desktop-nav-links a {
       color: var(--text-muted);
       text-decoration: none;
       font-size: 0.88rem;
@@ -161,8 +166,123 @@
       transition: color 0.2s ease;
       white-space: nowrap;
     }
-    .nav-links a:hover {
+    .desktop-nav-links a:hover {
       color: var(--accent-cyan);
+    }
+
+    /* Mobile & Tablet Submenu Button */
+    .mobile-menu-btn {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: #111a28;
+      border: 1px solid #243347;
+      color: #e2e8f0;
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .mobile-menu-btn:hover {
+      background: #1a273b;
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+    .mobile-menu-btn.active {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .mobile-menu-btn svg {
+      transition: transform 0.2s ease;
+    }
+    .mobile-menu-btn.active svg {
+      transform: rotate(90deg);
+    }
+
+    /* Mobile Submenu Dropdown Panel */
+    .mobile-submenu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(10, 15, 26, 0.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid #1e2c40;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+      z-index: 150;
+      animation: slideDownMenu 0.2s ease-out forwards;
+    }
+    .mobile-submenu.show {
+      display: block;
+    }
+    @keyframes slideDownMenu {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .mobile-submenu-inner {
+      padding: 12px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .mobile-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      background: transparent;
+    }
+    .mobile-nav-item:hover, .mobile-nav-item:active {
+      background: rgba(0, 240, 255, 0.08);
+      color: var(--accent-cyan);
+      transform: translateX(4px);
+    }
+    .mobile-nav-item .nav-icon {
+      font-size: 1.1rem;
+      width: 24px;
+      text-align: center;
+    }
+    .mobile-nav-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 6px 0;
+    }
+    .mobile-nav-item.external {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .mobile-nav-item.external .nav-badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #182334;
+      border: 1px solid #27374e;
+      color: #7dd3fc;
+    }
+
+    /* Breakpoint for tablet and mobile view */
+    @media (max-width: 960px) {
+      .desktop-nav-links {
+        display: none !important;
+      }
+      .mobile-menu-btn {
+        display: inline-flex !important;
+      }
     }
     .btn-github {
       display: inline-flex;
@@ -1002,7 +1122,7 @@
       .tab-content .btn-copy {
         align-self: flex-start;
       }
-      .nav-links a:not(.btn-github) {
+      .btn-space-top {
         display: none;
       }
       .search-filter {
@@ -1020,7 +1140,7 @@
   <div class="grid-overlay"></div>
 
   <!-- Header -->
-  <header>
+  <header id="siteHeader">
     <div class="container nav-wrapper">
       <a href="https://lensetek.com" target="_blank" rel="noopener noreferrer" class="logo" title="Visit Lensetek Official Website (lensetek.com)">
         <img src="https://cdn.lensetek.com/favicon.png" alt="Lensetek" width="28" height="28" style="border-radius: 6px; object-fit: contain;">
@@ -1028,11 +1148,13 @@
         <span class="logo-badge">AGENT</span>
       </a>
       <div class="nav-links">
-        <a href="#install" data-i18n="nav_install">Install</a>
-        <a href="#why-lean" data-i18n="nav_why_lean">Why Lean?</a>
-        <a href="#showcase" data-i18n="nav_terminal">Terminal UI</a>
-        <a href="#features" data-i18n="nav_features">Architecture</a>
-        <a href="#commands" data-i18n="nav_commands">Commands</a>
+        <nav class="desktop-nav-links" aria-label="Desktop Navigation">
+          <a href="#install" data-i18n="nav_install">Install</a>
+          <a href="#why-lean" data-i18n="nav_why_lean">Why Lean?</a>
+          <a href="#showcase" data-i18n="nav_terminal">Terminal UI</a>
+          <a href="#features" data-i18n="nav_features">Architecture</a>
+          <a href="#commands" data-i18n="nav_commands">Commands</a>
+        </nav>
 
         <!-- Language Switcher Dropdown -->
         <div class="lang-dropdown-wrapper" id="langDropdownWrap">
@@ -1054,14 +1176,61 @@
           </div>
         </div>
 
-        <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" class="btn-github">
+        <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" class="btn-github btn-space-top">
           <span>🤗 Space</span>
         </a>
         <a href="https://github.com/lensetek-int/local-agent-harness" target="_blank" class="btn-github">
           <svg height="15" width="15" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
           </svg>
-          GitHub
+          <span>GitHub</span>
+        </a>
+
+        <!-- Mobile & Tablet Submenu Toggle Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSubmenu(event)" aria-label="Toggle Navigation Menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <span class="mobile-menu-label" data-i18n="nav_menu">Menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Submenu Dropdown Panel -->
+    <div class="mobile-submenu" id="mobileSubmenu">
+      <div class="mobile-submenu-inner">
+        <a href="#install" onclick="closeMobileSubmenu()" class="mobile-nav-item">
+          <span class="nav-icon">⚡</span>
+          <span data-i18n="nav_install">Install</span>
+        </a>
+        <a href="#why-lean" onclick="closeMobileSubmenu()" class="mobile-nav-item">
+          <span class="nav-icon">💡</span>
+          <span data-i18n="nav_why_lean">Why Lean?</span>
+        </a>
+        <a href="#showcase" onclick="closeMobileSubmenu()" class="mobile-nav-item">
+          <span class="nav-icon">🖥️</span>
+          <span data-i18n="nav_terminal">Terminal UI</span>
+        </a>
+        <a href="#features" onclick="closeMobileSubmenu()" class="mobile-nav-item">
+          <span class="nav-icon">🏗️</span>
+          <span data-i18n="nav_features">Architecture</span>
+        </a>
+        <a href="#commands" onclick="closeMobileSubmenu()" class="mobile-nav-item">
+          <span class="nav-icon">📜</span>
+          <span data-i18n="nav_commands">Commands</span>
+        </a>
+        <div class="mobile-nav-divider"></div>
+        <a href="https://github.com/lensetek-int/local-agent-harness" target="_blank" class="mobile-nav-item external">
+          <span class="nav-icon">🐙</span>
+          <span>GitHub Repository</span>
+          <span class="nav-badge">Open</span>
+        </a>
+        <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" class="mobile-nav-item external">
+          <span class="nav-icon">🤗</span>
+          <span>Hugging Face Space</span>
+          <span class="nav-badge">Live</span>
         </a>
       </div>
     </div>
@@ -1574,6 +1743,7 @@
         nav_terminal: "Terminal UI",
         nav_features: "Architecture",
         nav_commands: "Commands",
+        nav_menu: "Menu",
         hero_badge: "EDGE-COMPUTING AGENT HARNESS (v2.0)",
         hero_title: "The Autonomous AI Agent Harness for <span>Local Models</span>",
         hero_subtitle: "Run full agentic loops, dynamic MCP servers, headless web search, and extensible skills — 100% locally on standard commodity CPUs without GPU dependencies.",
@@ -1681,6 +1851,7 @@
         nav_terminal: "Antarmuka CLI",
         nav_features: "Arsitektur",
         nav_commands: "Daftar Perintah",
+        nav_menu: "Menu",
         hero_badge: "HARNESS AGEN KOMPUTASI EDGE (v2.0)",
         hero_title: "Harness Agen AI Otonom untuk <span>Model Lokal</span>",
         hero_subtitle: "Jalankan loop otonom penuh, server MCP dinamis, pencarian web headless, dan skills yang dapat dikembangkan — 100% lokal pada CPU standar tanpa ketergantungan GPU.",
@@ -1788,6 +1959,7 @@
         nav_terminal: "终端界面",
         nav_features: "核心架构",
         nav_commands: "命令参考",
+        nav_menu: "菜单",
         hero_badge: "端侧计算智能体框架 (v2.0)",
         hero_title: "专为<span>本地模型</span>打造的自主AI智能体框架",
         hero_subtitle: "在普通消费级CPU上纯本地运行完整的自主代理循环、动态MCP服务、无头网络搜索与扩展技能，无需任何GPU依赖。",
@@ -1982,11 +2154,39 @@
       if (wrap) wrap.classList.remove('open');
     }
 
-    // Close language dropdown on outside click
+    function toggleMobileSubmenu(e) {
+      if (e) e.stopPropagation();
+      closeLangDropdown();
+      const menu = document.getElementById('mobileSubmenu');
+      const btn = document.getElementById('mobileMenuBtn');
+      if (menu) {
+        const isShown = menu.classList.toggle('show');
+        if (btn) btn.classList.toggle('active', isShown);
+      }
+    }
+
+    function closeMobileSubmenu() {
+      const menu = document.getElementById('mobileSubmenu');
+      const btn = document.getElementById('mobileMenuBtn');
+      if (menu) menu.classList.remove('show');
+      if (btn) btn.classList.remove('active');
+    }
+
+    window.toggleMobileSubmenu = toggleMobileSubmenu;
+    window.closeMobileSubmenu = closeMobileSubmenu;
+
+    // Close dropdowns on outside click
     document.addEventListener('click', function(e) {
       const wrap = document.getElementById('langDropdownWrap');
       if (wrap && !wrap.contains(e.target)) {
         closeLangDropdown();
+      }
+      const menu = document.getElementById('mobileSubmenu');
+      const btn = document.getElementById('mobileMenuBtn');
+      if (menu && menu.classList.contains('show')) {
+        if (!menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+          closeMobileSubmenu();
+        }
       }
     });
 
