@@ -2,6 +2,14 @@ import os
 import sys
 import json
 from pathlib import Path
+try:
+    from i18n import t
+except ImportError:
+    try:
+        from cli_agent.i18n import t
+    except ImportError:
+        def t(key, lang="en", **kwargs):
+            return key
 
 CLI_DIR = Path(__file__).resolve().parent
 REPO_ROOT = CLI_DIR.parent
@@ -128,7 +136,7 @@ def load_model_catalog() -> dict:
                 print(f"[WARN] Gagal membaca {c.name}: {e}")
     return {"default_model": "lensetek-edge-loop-3b-q4_k_m.gguf", "models": []}
 
-def download_model_from_catalog(target_id: str = None, dest_dir: Path = None) -> tuple[bool, str, str]:
+def download_model_from_catalog(target_id: str = None, dest_dir: Path = None, lang: str = "en") -> tuple[bool, str, str]:
     """
     Mengunduh model dari list.json langsung dari Hugging Face ke folder tujuan.
     Mengembalikan (success, message, filepath_or_empty).
@@ -139,7 +147,7 @@ def download_model_from_catalog(target_id: str = None, dest_dir: Path = None) ->
     catalog = load_model_catalog()
     models = catalog.get("models", [])
     if not models:
-        return False, "Katalog list.json kosong atau tidak ditemukan.", ""
+        return False, "Catalog list.json is empty or not found.", ""
 
     # Pilih target model
     selected = None
@@ -150,7 +158,7 @@ def download_model_from_catalog(target_id: str = None, dest_dir: Path = None) ->
                 selected = m
                 break
         if not selected:
-            return False, f"Model ID '{target_id}' tidak ditemukan di list.json.", ""
+            return False, f"Model ID '{target_id}' not found in list.json.", ""
     else:
         # Default: ambil recommended atau default_model
         def_name = catalog.get("default_model", "lensetek-edge-loop-3b-q4_k_m.gguf")
@@ -178,9 +186,10 @@ def download_model_from_catalog(target_id: str = None, dest_dir: Path = None) ->
     part_path = dest_dir / f"{filename}.part"
 
     if target_path.exists() and target_path.stat().st_size > 1024 * 1024:
-        return True, f"Model '{display_name}' sudah ada di: {target_path}", str(target_path)
+        return True, f"Model '{display_name}' already exists at: {target_path}", str(target_path)
 
-    print(f"\n\033[1;36m[DOWNLOAD]\033[0m Mengunduh {display_name} ({selected.get('size_display', '')})")
+    d_start_lbl = t("download_started", lang)
+    print(f"\n\033[1;36m[DOWNLOAD]\033[0m {d_start_lbl}: {display_name} ({selected.get('size_display', '')})")
     print(f"\033[2mSource: {url}\033[0m")
     print(f"\033[2mDestination: {target_path}\033[0m\n")
 
@@ -215,7 +224,7 @@ def download_model_from_catalog(target_id: str = None, dest_dir: Path = None) ->
                         sys.stdout.write(f"\r  [\033[32m{bar}\033[0m] {pct:5.1f}% ({mb_down:6.1f} / {mb_total:6.1f} MB) @ {speed_mb:5.1f} MB/s ")
                     else:
                         mb_down = downloaded / (1024 * 1024)
-                        sys.stdout.write(f"\r  Mengunduh: {mb_down:6.1f} MB @ {speed_mb:5.1f} MB/s ")
+                        sys.stdout.write(f"\r  {d_start_lbl}: {mb_down:6.1f} MB @ {speed_mb:5.1f} MB/s ")
                     sys.stdout.flush()
 
         # Rename part to final target
@@ -224,18 +233,21 @@ def download_model_from_catalog(target_id: str = None, dest_dir: Path = None) ->
                 target_path.unlink()
             part_path.rename(target_path)
 
-        print(f"\n\033[32m✓ Unduhan selesai!\033[0m File tersimpan di: {target_path}\n")
-        return True, f"Berhasil mengunduh {display_name}", str(target_path)
+        d_done_lbl = t("download_complete", lang)
+        print(f"\n\033[32m{d_done_lbl}\033[0m {target_path}\n")
+        return True, f"{d_done_lbl} {display_name}", str(target_path)
     except KeyboardInterrupt:
-        print(f"\n\033[31m[!] Pengunduhan dibatalkan oleh pengguna.\033[0m")
+        cancel_lbl = t("download_cancelled", lang)
+        print(f"\n\033[31m{cancel_lbl}\033[0m")
         if part_path.exists():
             try:
                 part_path.unlink()
             except Exception:
                 pass
-        return False, "Pengunduhan dibatalkan.", ""
+        return False, cancel_lbl, ""
     except Exception as e:
-        print(f"\n\033[31m[ERROR] Gagal mengunduh file: {e}\033[0m")
+        err_lbl = t("download_failed", lang)
+        print(f"\n\033[31m{err_lbl} {e}\033[0m")
         if part_path.exists():
             try:
                 part_path.unlink()

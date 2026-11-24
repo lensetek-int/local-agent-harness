@@ -14,6 +14,16 @@ from skills_manager import SkillManager
 from scheduler import TaskScheduler
 from web_search import headless_web_search, format_search_results
 from agent import LeanAgent
+try:
+    from i18n import t, get_localized_slash_items
+except ImportError:
+    try:
+        from cli_agent.i18n import t, get_localized_slash_items
+    except ImportError:
+        def t(key, lang="en", **kwargs):
+            return key
+        def get_localized_slash_items(lang="en"):
+            return []
 
 # Integrasi prompt_toolkit untuk interactive autocomplete / suggestions saat mengetik '/'
 try:
@@ -37,33 +47,15 @@ C_YELLOW = "\033[33m"
 C_RED = "\033[31m"
 C_MAGENTA = "\033[35m"
 
-def get_slash_items(skills_mgr: SkillManager) -> list[tuple[str, str, str]]:
-    """Mengembalikan daftar semua slash commands dan skills untuk autocomplete."""
-    items = [
-        ("/help", "Panduan lengkap & daftar perintah slash", "SISTEM"),
-        ("/language", "Ganti bahasa agen & sistem (en, id, cn)", "CONFIG"),
-        ("/search", "Pencarian web headless instan (Bing/Google)", "WEB"),
-        ("/skills", "Lihat daftar skill lokal & kustom yang terpasang", "SKILLS"),
-        ("/skill create", "Buat skill baru di cli-agent/skills/", "SKILLS"),
-        ("/mcp", "Status & konfigurasi server MCP", "MCP"),
-        ("/goal", "Mode otonom multi-langkah (hingga 20 langkah)", "AGENTIC"),
-        ("/loop", "Ulangi tugas berkala (misal: /loop 3x atau 5m)", "AGENTIC"),
-        ("/schedule", "Penjadwalan tugas (In-App atau Windows Task Scheduler)", "SCHEDULER"),
-        ("/strict", "Mode konfirmasi ketat [y/N]", "SAFETY"),
-        ("/auto-approve", "Mode otomatis setuju aksi dalam workspace", "SAFETY"),
-        ("/yolo", "Mode tanpa konfirmasi (kecuali perintah fatal)", "SAFETY"),
-        ("/workspace", "Ganti folder kerja aktif", "WORKSPACE"),
-        ("/model", "Pilih, ganti, atau unduh model lokal (/model download, /model add)", "MODEL"),
-        ("/ctx", "Ubah context window (4096, 8192, 16384)", "MODEL"),
-        ("/clear", "Bersihkan riwayat percakapan", "CHAT"),
-        ("/exit", "Keluar dari CLI dan matikan server dengan aman", "SISTEM"),
-    ]
+def get_slash_items(skills_mgr: SkillManager, lang: str = "en") -> list[tuple[str, str, str]]:
+    """Mengembalikan daftar semua slash commands dan skills untuk autocomplete sesuai bahasa aktif."""
+    items = get_localized_slash_items(lang)
 
     try:
         all_skills = skills_mgr.scan_skills()
         for slug, s_data in all_skills.items():
             cmd = f"/{slug}"
-            desc = s_data.get("description", "Aktivasi skill")
+            desc = s_data.get("description", "Activate skill" if lang == "en" else "Aktivasi skill")
             src = s_data.get("source", "skill").upper()
             items.append((cmd, desc, src))
     except Exception:
@@ -73,13 +65,16 @@ def get_slash_items(skills_mgr: SkillManager) -> list[tuple[str, str, str]]:
 
 if HAS_PROMPT_TOOLKIT:
     class SlashCommandCompleter(Completer):
-        def __init__(self, get_items_fn):
+        def __init__(self, get_items_fn, get_lang_fn=None):
             self.get_items_fn = get_items_fn
+            self.get_lang_fn = get_lang_fn or (lambda: "en")
 
         def get_completions(self, document, complete_event):
             text = document.text_before_cursor
             if not text.startswith("/"):
                 return
+
+            cur_lang = self.get_lang_fn()
 
             if " " in text:
                 tokens = text.split()
@@ -87,13 +82,22 @@ if HAS_PROMPT_TOOLKIT:
                 if first_word == "/mcp" and len(tokens) == 2 and not text.endswith(" "):
                     sub = tokens[1].lower()
                     mcp_subs = [
-                        ("install", "Install MCP baru dari nama/preset/command"),
-                        ("test", "Uji koneksi handshake server MCP"),
-                        ("remove", "Hapus server MCP"),
-                        ("enable", "Aktifkan server MCP"),
-                        ("disable", "Nonaktifkan server MCP")
+                        ("install", t("mcp_sub_install", cur_lang)),
+                        ("test", t("mcp_sub_test", cur_lang)),
+                        ("remove", t("mcp_sub_remove", cur_lang)),
+                        ("enable", t("mcp_sub_enable", cur_lang)),
+                        ("disable", t("mcp_sub_disable", cur_lang))
                     ]
                     for sc, desc in mcp_subs:
+                        if sc.startswith(sub):
+                            yield Completion(sc, start_position=-len(tokens[1]), display=sc, display_meta=desc)
+                elif first_word == "/model" and len(tokens) == 2 and not text.endswith(" "):
+                    sub = tokens[1].lower()
+                    model_subs = [
+                        ("download", t("model_sub_download", cur_lang)),
+                        ("add", t("model_sub_add", cur_lang))
+                    ]
+                    for sc, desc in model_subs:
                         if sc.startswith(sub):
                             yield Completion(sc, start_position=-len(tokens[1]), display=sc, display_meta=desc)
                 elif first_word == "/language" and len(tokens) == 2 and not text.endswith(" "):
@@ -130,6 +134,8 @@ if HAS_PROMPT_TOOLKIT:
 
 def print_banner(workspace: Path, model_name: str, ctx_size: int, port: int, mcp_names: list[str], safety_mode: str, skills_count: int, language: str):
     lang_name = config.SUPPORTED_LANGUAGES.get(language, language.upper())
+    skills_lbl = t("banner_skills_detected", language)
+    tip_lbl = t("banner_tip", language)
     print(f"{C_CYAN}{C_BOLD}===================================================================={C_RESET}")
     print(f"{C_CYAN}{C_BOLD}        ⚡ LENSETEK LEAN AGENT HARNESS                             {C_RESET}")
     print(f"{C_CYAN}{C_BOLD}===================================================================={C_RESET}")
@@ -139,28 +145,19 @@ def print_banner(workspace: Path, model_name: str, ctx_size: int, port: int, mcp
     print(f" {C_BOLD}Safety:{C_RESET}    [{safety_mode.upper()}] {C_DIM}(/strict, /auto-approve, /yolo){C_RESET}")
     print(f" {C_BOLD}Web Search:{C_RESET}{C_GREEN} Headless Active {C_DIM}(web_search tool & /search <q>){C_RESET}")
     print(f" {C_BOLD}MCP:{C_RESET}       {', '.join(mcp_names) if mcp_names else 'None'}")
-    print(f" {C_BOLD}Skills:{C_RESET}    {skills_count} skills detected {C_DIM}(type '/' and press Tab to autocomplete){C_RESET}")
-    print(f" {C_DIM}Type '/help' for commands. Press Ctrl+C while thinking to cancel current task.{C_RESET}")
+    print(f" {C_BOLD}Skills:{C_RESET}    {skills_count} {skills_lbl} {C_DIM}(type '/' and press Tab to autocomplete){C_RESET}")
+    print(f" {C_DIM}{tip_lbl}{C_RESET}")
     print(f"{C_CYAN}--------------------------------------------------------------------{C_RESET}\n")
 
 def print_help(lang: str = "en"):
-    print(f"\n{C_BOLD}Commands Guide / Daftar Perintah Slash (/):{C_RESET}")
-    print(f"  {C_YELLOW}/help{C_RESET}                               - Show this help guide")
-    print(f"  {C_YELLOW}/language <en|id|cn>{C_RESET}                 - Switch language (saved to user settings)")
-    print(f"  {C_YELLOW}/search <query>{C_RESET}                      - Instant headless web search (Bing/Google)")
-    print(f"  {C_YELLOW}/workspace <path>{C_RESET}                   - Change active workspace folder")
-    print(f"  {C_YELLOW}/strict | /auto-approve | /yolo{C_RESET}     - Toggle security confirmation mode")
-    print(f"  {C_YELLOW}/skills [filter]{C_RESET}                    - List available local & global skills")
-    print(f"  {C_YELLOW}/<skill-name> [task]{C_RESET}                - Activate specific skill for a task")
-    print(f"  {C_YELLOW}/skill create <name> | <desc>{C_RESET}         - Create new custom skill in cli-agent/skills/")
-    print(f"  {C_YELLOW}/mcp{C_RESET}                                - MCP server status & install/test/remove")
-    print(f"  {C_YELLOW}/goal <target>{C_RESET}                       - Multi-step autonomous agentic goal (up to 20 steps)")
-    print(f"  {C_YELLOW}/loop <3x|5m> <task>{C_RESET}                  - Repeat task with automatic context reset")
-    print(f"  {C_YELLOW}/schedule <add|list|remove>{C_RESET}          - Schedule task (In-App or Windows Task Scheduler)")
-    print(f"  {C_YELLOW}/model{C_RESET}                              - Switch GGUF model")
-    print(f"  {C_YELLOW}/ctx <4096|8192|16384>{C_RESET}               - Change context window size")
-    print(f"  {C_YELLOW}/clear{C_RESET}                              - Clear conversation memory")
-    print(f"  {C_YELLOW}/exit{C_RESET}                               - Quit agent and safely shutdown server\n")
+    items = get_localized_slash_items(lang)
+    title = t("help_title", lang)
+    print(f"\n{C_BOLD}{title}{C_RESET}")
+    for cmd, desc, cat in items:
+        spacing = 38 - len(cmd)
+        sp = " " * max(1, spacing)
+        print(f"  {C_YELLOW}{cmd}{C_RESET}{sp}- {desc}")
+    print()
 
 def main():
     parser = argparse.ArgumentParser(description="LENSETEK LEAN AGENT HARNESS")
@@ -174,22 +171,22 @@ def main():
     parser.add_argument("--once", type=str, default=None, help="Jalankan 1 tugas secara headless lalu keluar")
     args = parser.parse_args()
 
+    # Baca preferensi bahasa pengguna terlebih dahulu (default: en)
+    active_language = config.get_active_language()
+
     workspace_path = Path(args.workspace).resolve()
     model_name = args.model or config.pick_default_model()
     if not model_name:
-        print(f"\n{C_YELLOW}[!] Belum ada model *.gguf yang terdeteksi di direktori lokal.{C_RESET}")
-        print(f"{C_CYAN}[i] Mengunduh otomatis model default: Lensetek Edge-Loop 3B (~1.93 GB) dari list.json...{C_RESET}")
-        ok, msg, path_res = config.download_model_from_catalog()
+        print(f"\n{C_YELLOW}{t('no_model_detected', active_language)}{C_RESET}")
+        print(f"{C_CYAN}{t('auto_downloading_default', active_language)}{C_RESET}")
+        ok, msg, path_res = config.download_model_from_catalog(lang=active_language)
         if ok and path_res:
             model_name = path_res
-            print(f"{C_GREEN}✓ Model siap digunakan: {Path(model_name).name}{C_RESET}\n")
+            print(f"{C_GREEN}{t('download_complete', active_language)} {Path(model_name).name}{C_RESET}\n")
         else:
-            print(f"{C_RED}[ERROR] Gagal mengunduh model otomatis: {msg}{C_RESET}")
-            print(f"{C_DIM}Silakan periksa koneksi internet atau unduh manual via list.json / py download_models.py --loop{C_RESET}\n")
+            print(f"{C_RED}{t('download_failed', active_language)} {msg}{C_RESET}")
+            print(f"{C_DIM}{t('download_manual_hint', active_language)}{C_RESET}\n")
             sys.exit(1)
-
-    # Baca preferensi bahasa pengguna (default: en)
-    active_language = config.get_active_language()
 
     if args.yolo:
         safety_mode = "yolo"
@@ -273,7 +270,7 @@ def main():
                 'scrollbar.background': 'bg:#1e2430',
                 'scrollbar.button': 'bg:#00ffff',
             })
-            completer = SlashCommandCompleter(lambda: get_slash_items(skills_mgr))
+            completer = SlashCommandCompleter(lambda: get_slash_items(skills_mgr, active_language), lambda: active_language)
 
             kb = KeyBindings()
 
@@ -348,16 +345,16 @@ def main():
                     continue
                 elif cmd == "/clear":
                     agent.reset_session()
-                    print(f"{C_CYAN}✓ Conversation history cleared.{C_RESET}\n")
+                    print(f"{C_CYAN}{t('chat_cleared', active_language)}{C_RESET}\n")
                     continue
 
                 # --- LANGUAGE COMMAND ---
                 elif cmd == "/language":
                     if not arg:
                         cur_name = config.SUPPORTED_LANGUAGES.get(active_language, active_language)
-                        print(f"\n{C_BOLD}Active Language:{C_RESET} {cur_name} ({active_language})")
-                        print(f"Supported options: {', '.join(f'/language {k} ({v})' for k, v in config.SUPPORTED_LANGUAGES.items())}")
-                        print(f"{C_DIM}Changes are automatically saved to user settings.{C_RESET}\n")
+                        print(f"\n{C_BOLD}{t('lang_active', active_language)}{C_RESET} {cur_name} ({active_language})")
+                        print(f"{t('lang_supported', active_language)} {', '.join(f'/language {k} ({v})' for k, v in config.SUPPORTED_LANGUAGES.items())}")
+                        print(f"{C_DIM}{t('lang_saved_hint', active_language)}{C_RESET}\n")
                     else:
                         ok, msg = config.set_active_language(arg)
                         if ok:
@@ -371,9 +368,9 @@ def main():
                 # --- WEB SEARCH COMMAND ---
                 elif cmd == "/search":
                     if not arg:
-                        print(f"{C_YELLOW}Usage: /search <query keywords>{C_RESET}\n")
+                        print(f"{C_YELLOW}{t('search_usage', active_language)}{C_RESET}\n")
                     else:
-                        print(f"{C_DIM}Searching web (headless)...{C_RESET}")
+                        print(f"{C_DIM}{t('search_searching', active_language)}{C_RESET}")
                         s_results = headless_web_search(arg, num_results=5)
                         formatted = format_search_results(s_results, query=arg)
                         print(f"\n{formatted}\n")
@@ -384,34 +381,34 @@ def main():
                     fs_tools.set_safety_mode("strict")
                     mcp_mgr.set_safety_mode("strict")
                     skills_mgr.set_safety_mode("strict")
-                    print(f"{C_GREEN}✓ Safety mode set to: STRICT (Confirmation required [y/N]){C_RESET}\n")
+                    print(f"{C_GREEN}{t('safety_strict_set', active_language)}{C_RESET}\n")
                     continue
                 elif cmd == "/auto-approve":
                     safety_mode = "auto-approve"
                     fs_tools.set_safety_mode("auto-approve")
                     mcp_mgr.set_safety_mode("auto-approve")
                     skills_mgr.set_safety_mode("auto-approve")
-                    print(f"{C_GREEN}✓ Safety mode set to: AUTO-APPROVE (Workspace actions auto-approved){C_RESET}\n")
+                    print(f"{C_GREEN}{t('safety_auto_set', active_language)}{C_RESET}\n")
                     continue
                 elif cmd == "/yolo":
                     safety_mode = "yolo"
                     fs_tools.set_safety_mode("yolo")
                     mcp_mgr.set_safety_mode("yolo")
                     skills_mgr.set_safety_mode("yolo")
-                    print(f"{C_YELLOW}⚠️  Safety mode set to: YOLO (All confirmations bypassed){C_RESET}\n")
+                    print(f"{C_YELLOW}{t('safety_yolo_set', active_language)}{C_RESET}\n")
                     continue
                 elif cmd == "/workspace":
                     if not arg:
-                        print(f"Current workspace: {workspace_path}")
+                        print(f"{t('workspace_current', active_language)} {workspace_path}")
                     else:
                         new_p = Path(arg).resolve()
                         if new_p.exists() and new_p.is_dir():
                             workspace_path = new_p
                             fs_tools.set_workspace(str(workspace_path))
                             skills_mgr.workspace_root = workspace_path
-                            print(f"{C_GREEN}✓ Active workspace changed to: {workspace_path}{C_RESET}\n")
+                            print(f"{C_GREEN}{t('workspace_changed', active_language)} {workspace_path}{C_RESET}\n")
                         else:
-                            print(f"{C_RED}Directory not found: {arg}{C_RESET}\n")
+                            print(f"{C_RED}{t('workspace_not_found', active_language)} {arg}{C_RESET}\n")
                     continue
 
                 # --- SKILLS COMMANDS ---
@@ -565,31 +562,34 @@ def main():
 
                     if sub_cmd == "download":
                         if sub_val:
-                            ok, msg, path_res = config.download_model_from_catalog(sub_val)
+                            ok, msg, path_res = config.download_model_from_catalog(sub_val, lang=active_language)
                             if ok and path_res:
                                 print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
-                                ask_sw = input("Apakah Anda ingin langsung beralih ke model ini? [Y/n]: ").strip().lower()
+                                ask_sw = input(t("model_switch_ask", active_language)).strip().lower()
                                 if ask_sw in ("", "y", "yes") and server_mgr:
                                     chosen_name = Path(path_res).name
                                     server_mgr.start(path_res)
                                     model_name = chosen_name
                                     agent.model_name = chosen_name
                                     agent.reset_session()
-                                    print(f"{C_GREEN}✓ Active model updated to: {model_name}{C_RESET}\n")
+                                    print(f"{C_GREEN}{t('model_switch_success', active_language)} {model_name}{C_RESET}\n")
                             else:
-                                print(f"{C_RED}Gagal mengunduh: {msg}{C_RESET}\n")
+                                print(f"{C_RED}{msg}{C_RESET}\n")
                         else:
                             catalog = config.load_model_catalog()
-                            print(f"\n{C_BOLD}Model Tersedia di Katalog Unduhan (list.json):{C_RESET}")
+                            cat_title = t("catalog_title", active_language)
+                            rec_badge = t("catalog_recommendation", active_language)
+                            print(f"\n{C_BOLD}{cat_title}{C_RESET}")
                             for m in catalog.get("models", []):
-                                rec = f" {C_GREEN}* Rekomendasi Edge (Default){C_RESET}" if m.get("recommended") else ""
+                                rec = f" {C_GREEN}{rec_badge}{C_RESET}" if m.get("recommended") else ""
                                 print(f"  • {C_CYAN}{m.get('id')}{C_RESET} ({m.get('size_display')}): {m.get('name')}{rec}")
                                 print(f"    {C_DIM}{m.get('description')}{C_RESET}")
-                            print(f"\n{C_DIM}Gunakan '/model download <id>' untuk mengunduh model pilihan Anda.{C_RESET}\n")
+                            print(f"\n{C_DIM}{t('model_download_tip', active_language)}{C_RESET}\n")
                         continue
 
                     available = config.list_gguf_models()
-                    print(f"\n{C_BOLD}Available Local Models (3B, 7B & Custom):{C_RESET}")
+                    loc_title = t("local_models_title", active_language)
+                    print(f"\n{C_BOLD}{loc_title}{C_RESET}")
                     for idx, m in enumerate(available, start=1):
                         p = Path(m)
                         m_display = p.name
@@ -604,8 +604,9 @@ def main():
                         marker = f"{C_GREEN}* active{C_RESET}" if m == model_name or p.name == model_name else ""
                         print(f"  [{idx}] {m_display} {C_DIM}{size_str}{C_RESET} {marker}")
 
-                    print(f"\n{C_DIM}Tips: Use '/model download' to download from list.json, or '/model add <path>' to register existing models.{C_RESET}")
-                    choice = input(f"Select model number (1-{len(available)}), or press enter to cancel: ").strip()
+                    print(f"\n{C_DIM}{t('model_selection_tip', active_language)}{C_RESET}")
+                    choice_prompt = t("model_select_prompt", active_language, count=len(available))
+                    choice = input(choice_prompt).strip()
 
                     if choice.lower().startswith("add "):
                         add_path = choice[4:].strip()
