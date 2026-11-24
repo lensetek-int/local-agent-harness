@@ -62,9 +62,9 @@ The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous age
 
 | Package / Method | Command | Description |
 | :--- | :--- | :--- |
-| **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek-int/local-llm/main/install.ps1 \| iex` | One-liner auto installer & launcher |
-| **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-llm/main/install.sh \| bash` | Headless auto-install to `~/.lensetek-agent` |
-| **git & local run** | `git clone https://github.com/lensetek-int/local-llm.git && cd local-llm/cli-agent && run_agent.bat` | Standard developer repository workflow |
+| **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 \| iex` | One-liner auto installer & launcher |
+| **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh \| bash` | Headless auto-install to `~/.lensetek-agent` |
+| **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Standard developer repository workflow |
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Direct Python launch with `prompt_toolkit` |
 
 #### 🛠️ Key Agentic Features:
@@ -325,9 +325,9 @@ Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (visi
 
 | Metode / Manajer Paket | Perintah Terminal | Keterangan |
 | :--- | :--- | :--- |
-| **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek-int/local-llm/main/install.ps1 \| iex` | Pemasangan otomatis & launcher global |
-| **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-llm/main/install.sh \| bash` | Pemasangan headless ke `~/.lensetek-agent` |
-| **git & local run** | `git clone https://github.com/lensetek-int/local-llm.git && cd local-llm/cli-agent && run_agent.bat` | Alur kerja lokal pengembang |
+| **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 \| iex` | Pemasangan otomatis & launcher global |
+| **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh \| bash` | Pemasangan headless ke `~/.lensetek-agent` |
+| **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Alur kerja lokal pengembang |
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Jalankan langsung via Python & prompt_toolkit |
 
 #### 🛠️ Fitur-Fitur Utama Agen:

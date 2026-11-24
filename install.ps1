@@ -1,6 +1,6 @@
 ﻿# ====================================================================
 # ⚡ LENSETEK LEAN AGENT HARNESS - One-Liner Installer for Windows
-# Usage: irm https://raw.githubusercontent.com/lensetek-int/local-llm/main/install.ps1 | iex
+# Usage: irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex
 # ====================================================================
 
 $ErrorActionPreference = "Stop"
@@ -29,14 +29,14 @@ $installDir = "$HOME\.lensetek-agent"
 if (!(Test-Path $installDir)) {
     Write-Host "[2/4] Mengunduh repository ke $installDir..." -ForegroundColor Yellow
     if (Get-Command git -ErrorAction SilentlyContinue) {
-        git clone https://github.com/lensetek-int/local-llm.git $installDir
+        git clone https://github.com/lensetek-int/local-agent-harness.git $installDir
     } else {
         Write-Host "Git tidak terdeteksi, mengunduh file arsip ZIP..." -ForegroundColor Yellow
         $zipPath = "$HOME\lensetek-agent.zip"
-        Invoke-WebRequest -Uri "https://github.com/lensetek-int/local-llm/archive/refs/heads/main.zip" -OutFile $zipPath
+        Invoke-WebRequest -Uri "https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.zip" -OutFile $zipPath
         Expand-Archive -Path $zipPath -DestinationPath "$HOME" -Force
         Remove-Item $zipPath -Force
-        Rename-Item -Path "$HOME\local-llm-main" -NewName ".lensetek-agent" -Force
+        Rename-Item -Path "$HOME\local-agent-harness-main" -NewName ".lensetek-agent" -Force
     }
 } else {
     Write-Host "[2/4] Direktori $installDir sudah tersedia." -ForegroundColor Green
