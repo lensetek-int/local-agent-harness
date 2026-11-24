@@ -910,7 +910,21 @@
         color: var(--accent-cyan);
         font-size: 0.84rem;
       }
+      .cmd-code {
+        font-size: 0.80rem;
+        padding: 8px 10px;
+        overflow-x: auto;
+      }
       .btn-copy {
+        align-self: flex-start;
+      }
+      .tab-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px;
+      }
+      .tab-content .btn-copy {
         align-self: flex-start;
       }
       .nav-links a:not(.btn-github) {
@@ -1010,8 +1024,8 @@
             <span data-i18n="install_title">Fast Installation &amp; Launch</span>
           </div>
           <div class="widget-tab-toggle">
-            <button class="view-btn active" onclick="switchView('list')" data-i18n="view_list">List View</button>
-            <button class="view-btn" onclick="switchView('tabs')" data-i18n="view_tabs">Tab View</button>
+            <button class="view-btn active" data-view="list" onclick="switchView('list')" data-i18n="view_list">List View</button>
+            <button class="view-btn" data-view="tabs" onclick="switchView('tabs')" data-i18n="view_tabs">Tab View</button>
           </div>
         </div>
 
@@ -1020,7 +1034,7 @@
           <div class="install-row">
             <div class="cmd-name">powershell</div>
             <div class="cmd-code">irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex')" data-i18n="btn_copy">
+            <button class="btn-copy" data-snippet="irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex" onclick="copySnippet(this, 'irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
@@ -1028,7 +1042,7 @@
           <div class="install-row">
             <div class="cmd-name">curl</div>
             <div class="cmd-code">curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash')" data-i18n="btn_copy">
+            <button class="btn-copy" data-snippet="curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash" onclick="copySnippet(this, 'curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
@@ -1036,7 +1050,7 @@
           <div class="install-row">
             <div class="cmd-name">git</div>
             <div class="cmd-code">git clone https://github.com/lensetek-int/local-agent-harness.git &amp;&amp; cd local-agent-harness/cli-agent &amp;&amp; run_agent.bat</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat')" data-i18n="btn_copy">
+            <button class="btn-copy" data-snippet="git clone https://github.com/lensetek-int/local-agent-harness.git &amp;&amp; cd local-agent-harness/cli-agent &amp;&amp; run_agent.bat" onclick="copySnippet(this, 'git clone https://github.com/lensetek-int/local-agent-harness.git &amp;&amp; cd local-agent-harness/cli-agent &amp;&amp; run_agent.bat')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
@@ -1044,7 +1058,7 @@
           <div class="install-row">
             <div class="cmd-name">pip</div>
             <div class="cmd-code">pip install -r cli-agent/requirements.txt &amp;&amp; py cli-agent/main.py</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'pip install -r cli-agent/requirements.txt && py cli-agent/main.py')" data-i18n="btn_copy">
+            <button class="btn-copy" data-snippet="pip install -r cli-agent/requirements.txt &amp;&amp; py cli-agent/main.py" onclick="copySnippet(this, 'pip install -r cli-agent/requirements.txt &amp;&amp; py cli-agent/main.py')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
@@ -1052,7 +1066,7 @@
           <div class="install-row">
             <div class="cmd-name">npx</div>
             <div class="cmd-code">npx @lensetek/agent</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'npx @lensetek/agent')" data-i18n="btn_copy">
+            <button class="btn-copy" data-snippet="npx @lensetek/agent" onclick="copySnippet(this, 'npx @lensetek/agent')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
@@ -1060,7 +1074,7 @@
           <div class="install-row">
             <div class="cmd-name">brew</div>
             <div class="cmd-code">brew install lensetek/tap/agent-harness</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'brew install lensetek/tap/agent-harness')" data-i18n="btn_copy">
+            <button class="btn-copy" data-snippet="brew install lensetek/tap/agent-harness" onclick="copySnippet(this, 'brew install lensetek/tap/agent-harness')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
@@ -1069,15 +1083,16 @@
         <!-- 2. Tabbed View -->
         <div id="tabbedView" class="tabbed-container">
           <div class="tab-bar">
-            <div class="tab-item active" onclick="selectTab(0)">powershell</div>
-            <div class="tab-item" onclick="selectTab(1)">curl</div>
-            <div class="tab-item" onclick="selectTab(2)">git</div>
-            <div class="tab-item" onclick="selectTab(3)">pip</div>
-            <div class="tab-item" onclick="selectTab(4)">npx</div>
+            <div class="tab-item active" data-tab-idx="0" onclick="selectTab(0)">powershell</div>
+            <div class="tab-item" data-tab-idx="1" onclick="selectTab(1)">curl</div>
+            <div class="tab-item" data-tab-idx="2" onclick="selectTab(2)">git</div>
+            <div class="tab-item" data-tab-idx="3" onclick="selectTab(3)">pip</div>
+            <div class="tab-item" data-tab-idx="4" onclick="selectTab(4)">npx</div>
+            <div class="tab-item" data-tab-idx="5" onclick="selectTab(5)">brew</div>
           </div>
           <div class="tab-content">
             <div id="tabCode" class="cmd-code">irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex</div>
-            <button id="tabCopyBtn" class="btn-copy" onclick="copySnippet(this, currentTabCommand)" data-i18n="btn_copy">Copy</button>
+            <button id="tabCopyBtn" class="btn-copy" data-snippet="irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex" onclick="copySnippet(this, currentTabCommand)" data-i18n="btn_copy">Copy</button>
           </div>
         </div>
       </section>
@@ -1878,25 +1893,39 @@
       const buttons = document.querySelectorAll('.view-btn');
 
       if (mode === 'list') {
-        listView.style.display = 'flex';
-        tabbedView.style.display = 'none';
-        buttons[0].classList.add('active');
-        buttons[1].classList.remove('active');
+        if (listView) listView.style.display = 'flex';
+        if (tabbedView) tabbedView.style.display = 'none';
+        buttons.forEach(b => {
+          const v = b.getAttribute('data-view');
+          if (v === 'list' || (!v && b.textContent.includes('List'))) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
       } else {
-        listView.style.display = 'none';
-        tabbedView.style.display = 'block';
-        buttons[0].classList.remove('active');
-        buttons[1].classList.add('active');
+        if (listView) listView.style.display = 'none';
+        if (tabbedView) tabbedView.style.display = 'block';
+        buttons.forEach(b => {
+          const v = b.getAttribute('data-view');
+          if (v === 'tabs' || (!v && b.textContent.includes('Tab'))) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
       }
     }
+    window.switchView = switchView;
 
-    // Tabs inside Tabbed View
+    // Tabs inside Tabbed View (6 one-liners)
     const tabCommands = [
       "irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex",
       "curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash",
       "git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat",
       "pip install -r cli-agent/requirements.txt && py cli-agent/main.py",
-      "npx @lensetek/agent"
+      "npx @lensetek/agent",
+      "brew install lensetek/tap/agent-harness"
     ];
     let currentTabCommand = tabCommands[0];
 
@@ -1905,66 +1934,125 @@
         if (idx === index) el.classList.add('active');
         else el.classList.remove('active');
       });
-      currentTabCommand = tabCommands[index];
-      document.getElementById('tabCode').textContent = currentTabCommand;
+      if (tabCommands[index]) {
+        currentTabCommand = tabCommands[index];
+        const tabCode = document.getElementById('tabCode');
+        if (tabCode) tabCode.textContent = currentTabCommand;
+        const tabCopyBtn = document.getElementById('tabCopyBtn');
+        if (tabCopyBtn) tabCopyBtn.setAttribute('data-snippet', currentTabCommand);
+      }
     }
+    window.selectTab = selectTab;
 
-    // Robust One-Click Copy Handler with Iframe / Fallback Support
+    // Robust One-Click Copy Handler with Iframe / Fallback / ExecCommand Support
     function copySnippet(btn, text) {
+      if (!text && btn) {
+        text = btn.getAttribute('data-snippet') || (btn.id === 'tabCopyBtn' ? currentTabCommand : '');
+      }
+      if (!text && btn) {
+        const row = btn.closest('.install-row');
+        if (row) {
+          const codeEl = row.querySelector('.cmd-code');
+          if (codeEl) text = codeEl.textContent.trim();
+        }
+      }
+      if (!text) return;
+
       function showSuccess() {
         if (!btn) return;
         const originalText = btn.getAttribute('data-original-text') || btn.innerHTML;
         if (!btn.getAttribute('data-original-text')) {
           btn.setAttribute('data-original-text', originalText);
         }
-        btn.innerHTML = i18n[activeLang] ? i18n[activeLang].btn_copied : "✓ Copied";
+        btn.innerHTML = (i18n[activeLang] && i18n[activeLang].btn_copied) ? i18n[activeLang].btn_copied : "✓ Copied";
         btn.classList.add('copied');
         setTimeout(() => {
-          btn.innerHTML = originalText;
+          btn.innerHTML = btn.getAttribute('data-original-text') || originalText;
           btn.classList.remove('copied');
         }, 2000);
       }
 
-      function fallbackCopy(str) {
-        const textarea = document.createElement("textarea");
-        textarea.value = str;
-        textarea.setAttribute("readonly", "");
-        textarea.style.position = "absolute";
-        textarea.style.left = "-9999px";
-        textarea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + "px";
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        textarea.setSelectionRange(0, textarea.value.length);
+      function execCopy(val) {
+        let ok = false;
         try {
-          const successful = document.execCommand('copy');
+          const textarea = document.createElement('textarea');
+          textarea.style.fontSize = '12pt';
+          textarea.style.border = '0';
+          textarea.style.padding = '0';
+          textarea.style.margin = '0';
+          textarea.style.position = 'fixed';
+          textarea.style.left = '-9999px';
+          textarea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + 'px';
+          textarea.setAttribute('readonly', '');
+          textarea.value = val;
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          textarea.setSelectionRange(0, textarea.value.length);
+          ok = document.execCommand('copy');
           document.body.removeChild(textarea);
-          if (successful) {
-            showSuccess();
-            return true;
-          }
-        } catch (err) {
-          try {
-            document.body.removeChild(textarea);
-          } catch (e) {}
+        } catch (e) {
+          ok = false;
         }
-        return false;
+        return ok;
       }
 
-      // Try modern navigator.clipboard first
+      // 1. Try execCopy immediately while synchronous user gesture is 100% active
+      if (execCopy(text)) {
+        showSuccess();
+        return;
+      }
+
+      // 2. Modern Clipboard API fallback
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         navigator.clipboard.writeText(text).then(() => {
           showSuccess();
-        }).catch(() => {
-          if (!fallbackCopy(text)) {
-            prompt("Copy to clipboard (Ctrl+C, Enter):", text);
-          }
-        });
-      } else {
-        if (!fallbackCopy(text)) {
-          prompt("Copy to clipboard (Ctrl+C, Enter):", text);
-        }
+        }).catch(() => {});
       }
+    }
+    window.copySnippet = copySnippet;
+
+    // Attach explicit click handlers to ensure CSP / iframe resilience
+    function initInstallWidget() {
+      // View toggle buttons
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.onclick = function(e) {
+          if (e) e.preventDefault();
+          const mode = btn.getAttribute('data-view') || (btn.textContent.includes('Tab') ? 'tabs' : 'list');
+          switchView(mode);
+        };
+      });
+
+      // Tab items
+      document.querySelectorAll('.tab-item').forEach((item, idx) => {
+        item.onclick = function(e) {
+          if (e) e.preventDefault();
+          selectTab(idx);
+        };
+      });
+
+      // Copy buttons
+      document.querySelectorAll('.btn-copy').forEach(btn => {
+        btn.onclick = function(e) {
+          if (e) e.preventDefault();
+          let snippet = btn.getAttribute('data-snippet');
+          if (!snippet && btn.id === 'tabCopyBtn') snippet = currentTabCommand;
+          if (!snippet) {
+            const row = btn.closest('.install-row');
+            if (row) {
+              const codeEl = row.querySelector('.cmd-code');
+              if (codeEl) snippet = codeEl.textContent.trim();
+            }
+          }
+          copySnippet(btn, snippet || currentTabCommand);
+        };
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initInstallWidget);
+    } else {
+      initInstallWidget();
     }
 
     // Command Trigger for Preview Showcase with Language Awareness
