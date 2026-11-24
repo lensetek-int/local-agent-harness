@@ -516,6 +516,81 @@
       gap: 16px;
     }
 
+    /* Uninstall Guide Box */
+    .uninstall-box {
+      border-top: 1px solid var(--border-color);
+      background: #090d15;
+    }
+    .uninstall-header {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .uninstall-header:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .uninstall-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .uninstall-arrow {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+    .uninstall-arrow.open {
+      transform: rotate(180deg);
+    }
+    .uninstall-body {
+      padding: 14px 20px 18px;
+      border-top: 1px solid #141b28;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #06090f;
+    }
+    .uninstall-row {
+      display: grid;
+      grid-template-columns: 190px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: #0a0f1a;
+      border: 1px solid #1a2334;
+      border-radius: var(--radius-sm);
+    }
+    .uninstall-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    .uninstall-subtext {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin: 4px 0 0;
+      line-height: 1.5;
+    }
+    .uninstall-subtext code {
+      color: var(--accent-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+    @media (max-width: 768px) {
+      .uninstall-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
+
     /* ==================================================================== */
     /* WHY LEAN SECTION & ARCHITECTURAL COMPARISON                          */
     /* ==================================================================== */
@@ -1095,6 +1170,32 @@
             <button id="tabCopyBtn" class="btn-copy" data-snippet="irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex" onclick="copySnippet(this, currentTabCommand)" data-i18n="btn_copy">Copy</button>
           </div>
         </div>
+
+        <!-- 3. Uninstall / Clean Removal Accordion -->
+        <div class="uninstall-box">
+          <div class="uninstall-header" onclick="toggleUninstallGuide()">
+            <div class="uninstall-title">
+              <span>🗑️</span>
+              <span data-i18n="uninstall_title">Clean Removal &amp; Uninstallation</span>
+            </div>
+            <span id="uninstallToggleIcon" class="uninstall-arrow">▼</span>
+          </div>
+          <div id="uninstallBody" class="uninstall-body hidden">
+            <div class="uninstall-row">
+              <span class="uninstall-badge">Windows (PowerShell)</span>
+              <div class="cmd-code">Remove-Item -Recurse -Force "$HOME\.lensetek-agent"</div>
+              <button class="btn-copy" data-snippet='Remove-Item -Recurse -Force "$HOME\.lensetek-agent"' onclick="copySnippet(this, 'Remove-Item -Recurse -Force &quot;$HOME\\.lensetek-agent&quot;')" data-i18n="btn_copy">Copy</button>
+            </div>
+            <div class="uninstall-row">
+              <span class="uninstall-badge">Linux / macOS (Bash)</span>
+              <div class="cmd-code">rm -rf ~/.lensetek-agent ~/.local/bin/lensetek</div>
+              <button class="btn-copy" data-snippet="rm -rf ~/.lensetek-agent ~/.local/bin/lensetek" onclick="copySnippet(this, 'rm -rf ~/.lensetek-agent ~/.local/bin/lensetek')" data-i18n="btn_copy">Copy</button>
+            </div>
+            <p class="uninstall-subtext" data-i18n-html="uninstall_note">
+              To delete only models or plugins without removing the harness, run <code>/model remove &lt;id&gt;</code> or <code>/plugins remove &lt;id&gt;</code> inside the CLI.
+            </p>
+          </div>
+        </div>
       </section>
     </section>
 
@@ -1480,7 +1581,9 @@
         pill_model: "🧠 <strong>Multi-Model Architecture</strong> (3B, 7B &amp; Custom Models)",
         pill_ram: "⚡ <strong>Adaptive Memory Footprint</strong> (Low RAM Edge Inference)",
         pill_privacy: "🛡️ <strong>Zero Data Leak</strong> (Air-Gapped &amp; Sovereign)",
-        install_title: "Fast Installation &amp; Launch",
+        install_title: "Fast Installation & Launch",
+        uninstall_title: "How to Uninstall & Clean Up",
+        uninstall_note: "To delete only models or plugins without removing the harness, run <code>/model remove &lt;id&gt;</code> or <code>/plugins remove &lt;id&gt;</code> inside the CLI.",
         view_list: "List View",
         view_tabs: "Tab View",
         btn_copy: "Copy",
@@ -1493,24 +1596,24 @@
         conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
         conv_1_title: "Massive Initial Token Bloat (4,000 – 8,000+ tokens)",
         conv_1_desc: "Injects verbose JSON schemas, dozens of tool definitions, and dense few-shot examples into the system prompt before the user even types a single word.",
-        conv_2_title: "Context Collapse &amp; Hallucination on SLMs (3B Models)",
+        conv_2_title: "Context Collapse & Hallucination on SLMs (3B Models)",
         conv_2_desc: "Small language models suffer from attention dilution and context saturation. They hallucinate non-existent tool arguments, emit malformed JSON, or freeze in infinite loops.",
-        conv_3_title: "Heavy Infrastructure &amp; Tool Dependencies",
+        conv_3_title: "Heavy Infrastructure & Tool Dependencies",
         conv_3_desc: "Often requires Docker daemon, Redis message queues, external vector databases, and massive Node.js/Python dependency trees just to boot.",
-        conv_4_title: "Cloud Cost &amp; Privacy Leakage",
+        conv_4_title: "Cloud Cost & Privacy Leakage",
         conv_4_desc: "Requires ongoing paid cloud API tokens (OpenAI / Anthropic). Private code, proprietary data, and prompts are continuously streamed to third-party cloud servers.",
         lean_badge: "Lensetek Lean Harness",
         lean_tag: "Edge-First / Autonomous",
-        lean_title: "Purpose-Built for Local SLMs &amp; Local LLMs",
+        lean_title: "Purpose-Built for Local SLMs & Local LLMs",
         lean_1_title: "Ultra-Lean Token Budgeting (&lt; 350 tokens initial prompt)",
         lean_1_desc: "Minimalist ReAct instruction set. Leaves &gt;90% of the context window wide open for actual user prompts, file contents, and step-by-step reasoning.",
         lean_2_title: "Runs Edge SLMs (3B) with Scalability to Local LLMs (7B / 14B)",
         lean_2_desc: "Flawlessly drives 3B edge models on modest hardware, yet instantly scales to 7B or custom local models via <code>/model switch</code> and <code>/model add</code>.",
         lean_3_title: "Zero GPU Requirement &amp; Low RAM (&lt; 2.5 GB)",
         lean_3_desc: "Optimized for commodity CPUs (everyday laptops, mini PCs, SBCs). Pure GGUF execution with 8-bit KV cache compression without requiring discrete GPUs.",
-        lean_4_title: "Built-in Anti-Hallucination &amp; Loop Circuit-Breakers",
+        lean_4_title: "Built-in Anti-Hallucination & Loop Circuit-Breakers",
         lean_4_desc: "Small models can spiral when a tool fails. Our harness includes runtime interceptors and retry caps that detect failure patterns and rescue the agent.",
-        lean_5_title: "100% Air-Gapped &amp; True Data Sovereignty",
+        lean_5_title: "100% Air-Gapped & True Data Sovereignty",
         lean_5_desc: "Runs entirely offline with zero cloud telemetry. Your source code, sensitive documents, and prompt thoughts never leave your local machine.",
         reality_title: "Realistic Edge Positioning:",
         reality_desc: "We don't claim to replace trillion-parameter cloud clusters with 200 microservices. Our mission is distinct: delivering a <em>truly autonomous, lightweight AI agent harness</em> that actually executes reliably on everyday edge devices and local small models without breaking your RAM, budget, or privacy.",
@@ -1537,9 +1640,9 @@
         feat_3_desc: "Native multi-engine search tool integrated into the agent reasoning loop. Headlessly crawls Bing and Google without external API keys.",
         feat_4_title: "Extensible Skills Architecture",
         feat_4_desc: "Modular skills system. Create reusable domain workflows with <code>/skill create</code>, run bundled local skills like <code>/code-review</code>, or link external skill folders.",
-        feat_5_title: "Autonomous /goal &amp; /loop",
+        feat_5_title: "Autonomous /goal & /loop",
         feat_5_desc: "Multi-step autonomous execution (up to 20 steps) with pinned goals that survive context trimming, plus recurring task looping and OS scheduler.",
-        feat_6_title: "Reasoning Effort &amp; 3-Tier Safety",
+        feat_6_title: "Reasoning Effort & 3-Tier Safety",
         feat_6_desc: "Tune thinking depth via <code>/effort &lt;off|low|medium|high&gt;</code> and toggle safety via <code>/strict</code>, <code>/auto-approve</code>, and <code>/yolo</code>.",
         cmd_table_title: "Slash Commands Reference",
         cmd_table_desc: "Type <code>/</code> and press <kbd>Tab</kbd> in the CLI to see instant completions.",
@@ -1548,8 +1651,8 @@
         th_category: "Category",
         th_description: "Description",
         desc_help: "Displays comprehensive guide of all slash commands and capabilities.",
-        desc_language: "Switch agent response &amp; prompt language (English, Indonesian, Chinese). Saved persistently.",
-        desc_effort: "Set thinking effort &amp; reasoning depth (off, low, medium, high). Controls internal thought tokens.",
+        desc_language: "Switch agent response & prompt language (English, Indonesian, Chinese). Saved persistently.",
+        desc_effort: "Set thinking effort & reasoning depth (off, low, medium, high). Controls internal thought tokens.",
         desc_update: "Check upstream updates, view What's New notes, and auto-restart app safely.",
         desc_model: "Browse and switch active local models (3B, 7B, custom).",
         desc_model_search: "Search GGUF models on Hugging Face (like llama.cpp), inspect quantizations, and download directly.",
@@ -1585,7 +1688,9 @@
         pill_model: "🧠 <strong>Arsitektur Multi-Model</strong> (3B, 7B &amp; Model Kustom)",
         pill_ram: "⚡ <strong>Alokasi RAM Adaptif</strong> (Inferensi Ringan di Perangkat Edge)",
         pill_privacy: "🛡️ <strong>Tanpa Kebocoran Data</strong> (Air-Gapped &amp; Berdaulat)",
-        install_title: "Instalasi Cepat &amp; Peluncuran",
+        install_title: "Instalasi Cepat & Peluncuran",
+        uninstall_title: "Cara Copot Pemasangan (Uninstall) & Pembersihan",
+        uninstall_note: "Untuk hanya menghapus model atau plugin tertentu tanpa mencopot harness, gunakan <code>/model remove &lt;id&gt;</code> atau <code>/plugins remove &lt;id&gt;</code> di terminal CLI.",
         view_list: "Tampilan Daftar",
         view_tabs: "Tampilan Tab",
         btn_copy: "Salin",
@@ -1598,24 +1703,24 @@
         conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
         conv_1_title: "Pemborosan Token Awal yang Masif (4.000 – 8.000+ token)",
         conv_1_desc: "Menyuntikkan skema JSON berbelit-belit, puluhan definisi tool, dan contoh few-shot padat ke dalam system prompt sebelum pengguna mengetik satu kata pun.",
-        conv_2_title: "Kolaps Konteks &amp; Halusinasi pada SLM (Model 3B)",
+        conv_2_title: "Kolaps Konteks & Halusinasi pada SLM (Model 3B)",
         conv_2_desc: "Model bahasa kecil mengalami penurunan atensi dan saturasi konteks. Model sering menghalunisasikan argumen tool, menghasilkan JSON rusak, atau macet dalam loop tak terbatas.",
-        conv_3_title: "Ketergantungan Infrastruktur &amp; Dependensi Berat",
+        conv_3_title: "Ketergantungan Infrastruktur & Dependensi Berat",
         conv_3_desc: "Seringkali membutuhkan daemon Docker, message queue Redis, database vektor eksternal, dan instalasi dependensi Node.js/Python yang sangat besar hanya untuk booting.",
-        conv_4_title: "Biaya Cloud &amp; Kebocoran Privasi",
+        conv_4_title: "Biaya Cloud & Kebocoran Privasi",
         conv_4_desc: "Memerlukan biaya token API cloud berbayar (OpenAI / Anthropic). Kode rahasia, data kepemilikan, dan prompt terus-menerus dikirim ke server cloud pihak ketiga.",
         lean_badge: "Lensetek Lean Harness",
         lean_tag: "Edge-First / Otonom",
-        lean_title: "Dirancang Khusus untuk SLM &amp; LLM Lokal",
+        lean_title: "Dirancang Khusus untuk SLM & LLM Lokal",
         lean_1_title: "Anggaran Token Super Hemat (&lt; 350 token prompt awal)",
         lean_1_desc: "Instruksi ReAct minimalis. Menyisakan &gt;90% context window terbuka lebar untuk prompt asli pengguna, konten file, dan penalaran langkah demi langkah.",
         lean_2_title: "Menjalankan SLM Edge (3B) dengan Skalabilitas ke LLM Lokal (7B / 14B)",
         lean_2_desc: "Mengeksekusi model edge 3B dengan mulus di perangkat keras standar, namun dapat diskalakan secara instan ke model 7B atau kustom via <code>/model switch</code> dan <code>/model add</code>.",
         lean_3_title: "Tanpa Kebutuhan GPU &amp; RAM Rendah (&lt; 2.5 GB)",
         lean_3_desc: "Dioptimalkan untuk CPU komoditas (laptop harian, mini PC, SBC). Eksekusi murni GGUF dengan kompresi cache KV 8-bit tanpa memerlukan GPU terpisah.",
-        lean_4_title: "Anti-Halusinasi Terpasang &amp; Circuit-Breaker Loop",
+        lean_4_title: "Anti-Halusinasi Terpasang & Circuit-Breaker Loop",
         lean_4_desc: "Model kecil dapat berputar-putar tanpa akhir saat tool gagal. Harness kami mencakup interseptor runtime dan batas coba ulang yang mendeteksi pola kegagalan dan menyelamatkan agen.",
-        lean_5_title: "100% Air-Gapped &amp; Kedaulatan Data Penuh",
+        lean_5_title: "100% Air-Gapped & Kedaulatan Data Penuh",
         lean_5_desc: "Berjalan sepenuhnya offline tanpa telemetri cloud. Kode sumber, dokumen rahasia, dan alur berpikir tidak pernah keluar dari komputer lokal Anda.",
         reality_title: "Posisi Realistis Komputasi Edge:",
         reality_desc: "Kami tidak mengklaim menggantikan kluster cloud triliunan parameter dengan 200 microservices. Misi kami jelas: menghadirkan <em>harness agen AI yang benar-benar otonom dan ringan</em> yang mampu mengeksekusi tugas secara andal pada perangkat harian dan model lokal kecil tanpa membebani RAM, biaya, atau privasi Anda.",
@@ -1642,9 +1747,9 @@
         feat_3_desc: "Tool pencarian multi-engine bawaan yang terintegrasi langsung ke dalam loop penalaran agen. Menjelajahi web tanpa memerlukan API key eksternal.",
         feat_4_title: "Arsitektur Skills yang Dapat Diperluas",
         feat_4_desc: "Sistem skill modular. Buat alur kerja khusus dengan <code>/skill create</code>, jalankan skill bawaan seperti <code>/code-review</code>, atau tautkan folder skill eksternal.",
-        feat_5_title: "Otonom /goal &amp; /loop",
+        feat_5_title: "Otonom /goal & /loop",
         feat_5_desc: "Eksekusi otonom multi-langkah (hingga 20 langkah) dengan target yang kebal dari pemangkasan konteks, ditambah pengulangan tugas dan penjadwal OS.",
-        feat_6_title: "Pengaturan Effort Penalaran &amp; Keamanan 3 Tingkat",
+        feat_6_title: "Pengaturan Effort Penalaran & Keamanan 3 Tingkat",
         feat_6_desc: "Atur kedalaman penalaran via <code>/effort &lt;off|low|medium|high&gt;</code> dan sesuaikan tingkat keamanan via <code>/strict</code>, <code>/auto-approve</code>, dan <code>/yolo</code>.",
         cmd_table_title: "Referensi Perintah Slash",
         cmd_table_desc: "Ketik <code>/</code> lalu tekan <kbd>Tab</kbd> di CLI untuk melihat saran perintah otomatis.",
@@ -1653,8 +1758,8 @@
         th_category: "Kategori",
         th_description: "Penjelasan",
         desc_help: "Menampilkan panduan lengkap seluruh perintah slash dan kemampuan sistem.",
-        desc_language: "Mengubah bahasa respons &amp; prompt agen (English, Bahasa Indonesia, Chinese). Tersimpan permanen.",
-        desc_effort: "Mengatur kedalaman thinking &amp; penalaran model (off, low, medium, high). Mengontrol token pemikiran internal.",
+        desc_language: "Mengubah bahasa respons & prompt agen (English, Bahasa Indonesia, Chinese). Tersimpan permanen.",
+        desc_effort: "Mengatur kedalaman thinking & penalaran model (off, low, medium, high). Mengontrol token pemikiran internal.",
         desc_update: "Cek pembaruan upstream, lihat What's New, dan restart aplikasi otomatis.",
         desc_model: "Lihat dan ganti model lokal yang aktif (3B, 7B, kustom).",
         desc_model_search: "Cari model GGUF di Hugging Face (seperti llama.cpp), pilih kuantisasi, dan unduh langsung.",
@@ -1691,6 +1796,8 @@
         pill_ram: "⚡ <strong>自适应内存管理</strong> (低内存端侧轻量推理)",
         pill_privacy: "🛡️ <strong>零数据泄露</strong> (物理隔离与完全数据主权)",
         install_title: "极速安装与启动",
+        uninstall_title: "卸载与彻底清理指南",
+        uninstall_note: "若仅需删除指定模型或扩展插件而保留工具链，请在 CLI 中执行 <code>/model remove &lt;id&gt;</code> 或 <code>/plugins remove &lt;id&gt;</code>。",
         view_list: "列表视图",
         view_tabs: "标签视图",
         btn_copy: "复制",
@@ -1930,6 +2037,21 @@
       }
     }
     window.switchView = switchView;
+
+    function toggleUninstallGuide() {
+      const body = document.getElementById('uninstallBody');
+      const arrow = document.getElementById('uninstallToggleIcon');
+      if (body) {
+        if (body.classList.contains('hidden')) {
+          body.classList.remove('hidden');
+          if (arrow) arrow.classList.add('open');
+        } else {
+          body.classList.add('hidden');
+          if (arrow) arrow.classList.remove('open');
+        }
+      }
+    }
+    window.toggleUninstallGuide = toggleUninstallGuide;
 
     // Tabs inside Tabbed View (6 one-liners)
     const tabCommands = [
