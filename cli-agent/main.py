@@ -556,7 +556,7 @@ def main():
                         continue
 
                     available = config.list_gguf_models()
-                    print(f"\n{C_BOLD}Available Local GGUF Models (3B, 7B & Custom):{C_RESET}")
+                    print(f"\n{C_BOLD}Available Local Models (3B, 7B & Custom):{C_RESET}")
                     for idx, m in enumerate(available, start=1):
                         p = Path(m)
                         m_display = p.name
