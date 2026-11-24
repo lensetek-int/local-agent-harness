@@ -124,6 +124,83 @@ def add_custom_model_path(path_str: str) -> tuple[bool, str]:
             return True, f"Direktori model '{p}' berhasil didaftarkan ke daftar pencarian model."
     return True, f"Path '{resolved_str}' sudah terdaftar sebelumnya."
 
+def resolve_model_file(target: str) -> Path | None:
+    """Mencari objek Path dari model berdasarkan nama file, path lengkap, atau substring nama."""
+    target_clean = target.strip().strip("'\"")
+    if not target_clean:
+        return None
+
+    # 1. Direct path check
+    p = Path(target_clean)
+    if p.is_file() and p.exists():
+        return p
+
+    # 2. Check in models/
+    models_dir = REPO_ROOT / "models"
+    if (models_dir / target_clean).is_file():
+        return models_dir / target_clean
+
+    # 3. Check in REPO_ROOT
+    if (REPO_ROOT / target_clean).is_file():
+        return REPO_ROOT / target_clean
+
+    # 4. Search through available models
+    available = list_gguf_models()
+    for m in available:
+        mp = Path(m)
+        if mp.name.lower() == target_clean.lower() or m.lower() == target_clean.lower():
+            if mp.is_absolute() and mp.is_file():
+                return mp
+            elif (models_dir / mp.name).is_file():
+                return models_dir / mp.name
+            elif (REPO_ROOT / mp.name).is_file():
+                return REPO_ROOT / mp.name
+
+    return None
+
+def delete_model(target: str) -> tuple[bool, str, Path | None]:
+    """
+    Menghapus model GGUF dari disk atau mencabut pendaftaran custom model.
+    Mengembalikan (success, message, resolved_path).
+    """
+    resolved_path = resolve_model_file(target)
+
+    # Hapus juga dari custom_models jika terdaftar di user_settings.json
+    st = load_user_settings()
+    custom_list = st.get("custom_models", [])
+    modified_custom = False
+
+    clean_target = target.strip().strip("'\"").lower()
+    new_custom_list = []
+    for item in custom_list:
+        ip = Path(item)
+        if ip.name.lower() == clean_target or item.lower() == clean_target:
+            modified_custom = True
+        else:
+            new_custom_list.append(item)
+
+    if modified_custom:
+        st["custom_models"] = new_custom_list
+        save_user_settings(st)
+
+    if not resolved_path or not resolved_path.exists():
+        if modified_custom:
+            return True, f"Path model kustom '{target}' dicabut dari daftar pendaftaran.", None
+        return False, f"Model '{target}' tidak ditemukan di disk.", None
+
+    file_size_gb = 0.0
+    try:
+        file_size_gb = resolved_path.stat().st_size / (1024 ** 3)
+    except Exception:
+        pass
+
+    try:
+        resolved_path.unlink()
+        size_msg = f" ({file_size_gb:.2f} GB)" if file_size_gb > 0 else ""
+        return True, f"Model '{resolved_path.name}'{size_msg} berhasil dihapus dari disk.", resolved_path
+    except Exception as e:
+        return False, f"Gagal menghapus file model '{resolved_path.name}': {e}", resolved_path
+
 def load_model_catalog() -> dict:
     """Membaca daftar model yang dapat diunduh dari list.json."""
     candidates = [CLI_DIR / "list.json", REPO_ROOT / "list.json"]

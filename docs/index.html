@@ -1375,6 +1375,11 @@
               <td data-i18n="desc_model_add">Register custom local *.gguf model path or directory.</td>
             </tr>
             <tr>
+              <td><code>/model remove &lt;id&gt;</code></td>
+              <td><span class="cat-badge">MODEL</span></td>
+              <td data-i18n="desc_model_remove">Delete local GGUF model file safely and free disk space.</td>
+            </tr>
+            <tr>
               <td><code>/session [list|new|switch|del]</code></td>
               <td><span class="cat-badge">SESSION</span></td>
               <td data-i18n="desc_session">Manage conversation sessions, view chat history directly, and persist state.</td>
@@ -1545,6 +1550,7 @@
         desc_model_search: "Search GGUF models on Hugging Face (like llama.cpp), inspect quantizations, and download directly.",
         desc_model_download: "Download models from catalog (list.json) with auto-switch.",
         desc_model_add: "Register custom local *.gguf model path or directory.",
+        desc_model_remove: "Delete local GGUF model file safely and free disk space.",
         desc_session: "Manage conversation sessions, view chat history directly, and persist state.",
         desc_search: "Perform an instant headless web search directly from the prompt.",
         desc_skills: "Browse and filter available local and custom domain skills.",
@@ -1649,6 +1655,7 @@
         desc_model_search: "Cari model GGUF di Hugging Face (seperti llama.cpp), pilih kuantisasi, dan unduh langsung.",
         desc_model_download: "Unduh model rekomendasi dari katalog (list.json) dengan opsi ganti otomatis.",
         desc_model_add: "Daftarkan path atau folder file *.gguf model lokal kustom.",
+        desc_model_remove: "Hapus file model GGUF lokal secara aman untuk menghemat ruang disk.",
         desc_session: "Kelola sesi percakapan, lihat riwayat obrolan secara langsung, dan simpan riwayat chat per sesi.",
         desc_search: "Lakukan pencarian web headless secara instan langsung dari prompt.",
         desc_skills: "Jelajahi dan saring skill lokal serta kustom yang tersedia.",
@@ -1753,6 +1760,7 @@
         desc_model_search: "在 Hugging Face 上搜索 GGUF 模型（类似 llama.cpp），选择量化并直接下载切换。",
         desc_model_download: "从预置目录 (list.json) 下载推荐模型并自动切换。",
         desc_model_add: "注册本地自定义 *.gguf 模型文件或目录路径。",
+        desc_model_remove: "安全删除本地 GGUF 模型文件并释放磁盘空间。",
         desc_session: "管理多会话状态、直接查看对话历史记录并持久化保存会话。",
         desc_search: "直接从命令行终端执行即时无头网络搜索。",
         desc_skills: "浏览并筛选当前已挂载的本地及自定义技能。",
@@ -2324,6 +2332,7 @@
   [s] <span class="term-cyan">Search GGUF models on Hugging Face (/model search)</span><br>
   [d] <span class="term-cyan">Download models from catalog (/model download)</span><br>
   [a] <span class="term-cyan">Register custom local path (/model add &lt;path&gt;)</span><br>
+  [r] <span class="term-cyan">Delete local model & free disk space (/model remove &lt;id&gt;)</span><br>
 `;
       } else if (cmd === '/skills' || cmd.startsWith('/skills')) {
         output = `

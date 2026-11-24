@@ -95,7 +95,8 @@ if HAS_PROMPT_TOOLKIT:
                     model_subs = [
                         ("search", t("model_sub_search", cur_lang)),
                         ("download", t("model_sub_download", cur_lang)),
-                        ("add", t("model_sub_add", cur_lang))
+                        ("add", t("model_sub_add", cur_lang)),
+                        ("remove", t("model_sub_remove", cur_lang))
                     ]
                     for sc, desc in model_subs:
                         if not sub or sc.startswith(sub):
@@ -882,6 +883,101 @@ def main():
                             print(f"{C_RED}{msg}{C_RESET}\n")
                         continue
 
+                    def do_model_delete(target_str: str = ""):
+                        nonlocal model_name
+                        available_models = config.list_gguf_models()
+                        if not available_models:
+                            print(f"{C_YELLOW}{t('model_remove_none_left', active_language)}{C_RESET}\n")
+                            return
+
+                        target_to_del = target_str.strip()
+                        if not target_to_del:
+                            loc_title = t("local_models_title", active_language)
+                            print(f"\n{C_BOLD}{loc_title}{C_RESET}")
+                            for idx, m in enumerate(available_models, start=1):
+                                p = Path(m)
+                                m_disp = p.name
+                                size_str = ""
+                                try:
+                                    f_path = p if p.is_absolute() else (config.REPO_ROOT / m)
+                                    if f_path.exists():
+                                        sz_gb = f_path.stat().st_size / (1024 ** 3)
+                                        size_str = f"({sz_gb:.2f} GB)"
+                                except Exception:
+                                    pass
+                                marker = f"{C_GREEN}* active{C_RESET}" if m == model_name or p.name == model_name else ""
+                                print(f"  [{idx}] {m_disp} {C_DIM}{size_str}{C_RESET} {marker}")
+
+                            del_prompt = t("model_remove_select", active_language, count=len(available_models))
+                            choice_del = input(f"\n{del_prompt}").strip()
+                            if not choice_del:
+                                print(f"{C_DIM}{t('model_remove_cancelled', active_language)}{C_RESET}\n")
+                                return
+                            if choice_del.isdigit() and 1 <= int(choice_del) <= len(available_models):
+                                target_to_del = available_models[int(choice_del) - 1]
+                            else:
+                                target_to_del = choice_del
+
+                        resolved = config.resolve_model_file(target_to_del)
+                        if not resolved or not resolved.exists():
+                            if target_to_del.isdigit() and 1 <= int(target_to_del) <= len(available_models):
+                                target_to_del = available_models[int(target_to_del) - 1]
+                                resolved = config.resolve_model_file(target_to_del)
+
+                        if not resolved or not resolved.exists():
+                            print(f"{C_RED}{t('model_remove_not_found', active_language, name=target_to_del)}{C_RESET}\n")
+                            return
+
+                        del_name = resolved.name
+                        del_size = ""
+                        try:
+                            sz_gb = resolved.stat().st_size / (1024 ** 3)
+                            del_size = f"{sz_gb:.2f} GB"
+                        except Exception:
+                            pass
+
+                        is_active = (del_name == model_name or (Path(model_name).name == del_name))
+                        if is_active:
+                            warn_msg = t("model_remove_active_warn", active_language, name=del_name)
+                            confirm = input(f"{C_YELLOW}{warn_msg}{C_RESET}").strip().lower()
+                        else:
+                            conf_msg = t("model_remove_confirm", active_language, name=del_name, size=del_size)
+                            confirm = input(f"{conf_msg}").strip().lower()
+
+                        if confirm not in ("y", "yes"):
+                            print(f"{C_DIM}{t('model_remove_cancelled', active_language)}{C_RESET}\n")
+                            return
+
+                        if is_active and server_mgr:
+                            print(f"Stopping server for model '{del_name}'...")
+                            server_mgr.stop()
+
+                        ok, msg, _ = config.delete_model(str(resolved))
+                        if ok:
+                            print(f"{C_GREEN}{t('model_remove_success', active_language, name=del_name)}{C_RESET}\n")
+                            if is_active:
+                                remaining = config.list_gguf_models()
+                                if remaining:
+                                    next_model = config.pick_default_model() or remaining[0]
+                                    next_name = Path(next_model).name
+                                    print(f"Switching to available model: {next_name}...")
+                                    if server_mgr:
+                                        server_mgr.start(next_model)
+                                    model_name = next_name
+                                    agent.model_name = next_name
+                                    agent.reset_session()
+                                    print(f"{C_GREEN}{t('model_switch_success', active_language)} {model_name}{C_RESET}\n")
+                                else:
+                                    model_name = ""
+                                    agent.model_name = ""
+                                    print(f"{C_YELLOW}{t('model_remove_none_left', active_language)}{C_RESET}\n")
+                        else:
+                            print(f"{C_RED}{msg}{C_RESET}\n")
+
+                    if sub_cmd in ("remove", "delete", "rm", "del"):
+                        do_model_delete(sub_val)
+                        continue
+
                     def do_model_search(query_str: str):
                         nonlocal model_name
                         query = query_str
@@ -997,15 +1093,23 @@ def main():
                     print(f"  [{C_CYAN}s{C_RESET}] {t('model_sub_search', active_language)} (/model search)")
                     print(f"  [{C_CYAN}d{C_RESET}] {t('model_sub_download', active_language)} (/model download)")
                     print(f"  [{C_CYAN}a{C_RESET}] {t('model_sub_add', active_language)} (/model add <path>)")
+                    print(f"  [{C_CYAN}r{C_RESET}] {t('model_sub_remove', active_language)} (/model remove <id>)")
 
                     if active_language == "id":
-                        choice_prompt = f"\nPilih nomor (1-{len(available)}), 's' (cari HF), 'd' (katalog), 'a' (tambah), atau enter: "
+                        choice_prompt = f"\nPilih nomor (1-{len(available)}), 's' (cari), 'd' (katalog), 'a' (tambah), 'r' (hapus), atau enter: "
                     elif active_language == "cn":
-                        choice_prompt = f"\n输入模型序号 (1-{len(available)}), 's' (搜索HF), 'd' (推荐目录), 'a' (添加), 或按回车: "
+                        choice_prompt = f"\n输入模型序号 (1-{len(available)}), 's' (搜索), 'd' (目录), 'a' (添加), 'r' (删除), 或按回车: "
                     else:
-                        choice_prompt = f"\nEnter model number (1-{len(available)}), 's' (search HF), 'd' (catalog), 'a' (add), or press enter: "
+                        choice_prompt = f"\nEnter model number (1-{len(available)}), 's' (search), 'd' (catalog), 'a' (add), 'r' (remove), or press enter: "
 
                     choice = input(choice_prompt).strip()
+
+                    if choice.lower() in ("r", "rm", "del", "delete", "remove") or choice.lower().startswith("remove ") or choice.lower().startswith("delete ") or choice.lower().startswith("rm ") or choice.lower().startswith("r "):
+                        r_target = ""
+                        if " " in choice:
+                            r_target = choice.split(maxsplit=1)[1].strip()
+                        do_model_delete(r_target)
+                        continue
 
                     if choice.lower() in ("s", "search") or choice.lower().startswith("search ") or choice.lower().startswith("s "):
                         s_q = ""
