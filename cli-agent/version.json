@@ -1,8 +1,18 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "name": "Lensetek Local LLM Agent Harness",
   "release_date": "2026-11-24",
   "changelog": {
+    "0.3.0": [
+      "On-Demand Plugin System: Extensible modular architecture via /plugins with pagination & search",
+      "Official WebUI Plugin: Local responsive dashboard & workspace file editor (mobile-first)",
+      "Playwright Dynamic Research: Headless Chromium web scraper optimized for 3B SLM context windows",
+      "Plugin Contributor Blueprint & Maker Skill: Template scaffolding & /plugins create command",
+      "External Model Registration: Register models from any directory/drive via /model add <path>",
+      "Safe Model Deletion: Delete local GGUF models and reclaim disk space via /model remove <id>",
+      "Installer Runtime Auto-Download: Automated official llama-server CPU binary fetch on install",
+      "Mobile & Tablet Navigation: Responsive submenu dropdown navigation on landing page"
+    ],
     "0.2.0": [
       "Hugging Face Hub model search & direct download (/model search)",
       "Reasoning & thinking effort depth adjustment (/effort off|low|medium|high)",

@@ -224,23 +224,248 @@ def print_help(lang: str = "en"):
         print(f"  {C_YELLOW}{cmd}{C_RESET}{sp}- {desc}")
     print()
 
+def handle_update_cli(active_language: str, started_by_us: bool = False, server_mgr = None, mcp_mgr = None):
+    """Mengecek dan mengeksekusi update aplikasi baik dari CLI flag maupun interactive /update."""
+    if not version:
+        print(f"{C_RED}[ERROR] Version & Update module not loaded.{C_RESET}\n")
+        return
+
+    print(f"\n{C_CYAN}⏳ {t('update_checking', active_language)}{C_RESET}")
+    u_info = version.check_for_updates(timeout_sec=5.0, force_refresh=True)
+    cur_v = u_info.get("current_version", version.APP_VERSION)
+    latest_v = u_info.get("latest_version", cur_v)
+    whats_new = u_info.get("whats_new", [])
+    has_update = u_info.get("update_available", False)
+
+    print(f"\n{C_BOLD}=== {t('update_header', active_language)} ==={C_RESET}")
+    print(f"  • {C_BOLD}{t('update_current_ver', active_language)}:{C_RESET} {C_CYAN}v{cur_v}{C_RESET}")
+    print(f"  • {C_BOLD}{t('update_latest_ver', active_language)}:{C_RESET} {C_GREEN}v{latest_v}{C_RESET}")
+
+    if has_update:
+        wn_title = t("update_whats_new_title", active_language, ver=latest_v)
+        print(f"\n{C_BOLD}{C_YELLOW}★ {wn_title}{C_RESET}")
+        for item in whats_new:
+            print(f"  • {item}")
+
+        confirm_lbl = t("update_confirm_prompt", active_language)
+        try:
+            ask_up = input(f"\n{C_BOLD}{confirm_lbl}{C_RESET}").strip().lower()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            ask_up = "n"
+
+        if ask_up in ("", "y", "yes"):
+            print(f"\n{C_CYAN}{t('update_in_progress', active_language)}{C_RESET}")
+            ok, msg = version.perform_update()
+            if ok:
+                print(f"{C_GREEN}✓ {t('update_success', active_language)}{C_RESET}\n")
+                if mcp_mgr:
+                    mcp_mgr.close_all()
+                if started_by_us and server_mgr:
+                    server_mgr.stop()
+                version.restart_application()
+            else:
+                err_msg = t("update_failed", active_language, error=msg)
+                print(f"{C_RED}[ERROR] {err_msg}{C_RESET}\n")
+        else:
+            print(f"{C_DIM}{t('update_cancelled', active_language)}{C_RESET}\n")
+    else:
+        latest_msg = t("update_already_latest", active_language, ver=cur_v)
+        print(f"\n{C_GREEN}✓ {latest_msg}{C_RESET}")
+        wn_title = t("update_whats_new_title", active_language, ver=cur_v)
+        print(f"\n{C_BOLD}{wn_title}{C_RESET}")
+        for item in version.get_whats_new(cur_v):
+            print(f"  • {item}")
+        print()
+
+def handle_plugins_cli(plugins_args: list[str], active_language: str):
+    """Mengelola plugin langsung dari baris perintah (CLI flags)."""
+    if not plugin_manager:
+        print(f"{C_RED}[ERROR] Plugin manager module not loaded.{C_RESET}")
+        return
+
+    sub_cmd = plugins_args[0].lower() if plugins_args else "list"
+    sub_val = plugins_args[1].strip() if len(plugins_args) > 1 else ""
+
+    if sub_cmd in ("list", "ls"):
+        items = plugin_manager.get_all_catalog_plugins()
+        print(f"\n{C_BOLD}=== LENSETEK PLUGIN CATALOG ==={C_RESET}")
+        print(f"  {'#':<3} {'ID':<20} {'Category':<10} {'Status':<12} {'Description'}")
+        print(f"  {'-'*3} {'-'*20} {'-'*10} {'-'*12} {'-'*35}")
+        for idx, itm in enumerate(items, start=1):
+            p_id = itm.get("id", "")
+            cat = f"[{itm.get('category', 'tools')}]"
+            is_inst = itm.get("is_installed", False)
+            stat = f"{C_GREEN}Installed{C_RESET}" if is_inst else f"{C_DIM}Available{C_RESET}"
+            desc = itm.get(f"description_{active_language}", itm.get("description", ""))
+            if len(desc) > 40:
+                desc = desc[:37] + "..."
+            print(f"  [{idx}] {C_BOLD}{p_id:<20}{C_RESET} {cat:<10} {stat:<20} {desc}")
+        print(f"\n{C_DIM}Gunakan: lensetek --plugins install <id> atau remove <id>{C_RESET}\n")
+
+    elif sub_cmd in ("install", "i", "add"):
+        if not sub_val:
+            print(f"{C_YELLOW}Masukkan ID plugin yang ingin diinstal. Contoh: lensetek --plugins install webui{C_RESET}")
+            return
+        ok, msg = plugin_manager.install_plugin(sub_val, lang=active_language)
+        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
+
+    elif sub_cmd in ("remove", "rm", "uninstall", "delete"):
+        if not sub_val:
+            print(f"{C_YELLOW}Masukkan ID plugin yang ingin dihapus. Contoh: lensetek --plugins remove webui{C_RESET}")
+            return
+        ok, msg = plugin_manager.uninstall_plugin(sub_val, lang=active_language)
+        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
+
+    elif sub_cmd in ("search", "find", "s"):
+        if not sub_val:
+            print(f"{C_YELLOW}Masukkan kata kunci pencarian. Contoh: lensetek --plugins search web{C_RESET}")
+            return
+        items = plugin_manager.get_all_catalog_plugins()
+        q = sub_val.lower()
+        matches = [p for p in items if q in p.get("id", "").lower() or q in p.get("name", "").lower() or q in p.get(f"description_{active_language}", p.get("description", "")).lower()]
+        print(f"\n{C_BOLD}Hasil pencarian plugin untuk '{sub_val}':{C_RESET}")
+        for idx, itm in enumerate(matches, start=1):
+            p_id = itm.get("id")
+            is_inst = itm.get("is_installed", False)
+            stat = f"{C_GREEN}Installed{C_RESET}" if is_inst else f"{C_DIM}Available{C_RESET}"
+            desc = itm.get(f"description_{active_language}", itm.get("description", ""))
+            print(f"  [{idx}] {C_BOLD}{p_id}{C_RESET} ({stat}) - {desc}")
+        if not matches:
+            print(f"  {C_DIM}Tidak ditemukan plugin yang cocok.{C_RESET}")
+        print()
+
+    elif sub_cmd in ("create", "new"):
+        if not sub_val:
+            print(f"{C_YELLOW}Masukkan nama/id plugin yang ingin dibuat. Contoh: lensetek --plugins create my-tool{C_RESET}")
+            return
+        ok, msg, p_res = plugin_manager.create_plugin_scaffold(sub_val, lang=active_language)
+        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
+    else:
+        print(f"{C_YELLOW}Subperintah plugins tidak dikenal: '{sub_cmd}'. Pilihan: list, install <id>, remove <id>, search <q>, create <name>{C_RESET}")
+
+def start_webui_cli(workspace_path: Path, port: int, model_name: str | None = None, no_server: bool = False, active_language: str = "en"):
+    """Menjalankan llama-server dan membuka Web GUI resmi bawaan llama.cpp (Llama Chat)."""
+    server_mgr = None
+    started_by_us = False
+
+    actual_model = model_name or config.pick_default_model()
+    if not actual_model and not no_server:
+        print(f"\n{C_YELLOW}{t('no_model_detected', active_language)}{C_RESET}")
+        ok, msg, path_res = config.download_model_from_catalog(lang=active_language)
+        if ok and path_res:
+            actual_model = path_res
+        else:
+            print(f"{C_RED}{t('download_failed', active_language)} {msg}{C_RESET}")
+            sys.exit(1)
+
+    if not no_server:
+        server_mgr = LlamaServerManager(port=port)
+        if not server_mgr.is_healthy():
+            print(f"{C_DIM}Memulai runtime llama-server untuk model '{Path(actual_model).name}' pada port {port}...{C_RESET}")
+            try:
+                server_mgr.start(actual_model)
+                started_by_us = True
+                print(f"{C_GREEN}✓ llama-server aktif di http://127.0.0.1:{port}{C_RESET}")
+            except Exception as e:
+                print(f"{C_RED}[ERROR] Gagal menjalankan llama-server: {e}{C_RESET}")
+                sys.exit(1)
+
+    webui_url = f"http://127.0.0.1:{port}"
+    import webbrowser
+    webbrowser.open(webui_url)
+
+    model_disp = Path(actual_model).name if actual_model else "external/running"
+    print(f"\n{C_GREEN}{'='*64}{C_RESET}")
+    print(f"  {C_BOLD}🌐 llama.cpp Official Web GUI Active (Llama Chat){C_RESET}")
+    print(f"  • Web URL:  {C_CYAN}{webui_url}{C_RESET}")
+    print(f"  • Model:    {model_disp}")
+    print(f"  • Fitur:    Chat Visual, Parameter Temp/Top-P/Penalty, Token Metrics")
+    print(f"  {C_DIM}Tekan Ctrl+C untuk menghentikan server.{C_RESET}")
+    print(f"{C_GREEN}{'='*64}{C_RESET}\n")
+
+    try:
+        import time
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print(f"\n{C_YELLOW}Menghentikan runtime llama-server...{C_RESET}")
+    finally:
+        if started_by_us and server_mgr:
+            server_mgr.stop()
+        print(f"{C_GREEN}Web GUI dihentikan.{C_RESET}")
+
 def main():
-    parser = argparse.ArgumentParser(description="LENSETEK LEAN AGENT HARNESS")
+    parser = argparse.ArgumentParser(
+        description="LENSETEK LEAN AGENT HARNESS - Autonomous Local AI Agent Engine",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples / Contoh Penggunaan:
+  lensetek                                        Mulai sesi interaktif (REPL)
+  lensetek --prompt "Analisis file README.md"     Jalankan satu tugas langsung & keluar
+  lensetek "Jelaskan fungsi skrip ini"            Prompt langsung tanpa flag
+  lensetek --prompt "Ringkas kode" --model qwen   Jalankan prompt dengan model tertentu
+  lensetek --update                               Periksa & instal pembaruan aplikasi
+  lensetek --gui                                  Jalankan server WebUI dan buka di browser
+  lensetek --plugins list                         Daftar semua plugin & statusnya
+  lensetek --plugins install webui                Instal plugin WebUI
+  lensetek --plugins remove webui                 Hapus plugin WebUI
+  lensetek --version                              Tampilkan versi aktif & What's New
+        """
+    )
+    parser.add_argument("direct_prompt", nargs="*", default=[], help="Teks prompt langsung tanpa flag (opsional)")
+    parser.add_argument("--prompt", "-P", dest="prompt", type=str, default=None, help="Jalankan prompt/tugas langsung (headless) lalu keluar")
+    parser.add_argument("--once", type=str, default=None, help="Alias untuk --prompt (backward compatibility)")
+    parser.add_argument("--model", "-m", default=None, help="Nama atau path model GGUF (default: auto pick)")
+    parser.add_argument("--update", "-u", action="store_true", help="Periksa dan terapkan pembaruan aplikasi langsung dari CLI")
+    parser.add_argument("--plugins", nargs="*", default=None, help="Kelola plugin: list, install <id>, remove <id>, search <q>, create <name>")
+    parser.add_argument("--gui", "--webui", action="store_true", help="Jalankan server WebUI dan buka di browser")
+    parser.add_argument("--version", "-v", action="store_true", help="Tampilkan versi saat ini dan catatan rilis (What's New)")
     parser.add_argument("--workspace", "-w", default=".", help="Folder kerja awal (default: '.')")
-    parser.add_argument("--model", "-m", default=None, help="Nama model GGUF (default: auto pick)")
     parser.add_argument("--ctx", "-c", type=int, default=config.DEFAULT_CTX, help="Ukuran context window (default: 8192)")
     parser.add_argument("--port", "-p", type=int, default=config.DEFAULT_PORT, help="Port llama-server (default: 8081)")
     parser.add_argument("--no-server", action="store_true", help="Jangan otomatis jalankan llama-server internal")
     parser.add_argument("--auto-approve", action="store_true", help="Mode auto-approve aksi di dalam workspace")
     parser.add_argument("--yolo", action="store_true", help="Mode tanpa konfirmasi (kecuali fatal command)")
-    parser.add_argument("--once", type=str, default=None, help="Jalankan 1 tugas secara headless lalu keluar")
     args = parser.parse_args()
 
     # Baca preferensi bahasa pengguna terlebih dahulu (default: en)
     active_language = config.get_active_language()
     active_effort = config.get_active_effort()
-
     workspace_path = Path(args.workspace).resolve()
+
+    # --- CLI ACTION 1: --version ---
+    if args.version:
+        cur_v = version.get_current_version() if version else "0.3.0"
+        print(f"\n{C_BOLD}LENSETEK LEAN AGENT HARNESS{C_RESET} {C_CYAN}v{cur_v}{C_RESET}")
+        if version:
+            wn = version.get_whats_new(cur_v)
+            if wn:
+                print(f"\n{C_BOLD}What's New pada v{cur_v}:{C_RESET}")
+                for item in wn:
+                    print(f"  • {item}")
+        print()
+        sys.exit(0)
+
+    # --- CLI ACTION 2: --update ---
+    if args.update:
+        handle_update_cli(active_language)
+        sys.exit(0)
+
+    # --- CLI ACTION 3: --plugins ---
+    if args.plugins is not None:
+        handle_plugins_cli(args.plugins, active_language)
+        sys.exit(0)
+
+    # --- CLI ACTION 4: --gui / --webui ---
+    if args.gui:
+        start_webui_cli(workspace_path, args.port, model_name=args.model, no_server=args.no_server, active_language=active_language)
+        sys.exit(0)
+
+    # Tentukan apakah ada target prompt langsung (headless execution)
+    target_prompt = args.prompt or args.once
+    if not target_prompt and args.direct_prompt:
+        target_prompt = " ".join(args.direct_prompt).strip()
     model_name = args.model or config.pick_default_model()
     if not model_name:
         print(f"\n{C_YELLOW}{t('no_model_detected', active_language)}{C_RESET}")
@@ -258,7 +483,7 @@ def main():
         safety_mode = "yolo"
     elif args.auto_approve:
         safety_mode = "auto-approve"
-    elif args.once:
+    elif target_prompt:
         safety_mode = "read-only"
     else:
         safety_mode = "strict"
@@ -270,12 +495,12 @@ def main():
         if server_mgr.is_healthy():
             started_by_us = False
         else:
-            if not args.once:
+            if not target_prompt:
                 print(f"{C_DIM}Starting llama-server for model '{model_name}' on port {args.port}...{C_RESET}")
             try:
                 server_mgr.start(model_name)
                 started_by_us = True
-                if not args.once:
+                if not target_prompt:
                     print(f"{C_GREEN}✓ llama-server active at http://127.0.0.1:{args.port} (ctx: {args.ctx}){C_RESET}\n")
             except Exception as e:
                 print(f"{C_RED}[ERROR] Failed to start llama-server: {e}{C_RESET}")
@@ -308,11 +533,11 @@ def main():
         agent.load_session(active_session_data)
 
     def on_status(msg):
-        if not args.once:
+        if not target_prompt:
             print(f"{C_DIM}⏳ {msg}{C_RESET}")
 
     def on_tool(t_name, t_args, t_result):
-        if args.once:
+        if target_prompt:
             return
         if t_result is None:
             args_summary = str(t_args)[:80]
@@ -322,10 +547,10 @@ def main():
             first_line = res_lines[0][:100] if res_lines else "OK"
             print(f"{C_DIM}   └─ Result: {first_line}{C_RESET}")
 
-    # --- JIKA RUN DALAM MODE --ONCE (Headless) ---
-    if args.once:
+    # --- JIKA RUN DALAM MODE HEADLESS (Direct Prompt / --prompt / --once) ---
+    if target_prompt:
         try:
-            res = agent.run_turn(args.once, on_status=None, on_tool=None)
+            res = agent.run_turn(target_prompt, on_status=None, on_tool=None)
             print(res)
         finally:
             mcp_mgr.close_all()
@@ -589,51 +814,7 @@ def main():
 
                 # --- UPDATE COMMAND ---
                 elif cmd == "/update":
-                    if not version:
-                        print(f"{C_RED}[ERROR] Version & Update module not loaded.{C_RESET}\n")
-                        continue
-
-                    print(f"\n{C_CYAN}⏳ {t('update_checking', active_language)}{C_RESET}")
-                    u_info = version.check_for_updates(timeout_sec=5.0, force_refresh=True)
-                    cur_v = u_info.get("current_version", version.APP_VERSION)
-                    latest_v = u_info.get("latest_version", cur_v)
-                    whats_new = u_info.get("whats_new", [])
-                    has_update = u_info.get("update_available", False)
-
-                    print(f"\n{C_BOLD}=== {t('update_header', active_language)} ==={C_RESET}")
-                    print(f"  • {C_BOLD}{t('update_current_ver', active_language)}:{C_RESET} {C_CYAN}v{cur_v}{C_RESET}")
-                    print(f"  • {C_BOLD}{t('update_latest_ver', active_language)}:{C_RESET} {C_GREEN}v{latest_v}{C_RESET}")
-
-                    if has_update:
-                        wn_title = t("update_whats_new_title", active_language, ver=latest_v)
-                        print(f"\n{C_BOLD}{C_YELLOW}★ {wn_title}{C_RESET}")
-                        for item in whats_new:
-                            print(f"  • {item}")
-
-                        confirm_lbl = t("update_confirm_prompt", active_language)
-                        ask_up = input(f"\n{C_BOLD}{confirm_lbl}{C_RESET}").strip().lower()
-                        if ask_up in ("", "y", "yes"):
-                            print(f"\n{C_CYAN}{t('update_in_progress', active_language)}{C_RESET}")
-                            ok, msg = version.perform_update()
-                            if ok:
-                                print(f"{C_GREEN}✓ {t('update_success', active_language)}{C_RESET}\n")
-                                mcp_mgr.close_all()
-                                if started_by_us and server_mgr:
-                                    server_mgr.stop()
-                                version.restart_application()
-                            else:
-                                err_msg = t("update_failed", active_language, error=msg)
-                                print(f"{C_RED}[ERROR] {err_msg}{C_RESET}\n")
-                        else:
-                            print(f"{C_DIM}{t('update_cancelled', active_language)}{C_RESET}\n")
-                    else:
-                        latest_msg = t("update_already_latest", active_language, ver=cur_v)
-                        print(f"\n{C_GREEN}✓ {latest_msg}{C_RESET}")
-                        wn_title = t("update_whats_new_title", active_language, ver=cur_v)
-                        print(f"\n{C_BOLD}{wn_title}{C_RESET}")
-                        for item in version.get_whats_new(cur_v):
-                            print(f"  • {item}")
-                        print()
+                    handle_update_cli(active_language, started_by_us=started_by_us, server_mgr=server_mgr, mcp_mgr=mcp_mgr)
                     continue
 
                 # --- LANGUAGE COMMAND ---
@@ -989,6 +1170,27 @@ def main():
                                 print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
                         else:
                             print(f"{C_YELLOW}Invalid choice: '{choice}'. Enter 1-{len(items)}, n, p, s, or q.{C_RESET}")
+                    continue
+
+                # --- WEBUI LAUNCHER COMMAND ---
+                elif cmd in ("/gui", "/webui"):
+                    webui_url = f"http://127.0.0.1:{args.port}"
+                    if server_mgr and not server_mgr.is_healthy():
+                        print(f"{C_DIM}Memulai runtime llama-server pada port {args.port}...{C_RESET}")
+                        try:
+                            server_mgr.start(model_name)
+                            started_by_us = True
+                        except Exception as e:
+                            print(f"{C_RED}[ERROR] Gagal memulai llama-server: {e}{C_RESET}\n")
+                            continue
+
+                    import webbrowser
+                    try:
+                        webbrowser.open(webui_url)
+                    except Exception:
+                        pass
+                    print(f"\n{C_GREEN}✓ Web GUI resmi llama.cpp dibuka di browser:{C_RESET} {C_CYAN}{webui_url}{C_RESET}")
+                    print(f"{C_DIM}  (Model: {model_name} • Port: {args.port} • Llama Chat Engine){C_RESET}\n")
                     continue
 
                 # --- MODEL & CTX COMMANDS ---

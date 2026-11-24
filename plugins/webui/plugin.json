@@ -1,13 +1,13 @@
 {
   "id": "webui",
-  "name": "Lensetek WebUI & Workspace Editor",
+  "name": "llama.cpp Official WebUI",
   "version": "1.0.0",
   "category": "ui",
-  "author": "Lensetek",
-  "description": "Local responsive web interface with visual chat, project file explorer, and inline code editor (mobile-first).",
-  "description_id": "Antarmuka web lokal responsif dengan chat visual, penjelajah file proyek, dan editor kode (mobile-first).",
-  "description_cn": "本地响应式 Web 界面，具备可视化对话、项目文件资源管理器和代码编辑器（移动端优先）。",
-  "entry_point": "server.py",
+  "author": "llama.cpp / Lensetek",
+  "description": "Native built-in Web GUI served directly by llama-server for visual chat, model parameters, and real-time token metrics.",
+  "description_id": "Web GUI resmi bawaan langsung dari llama-server untuk obrolan visual, konfigurasi parameter model, dan metrik token real-time.",
+  "description_cn": "由 llama-server 直接提供的官方内置原生 Web 界面，支持可视化对话、模型参数调优和实时 Token 监控。",
+  "entry_point": "main.py",
   "dependencies": [],
-  "permissions": ["workspace_read", "workspace_write", "server_proxy"]
+  "permissions": ["browser_open", "server_proxy"]
 }

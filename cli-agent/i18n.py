@@ -515,6 +515,7 @@ def get_localized_slash_items(lang: str = "en") -> list[tuple[str, str, str]]:
         ("/plugins install", "Install plugin by number or name (/plugins install <id>)", t("slash_plugins_cat", lang)),
         ("/plugins remove", "Uninstall plugin by number or name (/plugins remove <id>)", t("slash_plugins_cat", lang)),
         ("/plugins create", "Create a new plugin scaffold from template (/plugins create <name>)", t("slash_plugins_cat", lang)),
+        ("/gui", "Open or launch WebUI Dashboard in browser (/gui)", t("slash_plugins_cat", lang)),
         ("/model", t("slash_model_desc", lang), t("slash_model_cat", lang)),
         ("/model search", t("model_sub_search", lang), t("slash_model_cat", lang)),
         ("/model download", t("model_sub_download", lang), t("slash_model_cat", lang)),

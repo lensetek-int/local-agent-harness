@@ -11,11 +11,21 @@ import subprocess
 import threading
 from pathlib import Path
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 APP_NAME = "Lensetek Local LLM Agent Harness"
 RELEASE_DATE = "2026-11-24"
 
 CHANGELOG: dict[str, list[str]] = {
+    "0.3.0": [
+        "Sistem Plugin On-Demand: Arsitektur modular via /plugins dengan paginasi, pencarian, dan penomoran",
+        "Plugin Resmi WebUI: Dashboard lokal & editor file proyek responsif (mobile-first)",
+        "Plugin Playwright Research: Scraper web dinamis dengan pembersih Markdown optimal untuk model 3B",
+        "Skill Plugin Maker & Template: Blueprint kontributor plugins/_template/ & perintah /plugins create",
+        "Registrasi Model Eksternal: Daftarkan model dari folder/drive lain via /model add <path>",
+        "Penghapusan Model Aman: Hapus file GGUF lokal untuk hemat disk via /model remove <id>",
+        "Installer Otomatis: Unduh runtime resmi llama-server CPU saat instalasi dan startup",
+        "Navigasi Responsif: Submenu dropdown tablet & mobile pada landing page"
+    ],
     "0.2.0": [
         "Model Search: Cari dan unduh model GGUF langsung dari Hugging Face Hub (/model search)",
         "Thinking Effort: Atur kedalaman berpikir model (off, low, medium, high) secara interaktif (/effort)",
