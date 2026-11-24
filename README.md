@@ -1,7 +1,7 @@
 ---
 title: Lensetek Edge AI Agent Harness
 emoji: ⚡
-colorFrom: cyan
+colorFrom: blue
 colorTo: green
 sdk: static
 pinned: false
