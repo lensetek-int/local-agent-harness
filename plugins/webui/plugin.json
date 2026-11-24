@@ -1,0 +1,13 @@
+{
+  "id": "webui",
+  "name": "Lensetek WebUI & Workspace Editor",
+  "version": "1.0.0",
+  "category": "ui",
+  "author": "Lensetek",
+  "description": "Local responsive web interface with visual chat, project file explorer, and inline code editor (mobile-first).",
+  "description_id": "Antarmuka web lokal responsif dengan chat visual, penjelajah file proyek, dan editor kode (mobile-first).",
+  "description_cn": "本地响应式 Web 界面，具备可视化对话、项目文件资源管理器和代码编辑器（移动端优先）。",
+  "entry_point": "server.py",
+  "dependencies": [],
+  "permissions": ["workspace_read", "workspace_write", "server_proxy"]
+}

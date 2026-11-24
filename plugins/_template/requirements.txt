@@ -1,0 +1,3 @@
+# List extra python dependencies required by your plugin here (if any)
+# e.g.:
+# requests>=2.31.0

@@ -1,0 +1,13 @@
+{
+  "id": "my-plugin",
+  "name": "My Custom Lensetek Plugin",
+  "version": "1.0.0",
+  "category": "tools",
+  "author": "Your Name / Organization",
+  "description": "Short explanation of what your plugin does in English.",
+  "description_id": "Penjelasan singkat fungsi plugin dalam Bahasa Indonesia.",
+  "description_cn": "插件功能的简短中文描述。",
+  "entry_point": "main.py",
+  "dependencies": [],
+  "permissions": ["workspace_read"]
+}

@@ -24,6 +24,13 @@ from web_search import headless_web_search, format_search_results
 from session_manager import SessionManager
 from agent import LeanAgent
 try:
+    import plugin_manager
+except ImportError:
+    try:
+        from cli_agent import plugin_manager
+    except ImportError:
+        plugin_manager = None
+try:
     from i18n import t, get_localized_slash_items
 except ImportError:
     try:
@@ -282,6 +289,9 @@ def main():
     session_mgr = SessionManager()
     active_session_data = session_mgr.get_active_session()
 
+    plugin_ctx = {"workspace": str(workspace_path), "lang": active_language, "config": config}
+    installed_plugin_tools = plugin_manager.load_installed_tools(plugin_ctx) if plugin_manager else []
+
     agent = LeanAgent(
         base_url=f"http://127.0.0.1:{args.port}",
         fs_tools=fs_tools,
@@ -291,7 +301,8 @@ def main():
         ctx_size=args.ctx,
         model_name=model_name,
         language=active_language,
-        effort_level=active_effort
+        effort_level=active_effort,
+        plugin_tools=installed_plugin_tools
     )
     if active_session_data:
         agent.load_session(active_session_data)
@@ -869,6 +880,117 @@ def main():
                         print(f"{C_YELLOW}       /schedule remove <name>{C_RESET}\n")
                     continue
 
+                # --- PLUGINS COMMAND ---
+                elif cmd == "/plugins":
+                    if not plugin_manager:
+                        print(f"{C_RED}Plugin manager is not available.{C_RESET}\n")
+                        continue
+
+                    parts = arg.split(maxsplit=1)
+                    p_action = parts[0].lower() if parts else ""
+                    p_val = parts[1].strip() if len(parts) > 1 else ""
+
+                    if p_action in ("install", "add", "i") and p_val:
+                        ok, msg = plugin_manager.install_plugin(p_val, lang=active_language)
+                        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
+                        continue
+
+                    if p_action in ("remove", "delete", "rm", "uninstall", "u") and p_val:
+                        ok, msg = plugin_manager.uninstall_plugin(p_val, lang=active_language)
+                        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
+                        continue
+
+                    if p_action in ("create", "new") and p_val:
+                        ok, msg, path_res = plugin_manager.create_plugin_scaffold(p_val, lang=active_language)
+                        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
+                        continue
+
+                    # Interactive / List mode with pagination and search
+                    p_search = p_val if p_action in ("search", "find", "s") else ""
+                    p_cat = p_val if p_action in ("list", "ls", "category", "c") and p_val not in ("", "all") else ""
+                    cur_page = 1
+
+                    while True:
+                        items, total_count, total_pages = plugin_manager.get_paginated_plugins(
+                            page=cur_page,
+                            page_size=5,
+                            category=p_cat,
+                            search_query=p_search,
+                            lang=active_language
+                        )
+
+                        p_title = t("plugin_title", active_language)
+                        p_info = t("plugin_page_info", active_language, current=cur_page, total=total_pages, count=total_count)
+                        print(f"\n{C_BOLD}{p_title} ({p_info}){C_RESET}")
+                        if p_search:
+                            print(f"{C_CYAN}Search filter: '{p_search}'{C_RESET}")
+                        if p_cat:
+                            print(f"{C_CYAN}Category filter: '[{p_cat}]'{C_RESET}")
+
+                        print(f"  {'#':<3} {'Plugin Name':<28} {'Category':<10} {'Status':<12} {'Description'}")
+                        print(f"  {'-'*3} {'-'*28} {'-'*10} {'-'*12} {'-'*35}")
+
+                        if not items:
+                            print(f"  {C_DIM}No plugins found matching criteria.{C_RESET}")
+                        else:
+                            for idx, itm in enumerate(items, start=1):
+                                p_id = itm.get("id")
+                                p_name = itm.get("name", p_id)
+                                if len(p_name) > 27:
+                                    p_name = p_name[:24] + "..."
+                                p_cat_disp = f"[{itm.get('category', 'tools')}]"
+                                is_inst = itm.get("is_installed", False)
+                                stat_str = f"{C_GREEN}{t('plugin_status_installed', active_language)}{C_RESET}" if is_inst else f"{C_DIM}{t('plugin_status_available', active_language)}{C_RESET}"
+                                desc_field = f"description_{active_language}"
+                                p_desc = itm.get(desc_field, itm.get("description", ""))
+                                if len(p_desc) > 38:
+                                    p_desc = p_desc[:35] + "..."
+                                print(f"  [{idx}] {C_BOLD}{p_name:<26}{C_RESET} {p_cat_disp:<10} {stat_str:<20} {p_desc}")
+
+                        p_hint = t("plugin_commands_hint", active_language, max=len(items))
+                        print(f"\n{C_DIM}{p_hint}{C_RESET}")
+                        try:
+                            choice = input(f"{C_CYAN}>{C_RESET} ").strip()
+                        except (KeyboardInterrupt, EOFError):
+                            print()
+                            break
+
+                        if not choice or choice.lower() in ("q", "quit", "exit"):
+                            print()
+                            break
+                        elif choice.lower() == "n":
+                            if cur_page < total_pages:
+                                cur_page += 1
+                            else:
+                                print(f"{C_YELLOW}Already on the last page.{C_RESET}")
+                        elif choice.lower() == "p":
+                            if cur_page > 1:
+                                cur_page -= 1
+                            else:
+                                print(f"{C_YELLOW}Already on the first page.{C_RESET}")
+                        elif choice.lower().startswith("s ") or choice.lower() == "s":
+                            if choice.lower().startswith("s "):
+                                p_search = choice[2:].strip()
+                            else:
+                                p_search = input("Enter keyword to search (or empty to clear): ").strip()
+                            cur_page = 1
+                        elif choice.isdigit() and 1 <= int(choice) <= len(items):
+                            selected_itm = items[int(choice) - 1]
+                            sel_name = selected_itm.get("name", selected_itm.get("id"))
+                            sel_id = selected_itm.get("id")
+
+                            act_prompt = t("plugin_action_prompt", active_language, name=sel_name)
+                            p_act = input(act_prompt).strip().lower()
+                            if p_act in ("i", "install"):
+                                ok, msg = plugin_manager.install_plugin(sel_id, lang=active_language)
+                                print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
+                            elif p_act in ("u", "uninstall", "r", "remove"):
+                                ok, msg = plugin_manager.uninstall_plugin(sel_id, lang=active_language)
+                                print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
+                        else:
+                            print(f"{C_YELLOW}Invalid choice: '{choice}'. Enter 1-{len(items)}, n, p, s, or q.{C_RESET}")
+                    continue
+
                 # --- MODEL & CTX COMMANDS ---
                 elif cmd == "/model":
                     arg_parts = arg.split(maxsplit=1)
@@ -876,9 +998,17 @@ def main():
                     sub_val = arg_parts[1].strip() if len(arg_parts) > 1 else ""
 
                     if sub_cmd == "add" and sub_val:
-                        ok, msg = config.add_custom_model_path(sub_val)
+                        ok, msg, p_res = config.add_custom_model_path(sub_val, lang=active_language)
                         if ok:
-                            print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                            print(f"{C_GREEN}{msg}{C_RESET}\n")
+                            if p_res and p_res.is_file():
+                                ask_sw = input(t("model_switch_ask", active_language)).strip().lower()
+                                if ask_sw in ("", "y", "yes") and server_mgr:
+                                    server_mgr.start(str(p_res))
+                                    model_name = p_res.name
+                                    agent.model_name = p_res.name
+                                    agent.reset_session()
+                                    print(f"{C_GREEN}{t('model_switch_success', active_language)} {model_name}{C_RESET}\n")
                         else:
                             print(f"{C_RED}{msg}{C_RESET}\n")
                         continue
@@ -1139,10 +1269,21 @@ def main():
                         elif choice.lower().startswith("a "):
                             add_path = choice[2:].strip()
                         else:
-                            add_path = input("Enter custom GGUF model path or folder: ").strip()
+                            add_path = input(t("model_add_prompt", active_language)).strip()
                         if add_path:
-                            ok, msg = config.add_custom_model_path(add_path)
-                            print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
+                            ok, msg, p_res = config.add_custom_model_path(add_path, lang=active_language)
+                            if ok:
+                                print(f"{C_GREEN}{msg}{C_RESET}\n")
+                                if p_res and p_res.is_file():
+                                    ask_sw = input(t("model_switch_ask", active_language)).strip().lower()
+                                    if ask_sw in ("", "y", "yes") and server_mgr:
+                                        server_mgr.start(str(p_res))
+                                        model_name = p_res.name
+                                        agent.model_name = p_res.name
+                                        agent.reset_session()
+                                        print(f"{C_GREEN}{t('model_switch_success', active_language)} {model_name}{C_RESET}\n")
+                            else:
+                                print(f"{C_RED}{msg}{C_RESET}\n")
                         continue
 
                     if choice.isdigit() and 1 <= int(choice) <= len(available):

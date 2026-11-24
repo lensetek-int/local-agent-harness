@@ -1,0 +1,13 @@
+{
+  "id": "playwright-search",
+  "name": "Playwright Dynamic Web Research",
+  "version": "1.0.0",
+  "category": "tools",
+  "author": "Lensetek",
+  "description": "Headless Chromium browser scraper with Smart Markdown Cleaner optimized for 3B edge models.",
+  "description_id": "Scraper web dinamis berbasis headless Chromium dengan pembersih teks Markdown optimal untuk model 3B.",
+  "description_cn": "基于无头 Chromium 的动态网页抓取工具，内置专为 3B 端侧模型优化的 Markdown 清理器。",
+  "entry_point": "scraper.py",
+  "dependencies": ["playwright"],
+  "permissions": ["network_outbound"]
+}

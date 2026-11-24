@@ -50,12 +50,13 @@ PEDOMAN KERJA:
 }
 
 class LeanAgent:
-    def __init__(self, base_url: str, fs_tools, mcp_manager, skills_manager=None, session_manager=None, ctx_size: int = 8192, model_name: str = None, language: str = "en", effort_level: str = "medium"):
+    def __init__(self, base_url: str, fs_tools, mcp_manager, skills_manager=None, session_manager=None, ctx_size: int = 8192, model_name: str = None, language: str = "en", effort_level: str = "medium", plugin_tools: list[dict] = None):
         self.base_url = base_url.rstrip("/")
         self.fs_tools = fs_tools
         self.mcp_manager = mcp_manager
         self.skills_manager = skills_manager
         self.session_manager = session_manager
+        self.plugin_tools = plugin_tools or []
         self.web_search_tool = WebSearchTool()
         self.ctx_size = ctx_size
         self.model_name = model_name
@@ -163,6 +164,17 @@ class LeanAgent:
             tools.extend(self.skills_manager.get_openai_tools())
         if self.web_search_tool:
             tools.append(self.web_search_tool.get_openai_tool())
+        if self.plugin_tools:
+            for pt in self.plugin_tools:
+                schema = pt.get("schema") or {
+                    "type": "function",
+                    "function": {
+                        "name": pt.get("name"),
+                        "description": pt.get("description", ""),
+                        "parameters": pt.get("parameters", {"type": "object", "properties": {}})
+                    }
+                }
+                tools.append(schema)
         return tools
 
     def _trim_history_if_needed(self):
@@ -240,6 +252,21 @@ class LeanAgent:
         skill_names = {"search_skills", "read_skill", "create_skill"}
         if name in skill_names and self.skills_manager:
             return self.skills_manager.execute(name, args)
+
+        # 5. Plugin Tools
+        if self.plugin_tools:
+            for pt in self.plugin_tools:
+                if pt.get("name") == name:
+                    handler = pt.get("handler")
+                    if callable(handler):
+                        ctx = {
+                            "workspace": str(self.fs_tools.workspace_root) if self.fs_tools else ".",
+                            "lang": self.language
+                        }
+                        try:
+                            return str(handler(args, ctx))
+                        except Exception as e:
+                            return f"Error executing plugin tool '{name}': {e}"
 
         return f"Error: Tool '{name}' tidak terdaftar pada sistem."
 

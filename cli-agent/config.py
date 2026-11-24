@@ -201,11 +201,12 @@ def list_gguf_models() -> list[str]:
     models.sort()
     return models
 
-def add_custom_model_path(path_str: str) -> tuple[bool, str]:
+def add_custom_model_path(path_str: str, lang: str = "en") -> tuple[bool, str, Path | None]:
     """Mendaftarkan file *.gguf atau direktori model baru ke user_settings.json."""
-    p = Path(path_str).resolve()
+    raw = path_str.strip().strip("'\"")
+    p = Path(raw).resolve()
     if not p.exists():
-        return False, f"Path '{path_str}' tidak ditemukan di sistem."
+        return False, t("model_add_not_found", lang, path=path_str), None
 
     st = load_user_settings()
     custom_list = st.get("custom_models", [])
@@ -215,10 +216,10 @@ def add_custom_model_path(path_str: str) -> tuple[bool, str]:
         st["custom_models"] = custom_list
         save_user_settings(st)
         if p.is_file():
-            return True, f"Model '{p.name}' berhasil didaftarkan ke daftar model."
+            return True, t("model_add_success_file", lang, name=p.name), p
         else:
-            return True, f"Direktori model '{p}' berhasil didaftarkan ke daftar pencarian model."
-    return True, f"Path '{resolved_str}' sudah terdaftar sebelumnya."
+            return True, t("model_add_success_dir", lang, path=str(p)), p
+    return True, t("model_add_exists", lang, path=resolved_str), p
 
 def resolve_model_file(target: str) -> Path | None:
     """Mencari objek Path dari model berdasarkan nama file, path lengkap, atau substring nama."""
