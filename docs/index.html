@@ -723,7 +723,7 @@
       </a>
       <div class="nav-links">
         <a href="#install">Install</a>
-        <a href="#demo">Live Demo</a>
+        <a href="#showcase">Terminal UI</a>
         <a href="#features">Architecture</a>
         <a href="#commands">Commands</a>
         <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" class="btn-github">
@@ -851,11 +851,11 @@
     </section>
 
     <!-- ========================================================== -->
-    <!-- INTERACTIVE TERMINAL PREVIEW                               -->
+    <!-- TERMINAL INTERFACE SHOWCASE                                -->
     <!-- ========================================================== -->
-    <section id="demo" class="terminal-section">
-      <h2 class="section-title">Live Interactive Terminal Experience</h2>
-      <p class="section-desc">Test slash commands, autocompletions, and skills right in this live terminal preview.</p>
+    <section id="showcase" class="terminal-section">
+      <h2 class="section-title">Terminal Interface Showcase</h2>
+      <p class="section-desc">A visual demonstration of the developer experience, command telemetry, and agent workflow in your terminal.</p>
       
       <div class="terminal-card">
         <div class="terminal-bar">
@@ -865,7 +865,7 @@
             <span class="dot dot-green"></span>
           </div>
           <div class="terminal-title">⚡ LENSETEK LEAN AGENT HARNESS (port: 8081, ctx: 8192)</div>
-          <div style="width: 30px;"></div>
+          <div style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.25); color: var(--accent-cyan); font-family: var(--font-mono); font-weight: 600;">SIMULATION</div>
         </div>
         <div id="terminalBody" class="terminal-body">
 <span class="term-cyan term-bold">====================================================================</span><br>
@@ -884,19 +884,20 @@
 <div id="termHistory"></div>
 <div class="cli-prompt-container">
   <span class="term-green term-bold">&gt;&nbsp;</span>
-  <input type="text" id="cliInputField" class="cli-input" placeholder="Type /help, /model, /skills, or /search and press Enter..." autocomplete="off" spellcheck="false">
+  <span id="termActivePrompt" class="term-dim">Click any button below to preview command telemetry...</span>
+  <span style="border-right: 2px solid #00ff88; animation: pulse 1s infinite;">&nbsp;</span>
 </div>
         </div>
       </div>
 
       <!-- Quick Interactive Demo Buttons -->
       <div class="demo-controls">
-        <button class="btn-demo" onclick="triggerCliCommand('/help')">Run /help</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/model')">Run /model</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/skills')">Run /skills</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/search local AI agent')">Run /search</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/language id')">Switch Language (/language id)</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/clear')">Clear Terminal</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/help')">Preview /help</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/model')">Preview /model</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/skills')">Preview /skills</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/search local AI agent')">Preview /search</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/language id')">Preview /language id</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/clear')">Reset View</button>
       </div>
     </section>
 
@@ -1107,21 +1108,28 @@
       });
     }
 
-    // Interactive CLI Terminal Input
+    // Optional Interactive CLI Terminal Input
     const cliInputField = document.getElementById('cliInputField');
-    cliInputField.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        const val = this.value.trim();
-        if (val) {
-          triggerCliCommand(val);
-          this.value = '';
+    if (cliInputField) {
+      cliInputField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          const val = this.value.trim();
+          if (val) {
+            triggerCliCommand(val);
+            this.value = '';
+          }
         }
-      }
-    });
+      });
+    }
 
-    // Command Trigger
+    // Command Trigger for Preview Showcase
     function triggerCliCommand(cmd) {
       const termHistory = document.getElementById('termHistory');
+      const termBody = document.getElementById('terminalBody');
+      const activePrompt = document.getElementById('termActivePrompt');
+      if (activePrompt) {
+        activePrompt.textContent = cmd;
+      }
       const termBody = document.getElementById('terminalBody');
 
       if (cmd === '/clear') {
