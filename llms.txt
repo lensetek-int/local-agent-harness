@@ -1,0 +1,36 @@
+# Lensetek Lean Agent Harness (v0.3.0)
+
+> Ultra-lean (< 5 MB) autonomous local AI coding agent harness engineered for 3B–7B GGUF models on standard laptop CPUs without GPU or cloud API dependencies.
+
+## Overview
+- **Project**: Lensetek Lean Agent Harness
+- **Author**: Lensetek AI (https://lensetek.com)
+- **Repository**: https://github.com/lensetek-int/local-agent-harness
+- **Landing Page**: https://lensetek-int.github.io/local-agent-harness/
+- **Hugging Face Space**: https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent
+- **License**: MIT
+- **Platforms**: Windows, macOS, Linux (Python 3.10+, CPU-only via llama.cpp)
+
+## Core Architecture & Key Differentiators
+- **Ultra-Lean Core**: Core Python harness is ~282 KB (~2–3 MB with `prompt_toolkit` and `wcwidth`), avoiding the 3,000–8,000 token prompt bloat of cloud frameworks (LangChain, CrewAI, AutoGPT) that degrades 3B–7B local models.
+- **Language-Agnostic Workspace Grounding**: Automatically injects the active workspace directory and sanitized top-level file listing into context so small models immediately inspect and edit files without asking for paths.
+- **Zero-GPU Local Execution**: Automatically downloads and manages the official `llama.cpp` (`llama-server`) CPU runtime with KV-cache quantization and Flash Attention (< 2.5 GB RAM for 3B Q4_K_M models).
+- **3-Tier Safety & Credential Shield**: `strict` (confirm), `auto-approve` (workspace-scoped), and `yolo` modes. Strictly blocks `.env*`, `.pem`, `.key`, `.git/`, and path traversal in WebUI APIs and context snapshots.
+
+## Quick Installation
+- **Windows (PowerShell)**: `irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex`
+- **macOS / Linux (Bash)**: `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash`
+
+## Direct CLI Commands
+- `lensetek` — Start interactive REPL session
+- `lensetek --prompt "<task>"` or `lensetek "<task>"` — One-shot headless execution
+- `lensetek --model <model.gguf>` — Run with a specific local GGUF model
+- `lensetek --gui` — Launch the responsive light-first Agent Web Workspace (`http://127.0.0.1:3001`)
+- `lensetek --plugins list | install <id> | remove <id> | search <q> | create <name>` — Manage on-demand plugins
+- `lensetek --update` — Check upstream updates and view What's New
+- `lensetek --version` — Show active version and changelog
+
+## On-Demand Official Plugins
+- **webui (`Lensetek Agent Web Workspace`)**: Modern light-first responsive Web IDE (Antigravity/Codex style) bound to `127.0.0.1:3001` with real project file explorer, inline code editor (`Ctrl+S`), expandable live tool execution cards, interactive approval prompts, model/effort/safety controls, and session management.
+- **playwright-search (`Playwright Dynamic Web Research`)**: Headless Chromium web scraper with Smart Markdown Cleaner (~1,500 tokens) tailored for 3B edge models.
+- **plugin-maker**: Built-in contributor skill and `plugins/_template/` blueprint for creating new plugins via `/plugins create <name>`.

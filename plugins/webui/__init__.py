@@ -1,6 +1,6 @@
 """
-Official llama.cpp Built-in WebUI Plugin
+Lensetek Agent Web Workspace Plugin
 """
-from .main import open_llama_webui, register_tools
+from .server import start_webui_server
 
-__all__ = ["open_llama_webui", "register_tools"]
+__all__ = ["start_webui_server"]

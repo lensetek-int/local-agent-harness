@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Explicitly welcome AI Search & Answer Engine crawlers (AIO / GEO)
+User-agent: Googlebot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+Sitemap: https://lensetek-int.github.io/local-agent-harness/sitemap.xml
+# LLM Context: https://lensetek-int.github.io/local-agent-harness/llms.txt

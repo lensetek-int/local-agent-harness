@@ -12,46 +12,46 @@ echo "       ⚡ LENSETEK LEAN AGENT HARNESS (Linux & macOS Installer)      "
 echo "===================================================================="
 echo ""
 
-# 1. Cek Python 3
+# 1. Check Python 3
 PYTHON_BIN=""
 if command -v python3 &>/dev/null; then
     PYTHON_BIN="python3"
 elif command -v python &>/dev/null; then
     PYTHON_BIN="python"
 else
-    echo "❌ Error: Python 3 tidak ditemukan. Silakan pasang python3 terlebih dahulu."
+    echo "❌ Error: Python 3 not found. Please install python3 first."
     exit 1
 fi
 
-echo "✓ [1/4] Python terdeteksi: $($PYTHON_BIN --version)"
+echo "✓ [1/5] Python detected: $($PYTHON_BIN --version)"
 
-# 2. Direktori Instalasi
+# 2. Installation Directory
 INSTALL_DIR="$HOME/.lensetek-agent"
 if [ ! -d "$INSTALL_DIR" ]; then
-    echo "⬇️  [2/4] Mengkloning repository ke $INSTALL_DIR..."
+    echo "⬇️  [2/5] Cloning repository to $INSTALL_DIR..."
     if command -v git &>/dev/null; then
         git clone --depth 1 https://github.com/lensetek-int/local-agent-harness.git "$INSTALL_DIR"
     else
-        echo "Git tidak ada, mengunduh arsip zip..."
+        echo "Git not found, downloading archive..."
         curl -fsSL https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.tar.gz | tar -xz -C "$HOME"
         mv "$HOME/local-agent-harness-main" "$INSTALL_DIR"
     fi
 else
-    echo "✓ [2/4] Direktori $INSTALL_DIR sudah ada."
+    echo "✓ [2/5] Directory $INSTALL_DIR already exists."
 fi
 
-# 3. Instal Dependensi
-echo "📦 [3/5] Memasang dependensi python (prompt_toolkit, wcwidth)..."
-$PYTHON_BIN -m pip install --quiet --upgrade pip
-$PYTHON_BIN -m pip install --quiet prompt_toolkit wcwidth
+# 3. Install Dependencies
+echo "📦 [3/5] Installing Python dependencies (prompt_toolkit, wcwidth)..."
+$PYTHON_BIN -m pip install --quiet --no-cache-dir --upgrade pip
+$PYTHON_BIN -m pip install --quiet --no-cache-dir prompt_toolkit wcwidth
 
-# 4. Unduh runtime llama-server jika belum ada
+# 4. Download llama-server runtime if missing
 BIN_DIR="$INSTALL_DIR/bin"
 mkdir -p "$BIN_DIR"
 LLAMA_EXE="$BIN_DIR/llama-server"
 
 if [ ! -f "$LLAMA_EXE" ]; then
-    echo "⬇️  [4/5] Mengunduh runtime CPU llama-server resmi (b12675)..."
+    echo "⬇️  [4/5] Downloading official llama-server CPU runtime (b12675)..."
     TAG="b12675"
     OS_TYPE="$(uname -s)"
     ARCH_TYPE="$(uname -m)"
@@ -72,16 +72,16 @@ if [ ! -f "$LLAMA_EXE" ]; then
         tar -xzf "$TMP_TAR" -C "$BIN_DIR"
         rm -f "$TMP_TAR"
         chmod +x "$BIN_DIR"/* || true
-        echo "✓ Runtime llama-server siap di $BIN_DIR."
+        echo "✓ llama-server runtime ready at $BIN_DIR."
     else
-        echo "⚠️ Peringatan: Gagal mengunduh binary otomatis. Runtime akan diunduh saat pertama kali menjalankan model."
+        echo "⚠️ Warning: Failed to auto-download binary. It will be downloaded on first model run."
     fi
 else
-    echo "✓ [4/5] Runtime llama-server sudah tersedia di $LLAMA_EXE."
+    echo "✓ [4/5] llama-server runtime is already available at $LLAMA_EXE."
 fi
 
-# 5. Buat Shortcut Launcher di ~/.local/bin
-echo "🚀 [5/5] Mengonfigurasi shortcut launcher CLI..."
+# 5. Create Launcher Shortcut in ~/.local/bin
+echo "🚀 [5/5] Configuring global CLI launcher..."
 LOCAL_BIN="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN"
 LAUNCHER="$LOCAL_BIN/lensetek"
@@ -94,10 +94,10 @@ chmod +x "$LAUNCHER"
 
 echo ""
 echo "===================================================================="
-echo "✓ Instalasi Sukses!"
-echo "  Jalankan perintah berikut untuk memulai agen:"
+echo "✓ Installation Successful!"
+echo "  Run one of the following commands to get started:"
 echo "    $LAUNCHER"
-echo "  Atau tambahkan ~/.local/bin ke PATH Anda:"
+echo "  Or ensure ~/.local/bin is in your PATH:"
 echo "    export PATH=\"\$HOME/.local/bin:\$PATH\""
 echo "    lensetek"
 echo "===================================================================="

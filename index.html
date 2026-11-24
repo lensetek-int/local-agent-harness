@@ -3,19 +3,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>⚡ LENSETEK LEAN AGENT HARNESS — Local Edge AI Agent & Universal MCP Orchestrator</title>
-  <meta name="description" content="Autonomous Local AI Agent Harness for local models (3B, 7B & custom) with built-in MCP orchestrator, headless web search, and extensible skills. 100% offline edge computing.">
+  <title>LENSETEK LEAN AGENT HARNESS — Local Edge AI Agent, On-Demand Plugins &amp; MCP Orchestrator</title>
+  <meta name="description" content="Ultra-lean (< 5 MB) autonomous local AI coding agent harness for 3B–7B GGUF models on standard CPU. Features real workspace read/write/edit, Antigravity/Codex-style Web Workspace, MCP orchestrator, headless web search, and on-demand plugins. 100% private &amp; offline.">
+  <meta name="keywords" content="local AI agent, local LLM agent harness, offline coding agent, llama.cpp agent, 3B SLM agent, MCP orchestrator, autonomous CLI agent, edge AI agent, on-demand AI plugins, Lensetek Agent">
+  <meta name="author" content="Lensetek AI">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="theme-color" content="#070a10">
+
+  <!-- Canonical & AIO Discovery -->
+  <link rel="canonical" href="https://lensetek-int.github.io/local-agent-harness/">
+  <link rel="alternate" type="text/plain" title="LLM Context (llms.txt)" href="llms.txt">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="https://cdn.lensetek.com/favicon.png">
   <link rel="apple-touch-icon" href="https://cdn.lensetek.com/favicon.png">
 
-  <!-- Open Graph / Meta -->
+  <!-- Open Graph / Social -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="⚡ LENSETEK LEAN AGENT HARNESS">
-  <meta property="og:description" content="Autonomous Local AI Agent Harness for 3B and 7B local models with MCP Orchestrator, Headless Web Search & Extensible Skills. Zero GPU required.">
+  <meta property="og:url" content="https://lensetek-int.github.io/local-agent-harness/">
+  <meta property="og:site_name" content="Lensetek Lean Agent Harness">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="id_ID">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta property="og:title" content="LENSETEK LEAN AGENT HARNESS — Local Edge AI Agent &amp; Web Workspace">
+  <meta property="og:description" content="Ultra-lean autonomous local AI agent for 3B–7B GGUF models on standard CPU. Real file editing, Web Workspace, MCP orchestrator, and on-demand plugins. Zero GPU or cloud API needed.">
   <meta property="og:image" content="https://cdn.lensetek.com/favicon.png">
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LENSETEK LEAN AGENT HARNESS — Autonomous Local AI Agent">
+  <meta name="twitter:description" content="Run autonomous coding, workspace file editing, MCP tools, and Web Workspace 100% locally on standard CPU with 3B–7B GGUF models.">
+  <meta name="twitter:image" content="https://cdn.lensetek.com/favicon.png">
+
+  <!-- Structured Data (JSON-LD) for Google Search & AI Answer Engines (AIO/GEO) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://lensetek.com/#organization",
+        "name": "Lensetek AI",
+        "url": "https://lensetek.com",
+        "logo": "https://cdn.lensetek.com/favicon.png",
+        "sameAs": [
+          "https://github.com/lensetek-int/local-agent-harness",
+          "https://huggingface.co/lensetek/lensetek-edge-ai-agent",
+          "https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent"
+        ]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://lensetek-int.github.io/local-agent-harness/#software",
+        "name": "Lensetek Lean Agent Harness",
+        "alternateName": "Lensetek CLI Agent",
+        "version": "0.3.0",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Windows, macOS, Linux",
+        "softwareRequirements": "Python 3.10+, Standard CPU (No GPU required)",
+        "fileSize": "2MB",
+        "license": "https://opensource.org/licenses/MIT",
+        "url": "https://lensetek-int.github.io/local-agent-harness/",
+        "downloadUrl": "https://github.com/lensetek-int/local-agent-harness",
+        "codeRepository": "https://github.com/lensetek-int/local-agent-harness",
+        "author": { "@id": "https://lensetek.com/#organization" },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Ultra-lean (< 5 MB) autonomous local AI agent harness engineered for 3B–7B GGUF models on commodity CPUs, featuring workspace file read/write/edit, direct CLI flags, on-demand plugins (Web Workspace & Playwright scraper), MCP orchestration, and 3-tier credential-safe execution.",
+        "featureList": [
+          "Pure CPU inference via llama.cpp with automatic llama-server lifecycle management",
+          "Ultra-lean core (< 500 KB source, < 3 MB with pip dependencies) optimized for 3B-7B SLMs",
+          "Real workspace file read, write, edit, search, and terminal execution with 3-tier safety",
+          "Direct CLI invocation: --prompt, --model, --plugins, --gui, --update, --version",
+          "On-demand plugin ecosystem: Antigravity/Codex-style Web Workspace (webui) and Playwright dynamic scraper",
+          "Universal Model Context Protocol (MCP) orchestrator and modular custom skills",
+          "Trilingual interface (English, Bahasa Indonesia, Simplified Chinese)"
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://lensetek-int.github.io/local-agent-harness/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Lensetek Lean Agent Harness?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Lensetek Lean Agent Harness is an open-source, ultra-lean (< 5 MB) local AI agent runtime designed for 3B to 7B GGUF models. It runs 100% locally on standard laptop CPUs without a GPU or cloud API keys, enabling autonomous coding, file editing, MCP tool calling, headless web search, and an optional Web Workspace."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can Lensetek Agent run on a standard laptop CPU without a GPU?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Lensetek Agent automatically downloads and manages the official llama.cpp CPU runtime (llama-server) with KV-cache quantization and Flash Attention, allowing 3B GGUF models to run smoothly on standard laptops with less than 2.5 GB of RAM."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why does Lensetek use a lean harness instead of LangChain or CrewAI for 3B models?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Cloud-oriented frameworks like LangChain or AutoGPT inject 3,000 to 8,000+ tokens of boilerplate schema overhead, causing small 3B-7B models to lose focus or overflow 8K context windows. Lensetek keeps prompt overhead minimal (< 600 tokens) and grounds the active workspace directly so small local models execute tools accurately."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do on-demand plugins like Web Workspace (webui) work?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Core Lensetek stays ultra-lightweight, while optional capabilities are installed on demand via /plugins or lensetek --plugins install <id>. The official webui plugin launches a responsive light-first Web IDE at http://127.0.0.1:3001 with real project file read/write/edit, live tool execution cards, and interactive permission approvals."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is my source code or credential data sent to the cloud?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Inference and file operations run 100% locally on 127.0.0.1. Sensitive files such as .env, private keys (.pem/.key), and .git internals are strictly blocked from WebUI API access and workspace context snapshots."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <!-- Google Fonts: Inter & Fira Code -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1156,6 +1272,7 @@
           <a href="#why-lean" data-i18n="nav_why_lean">Why Lean?</a>
           <a href="#showcase" data-i18n="nav_terminal">Terminal UI</a>
           <a href="#features" data-i18n="nav_features">Architecture</a>
+          <a href="#plugins" data-i18n="nav_plugins">Plugins</a>
           <a href="#commands" data-i18n="nav_commands">Commands</a>
         </nav>
 
@@ -1219,6 +1336,10 @@
         <a href="#features" onclick="closeMobileSubmenu()" class="mobile-nav-item">
           <span class="nav-icon">🏗️</span>
           <span data-i18n="nav_features">Architecture</span>
+        </a>
+        <a href="#plugins" onclick="closeMobileSubmenu()" class="mobile-nav-item">
+          <span class="nav-icon">🧩</span>
+          <span data-i18n="nav_plugins">Plugins</span>
         </a>
         <a href="#commands" onclick="closeMobileSubmenu()" class="mobile-nav-item">
           <span class="nav-icon">📜</span>
@@ -1504,7 +1625,7 @@
 <span class="term-cyan term-bold">====================================================================</span><br>
 <span class="term-cyan term-bold">        ⚡ LENSETEK LEAN AGENT HARNESS (v0.2.0)                    </span><br>
 <span class="term-cyan term-bold">====================================================================</span><br>
- <span class="term-bold">Workspace:</span> C:\Users\ACER\Documents\GitHub\local-agent-harness\cli-agent<br>
+ <span class="term-bold">Workspace:</span> ~/projects/my-app<br>
  <span class="term-bold">Model:</span>     lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(port: 8081, ctx: 8192)</span><br>
  <span class="term-bold">Effort:</span>    [MEDIUM] <span class="term-dim">(/effort off|low|medium|high)</span><br>
  <span class="term-bold">Language:</span>  <span id="termBannerLang">[EN] English (/language en|id|cn)</span><br>
@@ -1586,6 +1707,34 @@
     </section>
 
     <!-- ========================================================== -->
+    <!-- ON-DEMAND PLUGINS ECOSYSTEM                                -->
+    <!-- ========================================================== -->
+    <section id="plugins">
+      <h2 class="section-title" data-i18n="plugins_title">On-Demand Plugin Ecosystem</h2>
+      <p class="section-desc" data-i18n="plugins_desc">Keep the core CLI ultra-lean (&lt; 5 MB) and install optional capabilities only when you need them.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🖥️</div>
+          <h3 class="feature-title" data-i18n="plug_1_title">webui — Agent Web Workspace</h3>
+          <p class="feature-desc" data-i18n-html="plug_1_desc">Modern light-first responsive Web IDE (<code>http://127.0.0.1:3001</code>) with real project file explorer, inline code editor, live tool cards, and approval prompts. Launch via <code>/gui</code> or <code>lensetek --gui</code>.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎭</div>
+          <h3 class="feature-title" data-i18n="plug_2_title">playwright-search — Dynamic Scraper</h3>
+          <p class="feature-desc" data-i18n-html="plug_2_desc">Headless Chromium web scraper with Smart Markdown Cleaner (~1,500 tokens) tailored for 3B SLMs. Extracts JS-rendered docs cleanly without overflowing context.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛠️</div>
+          <h3 class="feature-title" data-i18n="plug_3_title">CLI Plugin Manager &amp; Builder</h3>
+          <p class="feature-desc" data-i18n-html="plug_3_desc">Manage plugins interactively via <code>/plugins</code> or directly from terminal (<code>lensetek --plugins list</code>, <code>install &lt;id&gt;</code>, <code>remove &lt;id&gt;</code>). Scaffold custom plugins in seconds with <code>/plugins create</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
     <!-- SLASH COMMANDS TABLE                                       -->
     <!-- ========================================================== -->
     <section id="commands">
@@ -1655,7 +1804,17 @@
             <tr>
               <td><code>/plugins [list|search|install|create]</code></td>
               <td><span class="cat-badge">PLUGINS</span></td>
-              <td>Browse, search, install extensible on-demand plugins, or create custom plugins from template.</td>
+              <td data-i18n="desc_plugins">Browse, search, install extensible on-demand plugins, or create custom plugins from template.</td>
+            </tr>
+            <tr>
+              <td><code>/gui</code> / <code>lensetek --gui</code></td>
+              <td><span class="cat-badge">PLUGINS</span></td>
+              <td data-i18n="desc_gui">Launch the modern light-first Agent Web Workspace (read/write/edit files, tool cards, &amp; code editor).</td>
+            </tr>
+            <tr>
+              <td><code>lensetek --prompt "&lt;task&gt;"</code></td>
+              <td><span class="cat-badge">CLI</span></td>
+              <td data-i18n="desc_cli_prompt">Run a one-shot task directly from terminal without entering interactive REPL mode.</td>
             </tr>
             <tr>
               <td><code>/session [list|new|switch|del]</code></td>
@@ -1712,6 +1871,41 @@
       </div>
     </section>
 
+    <!-- ========================================================== -->
+    <!-- FAQ SECTION (SEO & AIO / GENERATIVE ENGINE OPTIMIZATION)   -->
+    <!-- ========================================================== -->
+    <section id="faq" aria-labelledby="faq-heading">
+      <h2 id="faq-heading" class="section-title" data-i18n="faq_title">Frequently Asked Questions</h2>
+      <p class="section-desc" data-i18n="faq_desc">Direct answers about local CPU inference, on-demand plugins, privacy, and how Lensetek outperforms heavy cloud frameworks on 3B–7B models.</p>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; max-width: 860px; margin: 0 auto;">
+        <details class="uninstall-accordion" open>
+          <summary><span data-i18n="faq_q1">What is Lensetek Lean Agent Harness?</span></summary>
+          <p class="uninstall-note" style="margin-top: 10px;" data-i18n="faq_a1">Lensetek Lean Agent Harness is an open-source, ultra-lean (&lt; 5 MB) local AI agent runtime designed for 3B to 7B GGUF models. It runs 100% locally on standard laptop CPUs without a GPU or cloud API keys, enabling autonomous coding, file editing, MCP tool calling, headless web search, and an optional Web Workspace.</p>
+        </details>
+
+        <details class="uninstall-accordion">
+          <summary><span data-i18n="faq_q2">Can it run on a standard laptop CPU without a GPU?</span></summary>
+          <p class="uninstall-note" style="margin-top: 10px;" data-i18n="faq_a2">Yes. Lensetek Agent automatically downloads and manages the official llama.cpp CPU runtime (llama-server) with KV-cache quantization and Flash Attention, allowing 3B GGUF models to run smoothly on standard laptops with less than 2.5 GB of RAM.</p>
+        </details>
+
+        <details class="uninstall-accordion">
+          <summary><span data-i18n="faq_q3">Why use a lean harness instead of LangChain or CrewAI for 3B models?</span></summary>
+          <p class="uninstall-note" style="margin-top: 10px;" data-i18n="faq_a3">Cloud-oriented frameworks inject 3,000–8,000+ tokens of boilerplate overhead, causing small 3B–7B models to lose focus or overflow 8K context windows. Lensetek keeps prompt overhead minimal (&lt; 600 tokens) and grounds the active workspace directly so small local models execute tools accurately.</p>
+        </details>
+
+        <details class="uninstall-accordion">
+          <summary><span data-i18n="faq_q4">How do on-demand plugins like Web Workspace (webui) work?</span></summary>
+          <p class="uninstall-note" style="margin-top: 10px;" data-i18n="faq_a4">Core Lensetek stays ultra-lightweight, while optional capabilities are installed on demand via /plugins or lensetek --plugins install &lt;id&gt;. The official webui plugin launches a responsive light-first Web IDE at http://127.0.0.1:3001 with real project file read/write/edit, live tool cards, and interactive permission approvals.</p>
+        </details>
+
+        <details class="uninstall-accordion">
+          <summary><span data-i18n="faq_q5">Is my source code or credential data sent to the cloud?</span></summary>
+          <p class="uninstall-note" style="margin-top: 10px;" data-i18n="faq_a5">No. Inference and file operations run 100% locally on 127.0.0.1. Sensitive files such as .env, private keys (.pem/.key), and .git internals are strictly blocked from WebUI API access and workspace context snapshots.</p>
+        </details>
+      </div>
+    </section>
+
   </main>
 
   <!-- Footer -->
@@ -1745,6 +1939,7 @@
         nav_why_lean: "Why Lean?",
         nav_terminal: "Terminal UI",
         nav_features: "Architecture",
+        nav_plugins: "Plugins",
         nav_commands: "Commands",
         nav_menu: "Menu",
         hero_badge: "EDGE-COMPUTING AGENT HARNESS (v2.0)",
@@ -1832,6 +2027,17 @@
         desc_model_download: "Download models from catalog (list.json) with auto-switch.",
         desc_model_add: "Register custom local *.gguf model path or directory.",
         desc_model_remove: "Delete local GGUF model file safely and free disk space.",
+        desc_plugins: "Browse, search, install extensible on-demand plugins, or create custom plugins from template.",
+        desc_gui: "Launch the modern light-first Agent Web Workspace (read/write/edit files, tool cards, & code editor).",
+        desc_cli_prompt: "Run a one-shot task directly from terminal without entering interactive REPL mode.",
+        plugins_title: "On-Demand Plugin Ecosystem",
+        plugins_desc: "Keep the core CLI ultra-lean (< 5 MB) and install optional capabilities only when you need them.",
+        plug_1_title: "webui — Agent Web Workspace",
+        plug_1_desc: "Modern light-first responsive Web IDE (<code>http://127.0.0.1:3001</code>) with real project file explorer, inline code editor, live tool cards, and approval prompts. Launch via <code>/gui</code> or <code>lensetek --gui</code>.",
+        plug_2_title: "playwright-search — Dynamic Scraper",
+        plug_2_desc: "Headless Chromium web scraper with Smart Markdown Cleaner (~1,500 tokens) tailored for 3B SLMs. Extracts JS-rendered docs cleanly without overflowing context.",
+        plug_3_title: "CLI Plugin Manager & Builder",
+        plug_3_desc: "Manage plugins interactively via <code>/plugins</code> or directly from terminal (<code>lensetek --plugins list</code>, <code>install &lt;id&gt;</code>, <code>remove &lt;id&gt;</code>). Scaffold custom plugins in seconds with <code>/plugins create</code>.",
         desc_session: "Manage conversation sessions, view chat history directly, and persist state.",
         desc_search: "Perform an instant headless web search directly from the prompt.",
         desc_skills: "Browse and filter available local and custom domain skills.",
@@ -1842,6 +2048,18 @@
         desc_loop: "Repeat a task with automatic context reset to avoid token degradation.",
         desc_schedule: "Schedule tasks via in-app timer daemon or OS Task Scheduler (Windows/Linux/macOS).",
         desc_safety: "Toggle workspace execution confirmation level on the fly.",
+        faq_title: "Frequently Asked Questions",
+        faq_desc: "Direct answers about local CPU inference, on-demand plugins, privacy, and how Lensetek outperforms heavy cloud frameworks on 3B–7B models.",
+        faq_q1: "What is Lensetek Lean Agent Harness?",
+        faq_a1: "Lensetek Lean Agent Harness is an open-source, ultra-lean (< 5 MB) local AI agent runtime designed for 3B to 7B GGUF models. It runs 100% locally on standard laptop CPUs without a GPU or cloud API keys, enabling autonomous coding, file editing, MCP tool calling, headless web search, and an optional Web Workspace.",
+        faq_q2: "Can it run on a standard laptop CPU without a GPU?",
+        faq_a2: "Yes. Lensetek Agent automatically downloads and manages the official llama.cpp CPU runtime (llama-server) with KV-cache quantization and Flash Attention, allowing 3B GGUF models to run smoothly on standard laptops with less than 2.5 GB of RAM.",
+        faq_q3: "Why use a lean harness instead of LangChain or CrewAI for 3B models?",
+        faq_a3: "Cloud-oriented frameworks inject 3,000–8,000+ tokens of boilerplate overhead, causing small 3B–7B models to lose focus or overflow 8K context windows. Lensetek keeps prompt overhead minimal (< 600 tokens) and grounds the active workspace directly so small local models execute tools accurately.",
+        faq_q4: "How do on-demand plugins like Web Workspace (webui) work?",
+        faq_a4: "Core Lensetek stays ultra-lightweight, while optional capabilities are installed on demand via /plugins or lensetek --plugins install <id>. The official webui plugin launches a responsive light-first Web IDE at http://127.0.0.1:3001 with real project file read/write/edit, live tool cards, and interactive permission approvals.",
+        faq_q5: "Is my source code or credential data sent to the cloud?",
+        faq_a5: "No. Inference and file operations run 100% locally on 127.0.0.1. Sensitive files such as .env, private keys (.pem/.key), and .git internals are strictly blocked from WebUI API access and workspace context snapshots.",
         footer_text: "Designed for air-gapped edge computing and local-first AI workflows.",
         footer_official: "Official Website (lensetek.com)",
         footer_space: "Hugging Face Space",
@@ -1853,6 +2071,7 @@
         nav_why_lean: "Mengapa Lean?",
         nav_terminal: "Antarmuka CLI",
         nav_features: "Arsitektur",
+        nav_plugins: "Plugin",
         nav_commands: "Daftar Perintah",
         nav_menu: "Menu",
         hero_badge: "HARNESS AGEN KOMPUTASI EDGE (v2.0)",
@@ -1940,6 +2159,17 @@
         desc_model_download: "Unduh model rekomendasi dari katalog (list.json) dengan opsi ganti otomatis.",
         desc_model_add: "Daftarkan path atau folder file *.gguf model lokal kustom.",
         desc_model_remove: "Hapus file model GGUF lokal secara aman untuk menghemat ruang disk.",
+        desc_plugins: "Jelajahi, cari, pasang plugin on-demand, atau buat plugin kustom dari template.",
+        desc_gui: "Buka Agent Web Workspace modern (light-mode) dengan file explorer, editor kode, & kartu tool nyata.",
+        desc_cli_prompt: "Jalankan satu tugas langsung dari terminal tanpa masuk ke mode interaktif.",
+        plugins_title: "Ekosistem Plugin On-Demand",
+        plugins_desc: "Jaga CLI inti tetap super ringan (< 5 MB) dan pasang fitur tambahan hanya saat Anda membutuhkannya.",
+        plug_1_title: "webui — Agent Web Workspace",
+        plug_1_desc: "Web IDE modern responsif (<code>http://127.0.0.1:3001</code>) dengan file explorer proyek nyata, editor kode, kartu tool langsung, dan persetujuan aman. Jalankan via <code>/gui</code> atau <code>lensetek --gui</code>.",
+        plug_2_title: "playwright-search — Scraper Dinamis",
+        plug_2_desc: "Scraper browser Chromium headless dengan pembersih Markdown cerdas (~1.500 token) khusus model edge 3B. Membaca halaman JS dinamis tanpa membuat context penuh.",
+        plug_3_title: "Manajer Plugin CLI & Builder",
+        plug_3_desc: "Kelola plugin via <code>/plugins</code> atau langsung dari terminal (<code>lensetek --plugins list</code>, <code>install &lt;id&gt;</code>, <code>remove &lt;id&gt;</code>). Buat plugin baru dalam hitungan detik dengan <code>/plugins create</code>.",
         desc_session: "Kelola sesi percakapan, lihat riwayat obrolan secara langsung, dan simpan riwayat chat per sesi.",
         desc_search: "Lakukan pencarian web headless secara instan langsung dari prompt.",
         desc_skills: "Jelajahi dan saring skill lokal serta kustom yang tersedia.",
@@ -1950,6 +2180,18 @@
         desc_loop: "Ulangi tugas secara berkala dengan reset konteks otomatis untuk menjaga performa token.",
         desc_schedule: "Jadwalkan tugas via daemon in-app atau Penjadwal Tugas OS (Windows/Linux/macOS).",
         desc_safety: "Ubah tingkat konfirmasi eksekusi workspace secara langsung.",
+        faq_title: "Pertanyaan yang Sering Diajukan (FAQ)",
+        faq_desc: "Jawaban langsung tentang inferensi CPU lokal, plugin on-demand, privasi kredensial, dan keunggulan Lensetek pada model 3B–7B.",
+        faq_q1: "Apa itu Lensetek Lean Agent Harness?",
+        faq_a1: "Lensetek Lean Agent Harness adalah runtime agen AI lokal open-source super ringan (< 5 MB) yang dirancang khusus untuk model GGUF 3B hingga 7B. Berjalan 100% lokal di CPU laptop standar tanpa GPU atau biaya API cloud, mendukung coding otonom, edit file proyek, MCP, pencarian web headless, dan Web Workspace opsional.",
+        faq_q2: "Apakah bisa dijalankan di laptop CPU standar tanpa GPU?",
+        faq_a2: "Ya. Lensetek otomatis mengunduh dan mengelola runtime CPU resmi llama.cpp (llama-server) dengan kuantisasi KV-cache dan Flash Attention, sehingga model GGUF 3B berjalan lancar di laptop standar dengan konsumsi RAM di bawah 2,5 GB.",
+        faq_q3: "Mengapa memakai lean harness dibanding LangChain atau CrewAI untuk model 3B?",
+        faq_a3: "Framework berbasis cloud menyuntikkan 3.000–8.000+ token overhead skema sehingga model 3B–7B kehilangan fokus atau kepenuhan context 8K. Lensetek menjaga overhead prompt tetap minimal (< 600 token) dan langsung memetakan workspace aktif agar model kecil mengeksekusi tool secara akurat.",
+        faq_q4: "Bagaimana cara kerja plugin on-demand seperti Web Workspace (webui)?",
+        faq_a4: "Inti Lensetek tetap super ringan, sedangkan fitur tambahan dipasang sesuai kebutuhan via /plugins atau lensetek --plugins install <id>. Plugin resmi webui membuka Web IDE modern responsif (light-mode) di http://127.0.0.1:3001 dengan akses baca/tulis/edit file nyata, kartu tool, dan persetujuan aman.",
+        faq_q5: "Apakah kode proyek atau file kredensial dikirim ke cloud?",
+        faq_a5: "Tidak. Seluruh inferensi dan operasi file berjalan 100% lokal di 127.0.0.1. Berkas sensitif seperti .env, private key (.pem/.key), dan folder .git diblokir keras dari akses API WebUI maupun snapshot konteks.",
         footer_text: "Dirancang untuk komputasi edge air-gapped dan alur kerja AI lokal murni.",
         footer_official: "Website Resmi (lensetek.com)",
         footer_space: "Hugging Face Space",
@@ -1961,6 +2203,7 @@
         nav_why_lean: "为什么轻量？",
         nav_terminal: "终端界面",
         nav_features: "核心架构",
+        nav_plugins: "插件生态",
         nav_commands: "命令参考",
         nav_menu: "菜单",
         hero_badge: "端侧计算智能体框架 (v2.0)",
@@ -2048,6 +2291,17 @@
         desc_model_download: "从预置目录 (list.json) 下载推荐模型并自动切换。",
         desc_model_add: "注册本地自定义 *.gguf 模型文件或目录路径。",
         desc_model_remove: "安全删除本地 GGUF 模型文件并释放磁盘空间。",
+        desc_plugins: "浏览、搜索、按需安装扩展插件，或基于模板快速创建自定义插件。",
+        desc_gui: "启动现代浅色优先响应式 Web IDE 工作区（支持真实文件读写编辑与工具卡片）。",
+        desc_cli_prompt: "直接在终端执行单次任务并输出结果，无需进入交互模式。",
+        plugins_title: "按需扩展插件生态",
+        plugins_desc: "保持核心 CLI 极致轻量（< 5 MB），仅在需要时按需安装扩展功能。",
+        plug_1_title: "webui — 智能体 Web 工作区",
+        plug_1_desc: "现代浅色优先响应式 Web IDE（<code>http://127.0.0.1:3001</code>），集成真实项目文件管理器、在线代码编辑器、实时工具卡片与权限审批。通过 <code>/gui</code> 或 <code>lensetek --gui</code> 启动。",
+        plug_2_title: "playwright-search — 动态网页抓取",
+        plug_2_desc: "专为 3B 端侧模型优化的无头 Chromium 动态抓取插件（约 1,500 Token），内置智能 Markdown 清洗器，轻松读取 JS 渲染页面。",
+        plug_3_title: "CLI 插件管理与脚手架",
+        plug_3_desc: "通过 <code>/plugins</code> 或命令行（<code>lensetek --plugins list</code>、<code>install &lt;id&gt;</code>、<code>remove &lt;id&gt;</code>）随时管理插件，并用 <code>/plugins create</code> 快速生成新插件。",
         desc_session: "管理多会话状态、直接查看对话历史记录并持久化保存会话。",
         desc_search: "直接从命令行终端执行即时无头网络搜索。",
         desc_skills: "浏览并筛选当前已挂载的本地及自定义技能。",
@@ -2058,6 +2312,18 @@
         desc_loop: "周期性重复执行任务，并在轮次间自动重置上下文以防止性能衰退。",
         desc_schedule: "通过内置守护程序或操作系统计划任务(Windows/Linux/macOS)调度后台任务。",
         desc_safety: "即时切换工作区操作的安全确认与审批严格度。",
+        faq_title: "常见问题 (FAQ)",
+        faq_desc: "关于纯本地 CPU 推理、按需插件、隐私保护以及 Lensetek 在 3B–7B 小模型上表现优异的直接解答。",
+        faq_q1: "什么是 Lensetek Lean Agent Harness？",
+        faq_a1: "Lensetek 是一款开源、极致轻量（< 5 MB）的本地 AI 智能体运行框架，专为 3B–7B GGUF 模型打造。无需 GPU 或云端 API，即可在普通笔记本 CPU 上 100% 本地完成自主编程、项目文件读写编辑、MCP 工具调用、无头搜索与 Web 工作区操作。",
+        faq_q2: "没有独立显卡（GPU）的普通笔记本 CPU 能运行吗？",
+        faq_a2: "可以。Lensetek 会自动下载并管理官方 llama.cpp CPU 运行时（llama-server），结合 KV-Cache 量化与 Flash Attention，3B GGUF 模型可在内存占用低于 2.5 GB 的普通笔记本上流畅运行。",
+        faq_q3: "为什么在 3B 模型上选择轻量框架而不是 LangChain 或 CrewAI？",
+        faq_a3: "云端框架往往注入 3,000–8,000+ Token 的冗余模板，极易导致 3B–7B 小模型在 8K 上下文中失焦。Lensetek 将系统提示开销压缩至 600 Token 以内，并直接注入当前工作区上下文，显著提升小模型工具调用准确率。",
+        faq_q4: "按需插件（例如 Web 工作区 webui）如何使用？",
+        faq_a4: "核心 CLI 始终保持极致轻量化，用户可通过 /plugins 或 lensetek --plugins install <id> 按需安装插件。官方 webui 插件会在 http://127.0.0.1:3001 启动浅色优先的现代 Web IDE，支持真实文件编辑、工具卡片与权限审批。",
+        faq_q5: "我的代码或密钥凭据会上传到云端吗？",
+        faq_a5: "绝不会。所有推理与文件操作均在 127.0.0.1 纯本地运行，.env、私钥文件（.pem/.key）以及 .git 内部目录均被严格拦截，防止任何凭据泄露。",
         footer_text: "专为完全物理隔离的端侧计算与本地优先AI工作流打造。",
         footer_official: "官方网站 (lensetek.com)",
         footer_space: "Hugging Face Space",

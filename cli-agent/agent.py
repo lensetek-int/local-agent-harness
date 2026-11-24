@@ -94,6 +94,32 @@ class LeanAgent:
 
     def reset_session(self):
         prompt_text = SYSTEM_PROMPTS.get(self.language, SYSTEM_PROMPTS["en"])
+
+        # Language-agnostic workspace grounding: inject active path + top-level snapshot
+        ws_path = getattr(self.fs_tools, "workspace_root", ".")
+        top_items = []
+        try:
+            from pathlib import Path as _Path
+            ws_p = _Path(ws_path)
+            if ws_p.exists() and ws_p.is_dir():
+                for entry in sorted(ws_p.iterdir(), key=lambda e: (not e.is_dir(), e.name.lower())):
+                    low_name = entry.name.lower()
+                    if entry.name in (".git", ".venv", "__pycache__", "node_modules") or low_name.startswith(".env"):
+                        continue
+                    top_items.append(f"{entry.name}/" if entry.is_dir() else entry.name)
+                    if len(top_items) >= 25:
+                        top_items.append("...")
+                        break
+        except Exception:
+            pass
+
+        items_str = ", ".join(top_items) if top_items else "(empty)"
+        prompt_text += (
+            f"\n\n[WORKSPACE CONTEXT]\n"
+            f"Active Directory: {ws_path}\n"
+            f"Top-level items: {items_str}\n"
+            f"Note: '.' always refers to this active workspace. Never ask the user for the current folder path; inspect directly with `list_dir(path=\".\")` or `read_file(...)`."
+        )
         
         # Injeksi directive effort ke system prompt
         if self.effort_level == "off":

@@ -296,60 +296,114 @@ def handle_plugins_cli(plugins_args: list[str], active_language: str):
             p_id = itm.get("id", "")
             cat = f"[{itm.get('category', 'tools')}]"
             is_inst = itm.get("is_installed", False)
-            stat = f"{C_GREEN}Installed{C_RESET}" if is_inst else f"{C_DIM}Available{C_RESET}"
+            stat = f"{C_GREEN}{t('plugin_status_installed', active_language)}{C_RESET}" if is_inst else f"{C_DIM}{t('plugin_status_available', active_language)}{C_RESET}"
             desc = itm.get(f"description_{active_language}", itm.get("description", ""))
             if len(desc) > 40:
                 desc = desc[:37] + "..."
             print(f"  [{idx}] {C_BOLD}{p_id:<20}{C_RESET} {cat:<10} {stat:<20} {desc}")
-        print(f"\n{C_DIM}Gunakan: lensetek --plugins install <id> atau remove <id>{C_RESET}\n")
+        if active_language == "id":
+            tip = "Gunakan: lensetek --plugins install <id> atau remove <id>"
+        elif active_language == "cn":
+            tip = "用法: lensetek --plugins install <id> 或 remove <id>"
+        else:
+            tip = "Usage: lensetek --plugins install <id> or remove <id>"
+        print(f"\n{C_DIM}{tip}{C_RESET}\n")
 
     elif sub_cmd in ("install", "i", "add"):
         if not sub_val:
-            print(f"{C_YELLOW}Masukkan ID plugin yang ingin diinstal. Contoh: lensetek --plugins install webui{C_RESET}")
+            msg = {
+                "id": "Masukkan ID plugin yang ingin diinstal. Contoh: lensetek --plugins install webui",
+                "cn": "请输入要安装的插件 ID。示例: lensetek --plugins install webui",
+            }.get(active_language, "Specify a plugin ID to install. Example: lensetek --plugins install webui")
+            print(f"{C_YELLOW}{msg}{C_RESET}")
             return
         ok, msg = plugin_manager.install_plugin(sub_val, lang=active_language)
         print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
 
     elif sub_cmd in ("remove", "rm", "uninstall", "delete"):
         if not sub_val:
-            print(f"{C_YELLOW}Masukkan ID plugin yang ingin dihapus. Contoh: lensetek --plugins remove webui{C_RESET}")
+            msg = {
+                "id": "Masukkan ID plugin yang ingin dihapus. Contoh: lensetek --plugins remove webui",
+                "cn": "请输入要卸载的插件 ID。示例: lensetek --plugins remove webui",
+            }.get(active_language, "Specify a plugin ID to remove. Example: lensetek --plugins remove webui")
+            print(f"{C_YELLOW}{msg}{C_RESET}")
             return
         ok, msg = plugin_manager.uninstall_plugin(sub_val, lang=active_language)
         print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
 
     elif sub_cmd in ("search", "find", "s"):
         if not sub_val:
-            print(f"{C_YELLOW}Masukkan kata kunci pencarian. Contoh: lensetek --plugins search web{C_RESET}")
+            msg = {
+                "id": "Masukkan kata kunci pencarian. Contoh: lensetek --plugins search web",
+                "cn": "请输入搜索关键词。示例: lensetek --plugins search web",
+            }.get(active_language, "Specify a search keyword. Example: lensetek --plugins search web")
+            print(f"{C_YELLOW}{msg}{C_RESET}")
             return
         items = plugin_manager.get_all_catalog_plugins()
         q = sub_val.lower()
         matches = [p for p in items if q in p.get("id", "").lower() or q in p.get("name", "").lower() or q in p.get(f"description_{active_language}", p.get("description", "")).lower()]
-        print(f"\n{C_BOLD}Hasil pencarian plugin untuk '{sub_val}':{C_RESET}")
+        hdr = {
+            "id": f"Hasil pencarian plugin untuk '{sub_val}':",
+            "cn": f"'{sub_val}' 的插件搜索结果:",
+        }.get(active_language, f"Plugin search results for '{sub_val}':")
+        print(f"\n{C_BOLD}{hdr}{C_RESET}")
         for idx, itm in enumerate(matches, start=1):
             p_id = itm.get("id")
             is_inst = itm.get("is_installed", False)
-            stat = f"{C_GREEN}Installed{C_RESET}" if is_inst else f"{C_DIM}Available{C_RESET}"
+            stat = f"{C_GREEN}{t('plugin_status_installed', active_language)}{C_RESET}" if is_inst else f"{C_DIM}{t('plugin_status_available', active_language)}{C_RESET}"
             desc = itm.get(f"description_{active_language}", itm.get("description", ""))
             print(f"  [{idx}] {C_BOLD}{p_id}{C_RESET} ({stat}) - {desc}")
         if not matches:
-            print(f"  {C_DIM}Tidak ditemukan plugin yang cocok.{C_RESET}")
+            empty_msg = {
+                "id": "Tidak ditemukan plugin yang cocok.",
+                "cn": "未找到匹配的插件。",
+            }.get(active_language, "No matching plugins found.")
+            print(f"  {C_DIM}{empty_msg}{C_RESET}")
         print()
 
     elif sub_cmd in ("create", "new"):
         if not sub_val:
-            print(f"{C_YELLOW}Masukkan nama/id plugin yang ingin dibuat. Contoh: lensetek --plugins create my-tool{C_RESET}")
+            msg = {
+                "id": "Masukkan nama/id plugin yang ingin dibuat. Contoh: lensetek --plugins create my-tool",
+                "cn": "请输入要创建的插件名称。示例: lensetek --plugins create my-tool",
+            }.get(active_language, "Specify a plugin name to create. Example: lensetek --plugins create my-tool")
+            print(f"{C_YELLOW}{msg}{C_RESET}")
             return
         ok, msg, p_res = plugin_manager.create_plugin_scaffold(sub_val, lang=active_language)
         print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}")
     else:
-        print(f"{C_YELLOW}Subperintah plugins tidak dikenal: '{sub_cmd}'. Pilihan: list, install <id>, remove <id>, search <q>, create <name>{C_RESET}")
+        msg = {
+            "id": f"Subperintah plugins tidak dikenal: '{sub_cmd}'. Pilihan: list, install <id>, remove <id>, search <q>, create <name>",
+            "cn": f"未知的插件子命令: '{sub_cmd}'。可用选项: list, install <id>, remove <id>, search <q>, create <name>",
+        }.get(active_language, f"Unknown plugins subcommand: '{sub_cmd}'. Options: list, install <id>, remove <id>, search <q>, create <name>")
+        print(f"{C_YELLOW}{msg}{C_RESET}")
+
+def _load_webui_module():
+    p_dir = plugin_manager.get_plugins_dir() if plugin_manager else config.REPO_ROOT / "plugins"
+    server_script = p_dir / "webui" / "server.py"
+    if not server_script.exists():
+        server_script = config.REPO_ROOT / "plugins" / "webui" / "server.py"
+    if not server_script.exists():
+        return None
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("lensetek_webui_server", str(server_script))
+    if spec and spec.loader:
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    return None
 
 def start_webui_cli(workspace_path: Path, port: int, model_name: str | None = None, no_server: bool = False, active_language: str = "en"):
-    """Menjalankan llama-server dan membuka Web GUI resmi bawaan llama.cpp (Llama Chat)."""
+    """Menjalankan Lensetek Agent Web Workspace (Antigravity/Codex style) & membuka browser."""
+    installed = plugin_manager.list_installed_plugin_ids() if plugin_manager else []
+    if "webui" not in installed and plugin_manager:
+        print(f"{C_YELLOW}[i] Mengaktifkan plugin 'webui'...{C_RESET}")
+        plugin_manager.install_plugin("webui", lang=active_language)
+
     server_mgr = None
     started_by_us = False
-
     actual_model = model_name or config.pick_default_model()
+
     if not actual_model and not no_server:
         print(f"\n{C_YELLOW}{t('no_model_detected', active_language)}{C_RESET}")
         ok, msg, path_res = config.download_model_from_catalog(lang=active_language)
@@ -359,7 +413,7 @@ def start_webui_cli(workspace_path: Path, port: int, model_name: str | None = No
             print(f"{C_RED}{t('download_failed', active_language)} {msg}{C_RESET}")
             sys.exit(1)
 
-    if not no_server:
+    if not no_server and actual_model:
         server_mgr = LlamaServerManager(port=port)
         if not server_mgr.is_healthy():
             print(f"{C_DIM}Memulai runtime llama-server untuk model '{Path(actual_model).name}' pada port {port}...{C_RESET}")
@@ -368,19 +422,34 @@ def start_webui_cli(workspace_path: Path, port: int, model_name: str | None = No
                 started_by_us = True
                 print(f"{C_GREEN}✓ llama-server aktif di http://127.0.0.1:{port}{C_RESET}")
             except Exception as e:
-                print(f"{C_RED}[ERROR] Gagal menjalankan llama-server: {e}{C_RESET}")
-                sys.exit(1)
+                print(f"{C_YELLOW}[!] Catatan llama-server: {e}. Web Workspace tetap dijalankan.{C_RESET}")
 
-    webui_url = f"http://127.0.0.1:{port}"
+    mod = _load_webui_module()
+    if not mod or not hasattr(mod, "start_webui_server"):
+        print(f"{C_RED}[ERROR] Plugin WebUI server.py tidak ditemukan.{C_RESET}")
+        sys.exit(1)
+
+    web_port = 3001
+    httpd = mod.start_webui_server(
+        workspace=workspace_path,
+        llama_port=port,
+        web_port=web_port,
+        model_name=actual_model,
+        server_mgr=server_mgr,
+    )
+    actual_web_port = getattr(httpd, "server_port", web_port)
+
+    webui_url = f"http://127.0.0.1:{actual_web_port}"
     import webbrowser
     webbrowser.open(webui_url)
 
     model_disp = Path(actual_model).name if actual_model else "external/running"
     print(f"\n{C_GREEN}{'='*64}{C_RESET}")
-    print(f"  {C_BOLD}🌐 llama.cpp Official Web GUI Active (Llama Chat){C_RESET}")
-    print(f"  • Web URL:  {C_CYAN}{webui_url}{C_RESET}")
-    print(f"  • Model:    {model_disp}")
-    print(f"  • Fitur:    Chat Visual, Parameter Temp/Top-P/Penalty, Token Metrics")
+    print(f"  {C_BOLD}🌐 Lensetek Agent Web Workspace Active{C_RESET}")
+    print(f"  • Web URL:    {C_CYAN}{webui_url}{C_RESET}")
+    print(f"  • Workspace:  {workspace_path}")
+    print(f"  • Model:      {model_disp}")
+    print(f"  • Engine:     http://127.0.0.1:{port}")
     print(f"  {C_DIM}Tekan Ctrl+C untuk menghentikan server.{C_RESET}")
     print(f"{C_GREEN}{'='*64}{C_RESET}\n")
 
@@ -389,11 +458,11 @@ def start_webui_cli(workspace_path: Path, port: int, model_name: str | None = No
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print(f"\n{C_YELLOW}Menghentikan runtime llama-server...{C_RESET}")
+        print(f"\n{C_YELLOW}Menghentikan Lensetek Web Workspace...{C_RESET}")
     finally:
         if started_by_us and server_mgr:
             server_mgr.stop()
-        print(f"{C_GREEN}Web GUI dihentikan.{C_RESET}")
+        print(f"{C_GREEN}Web Workspace dihentikan.{C_RESET}")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -441,7 +510,8 @@ Examples / Contoh Penggunaan:
         if version:
             wn = version.get_whats_new(cur_v)
             if wn:
-                print(f"\n{C_BOLD}What's New pada v{cur_v}:{C_RESET}")
+                wn_title = t("update_whats_new_title", active_language, ver=cur_v)
+                print(f"\n{C_BOLD}{wn_title}{C_RESET}")
                 for item in wn:
                     print(f"  • {item}")
         print()
@@ -1174,23 +1244,35 @@ Examples / Contoh Penggunaan:
 
                 # --- WEBUI LAUNCHER COMMAND ---
                 elif cmd in ("/gui", "/webui"):
-                    webui_url = f"http://127.0.0.1:{args.port}"
-                    if server_mgr and not server_mgr.is_healthy():
-                        print(f"{C_DIM}Memulai runtime llama-server pada port {args.port}...{C_RESET}")
-                        try:
-                            server_mgr.start(model_name)
-                            started_by_us = True
-                        except Exception as e:
-                            print(f"{C_RED}[ERROR] Gagal memulai llama-server: {e}{C_RESET}\n")
-                            continue
+                    installed = plugin_manager.list_installed_plugin_ids() if plugin_manager else []
+                    if "webui" not in installed and plugin_manager:
+                        print(f"{C_YELLOW}[i] Mengaktifkan plugin 'webui'...{C_RESET}")
+                        plugin_manager.install_plugin("webui", lang=active_language)
 
+                    mod = _load_webui_module()
+                    if not mod or not hasattr(mod, "start_webui_server"):
+                        print(f"{C_RED}[ERROR] Plugin WebUI server.py tidak ditemukan.{C_RESET}\n")
+                        continue
+
+                    web_port = 3001
+                    httpd = mod.start_webui_server(
+                        workspace=workspace_path,
+                        llama_port=args.port,
+                        web_port=web_port,
+                        model_name=model_name,
+                        server_mgr=server_mgr,
+                        agent=agent,
+                    )
+                    actual_web_port = getattr(httpd, "server_port", web_port)
+
+                    webui_url = f"http://127.0.0.1:{actual_web_port}"
                     import webbrowser
                     try:
                         webbrowser.open(webui_url)
                     except Exception:
                         pass
-                    print(f"\n{C_GREEN}✓ Web GUI resmi llama.cpp dibuka di browser:{C_RESET} {C_CYAN}{webui_url}{C_RESET}")
-                    print(f"{C_DIM}  (Model: {model_name} • Port: {args.port} • Llama Chat Engine){C_RESET}\n")
+                    print(f"\n{C_GREEN}✓ Lensetek Agent Web Workspace: {C_CYAN}{webui_url}{C_RESET}")
+                    print(f"{C_DIM}  (Workspace: {workspace_path} • Model: {model_name} • Port: {actual_web_port}){C_RESET}\n")
                     continue
 
                 # --- MODEL & CTX COMMANDS ---

@@ -4,18 +4,19 @@
   "plugins": [
     {
       "id": "webui",
-      "name": "llama.cpp Official WebUI",
-      "version": "1.0.0",
+      "name": "Lensetek Agent Web Workspace",
+      "version": "1.1.0",
       "category": "ui",
-      "author": "llama.cpp / Lensetek",
-      "description": "Native built-in Web GUI served directly by llama-server for visual chat, model parameters, and real-time token metrics.",
-      "description_id": "Web GUI resmi bawaan langsung dari llama-server untuk obrolan visual, konfigurasi parameter model, dan metrik token real-time.",
-      "description_cn": "由 llama-server 直接提供的官方内置原生 Web 界面，支持可视化对话、模型参数调优和实时 Token 监控。",
-      "entry_point": "main.py",
+      "author": "Lensetek",
+      "description": "Modern light-first responsive Web IDE & Agent Workspace (Antigravity/Codex style) with real file read/write/edit, tool execution cards, and approval prompts.",
+      "description_id": "Web IDE & Agent Workspace modern responsif (gaya Antigravity/Codex, light-mode default) dengan akses baca/tulis/edit file nyata, kartu eksekusi tool, dan persetujuan aman.",
+      "description_cn": "现代响应式 Web IDE 与智能体工作区（默认浅色模式），支持真实项目文件读写编辑、工具执行卡片和权限审批。",
+      "entry_point": "server.py",
       "folder": "plugins/webui",
       "dependencies": [],
       "permissions": [
-        "browser_open",
+        "workspace_read",
+        "workspace_write",
         "server_proxy"
       ]
     },
