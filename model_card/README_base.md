@@ -155,6 +155,19 @@ print(tokenizer.decode(outputs[0][inputs.shape[1]:], skip_special_tokens=True))
 
 ---
 
+## 🔄 Self-Conversion: Build Your Own Variant (GGUF / WebGPU / MLX)
+
+Once the 16-bit BF16 Safetensors weights are published in this canonical repository, you can convert them into any target hardware format:
+
+| Target Platform | Recommended Method | Requirements |
+| :--- | :--- | :--- |
+| **GGUF Custom (`Q2_K`–`Q8_0`, `imatrix`)** | 1-Click Cloud via [**`ggml-org/gguf-my-repo`**](https://huggingface.co/spaces/ggml-org/gguf-my-repo) | Zero local setup (runs free on HF Spaces) |
+| **WebGPU / Browser (`ONNX q4f16`)** | Run [`converter/lensetek_converter_colab.ipynb`](https://huggingface.co/lensetek/lensetek-edge-ai-agent/blob/main/converter/lensetek_converter_colab.ipynb) | Free Google Colab (T4 GPU / High-RAM) |
+| **Apple Silicon (`MLX 4-bit`)** | `mlx_lm.convert --hf-path lensetek/lensetek-edge-loop-3b -q` | macOS M1/M2/M3/M4 |
+| **Instant Edge (No Conversion Needed)** | Direct Download from [**`lensetek/lensetek-edge-loop-3b-GGUF`**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) | Any CPU / Mini PC / SBC (< 2.5 GB RAM) |
+
+---
+
 ## 🔗 Lensetek Model Family
 * **Edge 4-Bit GGUF (For Ollama & CPU)**: [`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)
 * **Application Hub & Web Studio**: [`lensetek/lensetek-edge-ai-agent`](https://huggingface.co/lensetek/lensetek-edge-ai-agent)
@@ -222,6 +235,19 @@ Hasil pengujian empiris nyata terhadap 300 skenario held-out industri dan ketaha
 
 📄 **Berkas Laporan Lengkap & Dokumentasi**:  
 - [Laporan Evaluasi Benchmark (.md)](reports/benchmark_evaluation_report_id.md) • [Log Pengujian Head-to-Head (.md)](reports/head_to_head_test_log_id.md) • [Scorecard JSON](eval_scorecard.json) • [📖 Tutorial RAG Ingest Dokumen SOP (.md)](docs/TUTORIAL_RAG_SOP_ID.md)
+
+---
+
+## 🔄 Konversi Mandiri: Buat Varian Sesuai Kebutuhan Anda (GGUF / WebGPU / MLX)
+
+Setelah bobot dasar 16-bit BF16 Safetensors diunggah ke repositori induk ini, Anda dapat mengonversinya ke format hardware apa pun:
+
+| Platform Target | Metode Rekomendasi | Kebutuhan Sistem |
+| :--- | :--- | :--- |
+| **GGUF Custom (`Q2_K`–`Q8_0`, `imatrix`)** | 1-Klik Cloud via [**`ggml-org/gguf-my-repo`**](https://huggingface.co/spaces/ggml-org/gguf-my-repo) | Tanpa setup lokal (gratis di HF Spaces) |
+| **WebGPU / Browser (`ONNX q4f16`)** | Jalankan [`converter/lensetek_converter_colab.ipynb`](https://huggingface.co/lensetek/lensetek-edge-ai-agent/blob/main/converter/lensetek_converter_colab.ipynb) | Google Colab Gratis (T4 GPU / High-RAM) |
+| **Apple Silicon (`MLX 4-bit`)** | `mlx_lm.convert --hf-path lensetek/lensetek-edge-loop-3b -q` | macOS M1/M2/M3/M4 |
+| **Edge Instan (Tanpa Perlu Konversi)** | Unduh langsung dari [**`lensetek/lensetek-edge-loop-3b-GGUF`**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) | Perangkat CPU / Mini PC / SBC (RAM < 2.5 GB) |
 
 ---
 

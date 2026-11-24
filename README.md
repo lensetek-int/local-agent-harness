@@ -32,6 +32,10 @@ tags:
 
 ---
 
+> 🔄 **Custom Quantization & WebGPU Conversion**: Need a custom variant (WebGPU ONNX, Apple Silicon MLX, or specialized GGUF)? Check out our [**Model Converter Toolkit**](converter/README.md) or launch the free [**Colab Self-Converter**](converter/lensetek_converter_colab.ipynb).
+
+---
+
 </div>
 
 <a id="english"></a>
