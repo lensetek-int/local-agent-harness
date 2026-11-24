@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ====================================================================
 # ⚡ LENSETEK LEAN AGENT HARNESS - One-Liner Installer for Linux/macOS
-# Usage: curl -fsSL https://raw.githubusercontent.com/lensetek/local-llm/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-llm/main/install.sh | bash
 # ====================================================================
 
 set -e
@@ -30,10 +30,10 @@ INSTALL_DIR="$HOME/.lensetek-agent"
 if [ ! -d "$INSTALL_DIR" ]; then
     echo "⬇️  [2/4] Mengkloning repository ke $INSTALL_DIR..."
     if command -v git &>/dev/null; then
-        git clone --depth 1 https://github.com/lensetek/local-llm.git "$INSTALL_DIR"
+        git clone --depth 1 https://github.com/lensetek-int/local-llm.git "$INSTALL_DIR"
     else
         echo "Git tidak ada, mengunduh arsip zip..."
-        curl -fsSL https://github.com/lensetek/local-llm/archive/refs/heads/main.tar.gz | tar -xz -C "$HOME"
+        curl -fsSL https://github.com/lensetek-int/local-llm/archive/refs/heads/main.tar.gz | tar -xz -C "$HOME"
         mv "$HOME/local-llm-main" "$INSTALL_DIR"
     fi
 else
