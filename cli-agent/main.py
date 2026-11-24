@@ -577,8 +577,6 @@ Examples / Contoh Penggunaan:
         safety_mode = "yolo"
     elif args.auto_approve:
         safety_mode = "auto-approve"
-    elif target_prompt:
-        safety_mode = "read-only"
     else:
         safety_mode = "strict"
 
