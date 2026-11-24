@@ -55,7 +55,7 @@ A self-contained local AI workspace featuring text inference, vision understandi
 
 > 🚀 **Interactive Web Landing Page**: Open [`docs/index.html`](docs/index.html) (or `index.html`) in your browser to test interactive terminal commands and view one-click installation snippets!
 
-The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous agent harness running locally on top of edge GGUF models (3B / 7B) on commodity 4-core CPUs (AMD Ryzen 3 5300U) with RAM &lt; 2.5 GB.
+The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous agent harness running locally on top of edge GGUF models (3B / 7B) on standard commodity CPUs (Laptops, Mini PCs, SBCs) with RAM &lt; 2.5 GB.
 
 #### 📦 One-Liner Quick Installation
 
@@ -308,7 +308,7 @@ Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (visi
 
 > 🚀 **Halaman Web Interaktif (Landing Page)**: Buka [`docs/index.html`](docs/index.html) (atau `index.html`) di browser Anda untuk melihat demo terminal interaktif dan tombol 1-klik salin perintah instalasi!
 
-**LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) adalah harness agen AI otonom khusus yang berjalan 100% lokal di atas model edge GGUF (3B / 7B) pada prosesor 4-core hemat daya (AMD Ryzen 3 5300U) dengan penggunaan RAM &lt; 2.5 GB.
+**LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) adalah harness agen AI otonom khusus yang berjalan 100% lokal di atas model edge GGUF (3B / 7B) pada prosesor komputer standar (Laptop, Mini PC, SBC) dengan penggunaan RAM &lt; 2.5 GB.
 
 #### 📦 Perintah Cepat Instalasi 1-Baris
 
