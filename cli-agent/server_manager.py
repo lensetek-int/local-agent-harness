@@ -38,9 +38,18 @@ class LlamaServerManager:
         if not LLAMA_SERVER_EXE.exists():
             raise FileNotFoundError(f"Binary llama-server tidak ditemukan di: {LLAMA_SERVER_EXE}")
 
-        model_path = REPO_ROOT / model_name
-        if not model_path.exists():
-            raise FileNotFoundError(f"Model {model_name} tidak ditemukan di: {model_path}")
+        # Cari model di absolute path, REPO_ROOT, atau folder models/
+        raw_path = Path(model_name)
+        if raw_path.is_absolute() and raw_path.exists():
+            model_path = raw_path
+        elif (REPO_ROOT / model_name).exists():
+            model_path = REPO_ROOT / model_name
+        elif (REPO_ROOT / "models" / model_name).exists():
+            model_path = REPO_ROOT / "models" / model_name
+        elif raw_path.exists():
+            model_path = raw_path.resolve()
+        else:
+            raise FileNotFoundError(f"Model '{model_name}' tidak ditemukan di REPO_ROOT maupun path kustom.")
 
         # Jika sudah berjalan dengan model yang sama dan sehat, tidak perlu restart
         if self.process and self.process.poll() is None and self.model_name == model_name:

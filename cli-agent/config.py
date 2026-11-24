@@ -59,15 +59,62 @@ MCP_PRESETS = {
 }
 
 def list_gguf_models() -> list[str]:
-    """Mengembalikan daftar nama file *.gguf di REPO_ROOT (kecuali mmproj-*.gguf)."""
-    if not REPO_ROOT.exists():
-        return []
+    """Mengembalikan daftar nama file / path *.gguf di REPO_ROOT, folder models/, dan custom_models."""
     models = []
-    for f in REPO_ROOT.glob("*.gguf"):
-        if not f.name.startswith("mmproj-"):
-            models.append(f.name)
+    seen = set()
+
+    # 1. Cek di REPO_ROOT
+    if REPO_ROOT.exists():
+        for f in REPO_ROOT.glob("*.gguf"):
+            if not f.name.startswith("mmproj-") and f.name not in seen:
+                models.append(f.name)
+                seen.add(f.name)
+
+    # 2. Cek di REPO_ROOT / 'models'
+    models_dir = REPO_ROOT / "models"
+    if models_dir.exists() and models_dir.is_dir():
+        for f in models_dir.glob("*.gguf"):
+            if not f.name.startswith("mmproj-") and str(f) not in seen and f.name not in seen:
+                models.append(str(f))
+                seen.add(f.name)
+
+    # 3. Cek custom models yang didaftarkan pengguna di user_settings.json
+    try:
+        st = load_user_settings()
+        for p_str in st.get("custom_models", []):
+            p = Path(p_str)
+            if p.is_file() and p.suffix.lower() == ".gguf" and str(p) not in seen and p.name not in seen:
+                models.append(str(p))
+                seen.add(p.name)
+            elif p.is_dir():
+                for f in p.glob("*.gguf"):
+                    if not f.name.startswith("mmproj-") and str(f) not in seen and f.name not in seen:
+                        models.append(str(f))
+                        seen.add(f.name)
+    except Exception:
+        pass
+
     models.sort()
     return models
+
+def add_custom_model_path(path_str: str) -> tuple[bool, str]:
+    """Mendaftarkan file *.gguf atau direktori model baru ke user_settings.json."""
+    p = Path(path_str).resolve()
+    if not p.exists():
+        return False, f"Path '{path_str}' tidak ditemukan di sistem."
+
+    st = load_user_settings()
+    custom_list = st.get("custom_models", [])
+    resolved_str = str(p)
+    if resolved_str not in custom_list:
+        custom_list.append(resolved_str)
+        st["custom_models"] = custom_list
+        save_user_settings(st)
+        if p.is_file():
+            return True, f"Model '{p.name}' berhasil didaftarkan ke daftar model."
+        else:
+            return True, f"Direktori model '{p}' berhasil didaftarkan ke daftar pencarian model."
+    return True, f"Path '{resolved_str}' sudah terdaftar sebelumnya."
 
 def pick_default_model() -> str | None:
     """Prioritaskan lensetek-edge-loop-3b-q4_k_m.gguf jika ada, jika tidak ambil model pertama."""
@@ -75,7 +122,8 @@ def pick_default_model() -> str | None:
     if not models:
         return None
     for m in models:
-        if "lensetek" in m.lower() and "loop" in m.lower():
+        m_lower = Path(m).name.lower()
+        if "lensetek" in m_lower and "loop" in m_lower:
             return m
     return models[0]
 

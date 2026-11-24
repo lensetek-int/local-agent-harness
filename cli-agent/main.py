@@ -543,19 +543,51 @@ def main():
 
                 # --- MODEL & CTX COMMANDS ---
                 elif cmd == "/model":
+                    arg_parts = arg.split(maxsplit=1)
+                    sub_cmd = arg_parts[0].lower() if arg_parts else ""
+                    sub_val = arg_parts[1].strip() if len(arg_parts) > 1 else ""
+
+                    if sub_cmd == "add" and sub_val:
+                        ok, msg = config.add_custom_model_path(sub_val)
+                        if ok:
+                            print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                        else:
+                            print(f"{C_RED}{msg}{C_RESET}\n")
+                        continue
+
                     available = config.list_gguf_models()
-                    print(f"\n{C_BOLD}Available GGUF Models:{C_RESET}")
+                    print(f"\n{C_BOLD}Available Local GGUF Models (3B, 7B & Custom):{C_RESET}")
                     for idx, m in enumerate(available, start=1):
-                        marker = f"{C_GREEN}* active{C_RESET}" if m == model_name else ""
-                        print(f"  [{idx}] {m} {marker}")
-                    choice = input(f"Select model number (1-{len(available)}) or press enter to cancel: ").strip()
+                        p = Path(m)
+                        m_display = p.name
+                        size_str = ""
+                        try:
+                            f_path = p if p.is_absolute() else (config.REPO_ROOT / m)
+                            if f_path.exists():
+                                sz_gb = f_path.stat().st_size / (1024 ** 3)
+                                size_str = f"({sz_gb:.2f} GB)"
+                        except Exception:
+                            pass
+                        marker = f"{C_GREEN}* active{C_RESET}" if m == model_name or p.name == model_name else ""
+                        print(f"  [{idx}] {m_display} {C_DIM}{size_str}{C_RESET} {marker}")
+
+                    print(f"\n{C_DIM}Tips: Use '/model add <file.gguf|folder>' to register new 3B/7B models.{C_RESET}")
+                    choice = input(f"Select model number (1-{len(available)}), or press enter to cancel: ").strip()
+
+                    if choice.lower().startswith("add "):
+                        add_path = choice[4:].strip()
+                        ok, msg = config.add_custom_model_path(add_path)
+                        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
+                        continue
+
                     if choice.isdigit() and 1 <= int(choice) <= len(available):
                         chosen = available[int(choice) - 1]
-                        if chosen != model_name and server_mgr:
-                            print(f"Restarting server with model: {chosen}...")
+                        chosen_name = Path(chosen).name
+                        if chosen_name != model_name and server_mgr:
+                            print(f"Restarting server with model: {chosen_name}...")
                             server_mgr.start(chosen)
-                            model_name = chosen
-                            agent.model_name = chosen
+                            model_name = chosen_name
+                            agent.model_name = chosen_name
                             agent.reset_session()
                             print(f"{C_GREEN}✓ Active model updated to: {model_name}{C_RESET}\n")
                     continue

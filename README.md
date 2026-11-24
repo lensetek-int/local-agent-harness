@@ -67,10 +67,10 @@ The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous age
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Direct Python launch with `prompt_toolkit` |
 
 #### 🛠️ Key Agentic Features:
+- **Multi-Model Local Support**: Seamlessly switch between 3B edge SLMs, 7B reasoning models, and custom local GGUFs via `/model` and `/model add <path>`.
 - **Universal MCP Orchestrator**: Manage and connect Stdio MCP servers dynamically via `/mcp` (`fetch`, `playwright-headless`, etc.).
 - **Headless Web Search**: Built-in Bing & Google headless search via `/search <query>` and native `web_search` tool without external API keys.
-- **230+ Skills Auto-Discovery**: Detects and parses prompt guides across local and global skill catalogs (`~/.agents/skills`, `~/.claude/skills`, `~/.gemini/`).
-- **Interactive Autocomplete**: Powered by `prompt_toolkit` with `Tab` completion that auto-fills commands/skills and closes the popup list.
+- **Extensible Skills Architecture**: Create domain skills via `/skill create <name>`, execute bundled skills (`/code-review`, `/web-research`), or link local skill directories.
 - **Autonomous /goal & /loop**: Multi-step goal planner (up to 20 steps) with context resilience and recurring task loops.
 - **Multilingual System**: Persistent `/language <en|id|cn>` setting (English, Bahasa Indonesia, Chinese).
 - **Safety Modes**: `/strict` [y/N], `/auto-approve`, and `/yolo` (unattended).
@@ -320,10 +320,10 @@ Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (visi
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Jalankan langsung via Python & prompt_toolkit |
 
 #### 🛠️ Fitur-Fitur Utama Agen:
+- **Dukungan Multi-Model Lokal**: Beralih fleksibel antara model edge 3B, model reasoning 7B, dan file GGUF kustom via `/model` dan `/model add <path>`.
 - **Universal MCP Orchestrator**: Pasang dan operasikan server MCP secara dinamis via `/mcp` (`fetch`, `playwright-headless`, dll.).
 - **Pencarian Web Headless**: Fitur pencarian Bing & Google tanpa API key melalui `/search <kueri>` dan tool bawaan `web_search`.
-- **Deteksi 230+ Skills Otomatis**: Mendeteksi panduan skill lokal dan global dari Antigravity, Claude, Codex, dan Research Agent.
-- **Autocomplete Interaktif**: Didukung `prompt_toolkit` dengan tombol `Tab` yang otomatis melengkapi nama perintah/skill dan menutup popup suggestion.
+- **Arsitektur Skill Ekstensibel**: Buat skill kustom dengan `/skill create <nama>`, jalankan skill lokal bawaan (`/code-review`, `/web-research`), atau hubungkan folder skill eksternal.
 - **Otonom /goal & /loop**: Penyelesaian misi multi-langkah (hingga 20 langkah) dengan *pinned goal* yang kebal pemangkasan konteks, serta pengulangan tugas berkala.
 - **Multi-Bahasa**: Pilihan bahasa aktif yang tersimpan permanen via `/language <en|id|cn>`.
 - **Mode Keamanan**: `/strict` [y/N], `/auto-approve`, dan `/yolo` (unattended).

@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>⚡ LENSETEK LEAN AGENT HARNESS — Local Edge AI Agent & Universal MCP Orchestrator</title>
-  <meta name="description" content="Autonomous Local AI Agent Harness for edge SLM models (3B) with built-in MCP orchestrator, headless web search, 230+ skills, and interactive tab autocomplete. 100% offline edge computing.">
+  <meta name="description" content="Autonomous Local AI Agent Harness for GGUF models (3B, 7B & custom) with built-in MCP orchestrator, headless web search, and extensible skills. 100% offline edge computing.">
   <meta name="theme-color" content="#070a10">
 
   <!-- Open Graph / Meta -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="⚡ LENSETEK LEAN AGENT HARNESS">
-  <meta property="og:description" content="Autonomous Local AI Agent Harness for 3B SLMs with MCP Orchestrator, Headless Web Search & 230+ Skills. Zero GPU required.">
+  <meta property="og:description" content="Autonomous Local AI Agent Harness for 3B and 7B GGUF models with MCP Orchestrator, Headless Web Search & Extensible Skills. Zero GPU required.">
   <meta property="og:image" content="https://huggingface.co/lensetek/lensetek-edge-ai-agent/raw/main/docs/banner.png">
 
   <!-- Google Fonts: Inter & Fira Code -->
@@ -739,21 +739,21 @@
     <section class="hero">
       <div class="badge-pill">
         <span class="pulse-dot"></span>
-        <span>EDGE-COMPUTING SLM AGENT HARNESS (v2.0)</span>
+        <span>EDGE-COMPUTING AGENT HARNESS (v2.0)</span>
       </div>
       <h1 class="hero-title">
         The Autonomous AI Agent Harness for <span>Local GGUF Models</span>
       </h1>
       <p class="hero-subtitle">
-        Run full agentic loops, dynamic MCP servers, headless web search, and 230+ skills with interactive Tab autocomplete — 100% locally on standard commodity CPUs without GPU dependencies.
+        Run full agentic loops, dynamic MCP servers, headless web search, and extensible skills — 100% locally on standard commodity CPUs without GPU dependencies.
       </p>
 
       <!-- Hardware Spec Badges -->
       <div class="spec-pills">
         <span class="spec-pill">💻 <strong>Standard Commodity CPU</strong> (Pure CPU Execution)</span>
-        <span class="spec-pill">🧠 <strong>3B SLM (Q4_K_M)</strong> (RAM &lt; 2.5 GB)</span>
-        <span class="spec-pill">⚡ <strong>8-bit KV Cache</strong> (-ctk q8_0 -ctv q8_0)</span>
-        <span class="spec-pill">🛡️ <strong>Zero Data Leak</strong> (Air-Gapped & Sovereign)</span>
+        <span class="spec-pill">🧠 <strong>Multi-Model Architecture</strong> (3B, 7B &amp; Custom GGUF)</span>
+        <span class="spec-pill">⚡ <strong>Adaptive Memory Footprint</strong> (Low RAM Edge Inference)</span>
+        <span class="spec-pill">🛡️ <strong>Zero Data Leak</strong> (Air-Gapped &amp; Sovereign)</span>
       </div>
 
       <!-- ========================================================== -->
@@ -867,19 +867,19 @@
 <span class="term-cyan term-bold">        ⚡ LENSETEK LEAN AGENT HARNESS                             </span><br>
 <span class="term-cyan term-bold">====================================================================</span><br>
  <span class="term-bold">Workspace:</span> C:\Users\ACER\Documents\GitHub\local-llm\cli-agent<br>
- <span class="term-bold">Model:</span>     lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(port: 8081, ctx: 8192)</span><br>
+ <span class="term-bold">Model:</span>     lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(port: 8081, ctx: 8192) [/model to switch]</span><br>
  <span class="term-bold">Language:</span>  [EN] English <span class="term-dim">(/language en|id|cn)</span><br>
  <span class="term-bold">Safety:</span>    [STRICT] <span class="term-dim">(/strict, /auto-approve, /yolo)</span><br>
  <span class="term-bold">Web Search:</span><span class="term-green"> Headless Active</span> <span class="term-dim">(web_search tool &amp; /search &lt;q&gt;)</span><br>
  <span class="term-bold">MCP:</span>       fetch<br>
- <span class="term-bold">Skills:</span>    233 skills detected <span class="term-dim">(type '/' and press Tab to autocomplete)</span><br>
+ <span class="term-bold">Skills:</span>    Extensible Skills Engine <span class="term-dim">(/skills, /skill create)</span><br>
 <span class="term-dim">Type '/help' for commands. Press Ctrl+C while thinking to cancel task.</span><br>
 <span class="term-cyan">--------------------------------------------------------------------</span><br><br>
 <span class="term-dim">~ [cli-agent] 0.0%/8k tok [STRICT|EN] (lensetek-edge-loop-3b-q4_k_m.gguf)</span><br>
 <div id="termHistory"></div>
 <div class="cli-prompt-container">
   <span class="term-green term-bold">&gt;&nbsp;</span>
-  <input type="text" id="cliInputField" class="cli-input" placeholder="Type /help, /search, or /skills and press Enter..." autocomplete="off" spellcheck="false">
+  <input type="text" id="cliInputField" class="cli-input" placeholder="Type /help, /model, /skills, or /search and press Enter..." autocomplete="off" spellcheck="false">
 </div>
         </div>
       </div>
@@ -887,10 +887,10 @@
       <!-- Quick Interactive Demo Buttons -->
       <div class="demo-controls">
         <button class="btn-demo" onclick="triggerCliCommand('/help')">Run /help</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/search local LLM agent')">Run /search</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/research-orchestrator digital marketing')">Run /research-orchestrator</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/language id')">Switch to Indonesian (/language id)</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/language en')">Switch to English (/language en)</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/model')">Run /model</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/skills')">Run /skills</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/search local AI agent')">Run /search</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/language id')">Switch Language (/language id)</button>
         <button class="btn-demo" onclick="triggerCliCommand('/clear')">Clear Terminal</button>
       </div>
     </section>
@@ -905,8 +905,8 @@
       <div class="feature-grid">
         <div class="feature-card">
           <div class="feature-icon">🧠</div>
-          <h3 class="feature-title">Ultra-Lean 3B SLM Engine</h3>
-          <p class="feature-desc">Fine-tuned for agentic loops and tool calling. Runs smoothly on standard consumer CPUs, Laptops, and Mini PCs with RAM usage under 2.5 GB using 8-bit KV Cache.</p>
+          <h3 class="feature-title">Multi-Model Local SLM / LLM Engine</h3>
+          <p class="feature-desc">Flexible support for local GGUF models from 3B edge SLMs to 7B reasoning models. Switch or register new models dynamically via <code>/model</code>.</p>
         </div>
 
         <div class="feature-card">
@@ -923,8 +923,8 @@
 
         <div class="feature-card">
           <div class="feature-icon">⚡</div>
-          <h3 class="feature-title">230+ Skills Auto-Discovery</h3>
-          <p class="feature-desc">Automatically scans and indexes prompt guides from Antigravity, Claude, Codex, and Research Agents. Directly executable via <code>/&lt;skill-name&gt;</code>.</p>
+          <h3 class="feature-title">Extensible Skills Architecture</h3>
+          <p class="feature-desc">Modular skills system. Create reusable domain workflows with <code>/skill create</code>, run bundled local skills like <code>/code-review</code>, or link external skill folders.</p>
         </div>
 
         <div class="feature-card">
@@ -974,6 +974,11 @@
               <td>Switch agent response &amp; prompt language (English, Indonesian, Chinese). Saved persistently.</td>
             </tr>
             <tr>
+              <td><code>/model [add|switch]</code></td>
+              <td><span class="cat-badge">MODEL</span></td>
+              <td>List local GGUF models (3B, 7B), switch active model, or register custom paths with <code>/model add &lt;path&gt;</code>.</td>
+            </tr>
+            <tr>
               <td><code>/search &lt;query&gt;</code></td>
               <td><span class="cat-badge">WEB</span></td>
               <td>Perform an instant headless web search directly from the prompt.</td>
@@ -981,7 +986,12 @@
             <tr>
               <td><code>/skills [filter]</code></td>
               <td><span class="cat-badge">SKILLS</span></td>
-              <td>Browse and filter 230+ detected local &amp; global skills.</td>
+              <td>Browse and filter available local and custom domain skills.</td>
+            </tr>
+            <tr>
+              <td><code>/skill create &lt;name&gt;</code></td>
+              <td><span class="cat-badge">SKILLS</span></td>
+              <td>Create and save a new custom domain skill in <code>cli-agent/skills/</code>.</td>
             </tr>
             <tr>
               <td><code>/&lt;skill-name&gt; [task]</code></td>
@@ -1115,13 +1125,28 @@
         output = `
 <span class="term-bold">Commands Guide / Daftar Perintah Slash (/):</span><br>
   <span class="term-yellow">/help</span>                               - Show this help guide<br>
+  <span class="term-yellow">/model [add|switch]</span>                 - Switch models (3B, 7B) or add new custom GGUF<br>
   <span class="term-yellow">/language &lt;en|id|cn&gt;</span>                 - Switch language (saved to user settings)<br>
   <span class="term-yellow">/search &lt;query&gt;</span>                      - Instant headless web search (Bing/Google)<br>
-  <span class="term-yellow">/skills [filter]</span>                    - List available local &amp; global skills<br>
-  <span class="term-yellow">/&lt;skill-name&gt; [task]</span>                - Activate specific skill for a task<br>
+  <span class="term-yellow">/skills [filter]</span>                    - List and manage local &amp; custom skills<br>
+  <span class="term-yellow">/skill create &lt;name&gt;</span>                 - Create new custom skill in cli-agent/skills/<br>
   <span class="term-yellow">/mcp</span>                                - MCP server status &amp; install/test/remove<br>
   <span class="term-yellow">/goal &lt;target&gt;</span>                       - Multi-step autonomous agentic goal<br>
   <span class="term-yellow">/strict | /auto-approve | /yolo</span>     - Toggle security confirmation mode<br>
+`;
+      } else if (cmd === '/model' || cmd.startsWith('/model')) {
+        output = `
+<span class="term-bold">Available Local GGUF Models (3B, 7B &amp; Custom):</span><br>
+  [1] lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(1.93 GB)</span> <span class="term-green">* active</span><br>
+  [2] Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf <span class="term-dim">(4.68 GB)</span><br>
+<span class="term-dim">Tip: Use '/model add &lt;path&gt;' to register new 3B/7B GGUF models anytime.</span><br>
+`;
+      } else if (cmd === '/skills' || cmd.startsWith('/skills')) {
+        output = `
+<span class="term-bold">Installed Skills / Daftar Skill:</span><br>
+  - <span class="term-cyan">/code-review</span> (local): Automated clean-code reviewer &amp; security audit<br>
+  - <span class="term-cyan">/web-research</span> (local): Deep headless web research and synthesis<br>
+<span class="term-dim">Tip: Use '/skill create &lt;name&gt;' to generate new custom domain skills.</span><br>
 `;
       } else if (cmd.startsWith('/search')) {
         output = `
@@ -1131,17 +1156,6 @@
     URL: https://github.com/lensetek/local-llm<br>
     Snippet: Self-contained local agent harness featuring MCP orchestrator &amp; skills.<br>
 [2] <strong>llama.cpp HTTP Server API</strong> - Lightweight OpenAI compatible engine.<br>
-`;
-      } else if (cmd.startsWith('/research-orchestrator')) {
-        output = `
-<span class="term-dim">⏳ Sedang berpikir... (Langkah 1/4) [Tekan Ctrl+C untuk membatalkan]</span><br>
-<span class="term-magenta">⚙️  [TOOL CALL] web_search({'query': 'digital marketing trends 2026'})</span><br>
-<span class="term-dim">   └─ Result: Found 5 authoritative sources on AI-driven omnichannel strategies.</span><br>
-<span class="term-dim">⏳ Sedang berpikir... (Langkah 2/4) [Tekan Ctrl+C untuk membatalkan]</span><br><br>
-<span class="term-bold">Laporan Riset Awal: Tren Strategi Digital Marketing 2026</span><br>
-1. <strong>AI Agent &amp; Customer Journey:</strong> Otomasi touchpoint dengan model lokal edge.<br>
-2. <strong>Omnichannel Attribution:</strong> Analisis funnel multi-touch berbasis data privacy-first.<br>
-3. <strong>SEO Semantik &amp; AIO:</strong> Optimalisasi konten untuk mesin pencari berbasis generative AI.<br>
 `;
       } else if (cmd === '/language id') {
         output = `<span class="term-green">✓ Bahasa aktif diubah menjadi: Bahasa Indonesia (id). Pengaturan disimpan ke user_settings.json.</span><br>`;
