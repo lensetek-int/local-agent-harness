@@ -1,0 +1,26 @@
+{
+  "fetch": {
+    "command": "uvx",
+    "args": ["mcp-server-fetch"],
+    "enabled": true,
+    "description": "Ambil halaman web statis & ubah ke Markdown bersih (0 browser, super ringan)"
+  },
+  "playwright-headless": {
+    "command": "npx",
+    "args": ["-y", "@playwright/mcp@latest", "--headless"],
+    "enabled": false,
+    "description": "Browser headless Playwright dengan accessibility snapshot (lebih ringan dari Chrome GUI)"
+  },
+  "chrome-devtools": {
+    "command": "npx",
+    "args": ["-y", "chrome-devtools-mcp@latest"],
+    "enabled": false,
+    "description": "Kontrol browser Chrome penuh, inspect DOM, console, dan network"
+  },
+  "filesystem": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+    "enabled": false,
+    "description": "MCP filesystem standar (opsional, sudah ada tools_fs bawaan)"
+  }
+}

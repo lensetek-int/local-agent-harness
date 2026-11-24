@@ -22,6 +22,8 @@ __pycache__/
 .venv/
 venv/
 *.log
+logs/
+cli-agent/logs/
 *.db
 *.sqlite
 *.sqlite3

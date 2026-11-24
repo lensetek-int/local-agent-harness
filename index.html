@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>⚡ LENSETEK LEAN AGENT HARNESS — Local Edge AI Agent & Universal MCP Orchestrator</title>
+  <meta name="description" content="Autonomous Local AI Agent Harness for edge SLM models (3B) with built-in MCP orchestrator, headless web search, 230+ skills, and interactive tab autocomplete. 100% offline edge computing.">
+  <meta name="theme-color" content="#070a10">
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="⚡ LENSETEK LEAN AGENT HARNESS">
+  <meta property="og:description" content="Autonomous Local AI Agent Harness for 3B SLMs with MCP Orchestrator, Headless Web Search & 230+ Skills. Zero GPU required.">
+  <meta property="og:image" content="https://huggingface.co/lensetek/lensetek-edge-ai-agent/raw/main/docs/banner.png">
+
+  <!-- Google Fonts: Inter & Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==================================================================== */
+    /* CSS RESET & MODERN DESIGN TOKENS (Mobile-First Architecture)        */
+    /* ==================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-dark: #070a10;
+      --bg-card: #0d131f;
+      --bg-card-hover: #121a2a;
+      --bg-code: #05070c;
+      --border-color: #1e293b;
+      --border-accent: rgba(0, 255, 255, 0.25);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-cyan: #00f0ff;
+      --accent-green: #00ff88;
+      --accent-yellow: #fde047;
+      --accent-pink: #f472b6;
+      --accent-purple: #a855f7;
+      --glow-cyan: rgba(0, 240, 255, 0.15);
+      --glow-green: rgba(0, 255, 136, 0.12);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      --shadow-lg: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Subtle Animated Ambient Background Grid */
+    .ambient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 50% 0%, var(--glow-cyan) 0%, transparent 60%),
+        radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 15% 70%, var(--glow-green) 0%, transparent 50%);
+    }
+
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Container Utility */
+    .container {
+      width: 100%;
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ==================================================================== */
+    /* HEADER & NAVIGATION                                                  */
+    /* ==================================================================== */
+    header {
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 10, 16, 0.82);
+    }
+    .nav-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+      color: #06090f;
+      font-size: 0.72rem;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.5px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover {
+      color: var(--accent-cyan);
+    }
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #16202e;
+      border: 1px solid #28374d;
+      color: #f1f5f9;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-github:hover {
+      background: #223249;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+    }
+
+    /* ==================================================================== */
+    /* HERO SECTION                                                         */
+    /* ==================================================================== */
+    .hero {
+      text-align: center;
+      padding: 56px 0 36px;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 240, 255, 0.06);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--accent-cyan);
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.08);
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 8px var(--accent-cyan);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+      background: linear-gradient(180deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 36px;
+      line-height: 1.65;
+    }
+
+    /* Edge Hardware Spec Tags */
+    .spec-pills {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 44px;
+    }
+    .spec-pill {
+      background: rgba(18, 26, 40, 0.7);
+      border: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .spec-pill strong {
+      color: #fff;
+    }
+
+    /* ==================================================================== */
+    /* INSTALLATION WIDGET (Faithful Replica of User's Image Snippet)      */
+    /* ==================================================================== */
+    .install-widget-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      margin: 0 auto 56px;
+      max-width: 880px;
+      text-align: left;
+      position: relative;
+    }
+    .install-widget-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), var(--accent-green), transparent);
+    }
+
+    .widget-header {
+      background: #0f1623;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .widget-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .widget-tab-toggle {
+      display: flex;
+      gap: 4px;
+      background: #070a10;
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #1c2637;
+    }
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .view-btn.active {
+      background: #182334;
+      color: #fff;
+    }
+
+    /* List View (Exact replica of user's image snippet) */
+    .install-list {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-code);
+    }
+    .install-row {
+      display: grid;
+      grid-template-columns: 95px 1fr auto;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid #111824;
+      transition: background 0.15s ease;
+    }
+    .install-row:last-child {
+      border-bottom: none;
+    }
+    .install-row:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .cmd-name {
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      color: #79869a;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+    .cmd-code {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-right: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .cmd-code::-webkit-scrollbar {
+      height: 4px;
+    }
+    .cmd-code::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    .btn-copy {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #79869a;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      min-height: 32px;
+    }
+    .btn-copy:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.08);
+      border-color: rgba(0, 240, 255, 0.25);
+    }
+    .btn-copy.copied {
+      color: var(--accent-green) !important;
+      background: rgba(0, 255, 136, 0.12) !important;
+      border-color: rgba(0, 255, 136, 0.35) !important;
+    }
+
+    /* Tabbed Container */
+    .tabbed-container {
+      display: none;
+      background: var(--bg-code);
+    }
+    .tab-bar {
+      display: flex;
+      overflow-x: auto;
+      background: #090e17;
+      border-bottom: 1px solid #141c2b;
+      padding: 0 10px;
+    }
+    .tab-item {
+      padding: 12px 18px;
+      font-size: 0.84rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .tab-item:hover {
+      color: #fff;
+    }
+    .tab-item.active {
+      color: var(--accent-cyan);
+      border-bottom-color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.04);
+      font-weight: 600;
+    }
+    .tab-content {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* ==================================================================== */
+    /* INTERACTIVE TERMINAL PREVIEW                                         */
+    /* ==================================================================== */
+    .terminal-section {
+      margin: 40px 0 70px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+    .section-desc {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.96rem;
+      margin-bottom: 28px;
+      max-width: 620px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .terminal-card {
+      background: #04060a;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.8);
+      max-width: 880px;
+      margin: 0 auto;
+    }
+    .terminal-bar {
+      background: #0c121d;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #192435;
+    }
+    .terminal-dots {
+      display: flex;
+      gap: 7px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #eab308; }
+    .dot-green { background: #22c55e; }
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .terminal-body {
+      padding: 20px 22px;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      color: #d1d7e0;
+      min-height: 280px;
+      line-height: 1.55;
+      overflow-x: auto;
+    }
+    .term-cyan { color: var(--accent-cyan); }
+    .term-green { color: var(--accent-green); }
+    .term-yellow { color: var(--accent-yellow); }
+    .term-dim { color: #64748b; }
+    .term-magenta { color: #ff79c6; }
+    .term-bold { font-weight: 700; }
+
+    /* Interactive Live Prompt Input */
+    .cli-prompt-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .cli-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      width: 100%;
+      caret-color: var(--accent-green);
+    }
+
+    .demo-controls {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .btn-demo {
+      background: #111926;
+      border: 1px solid #243447;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-demo:hover {
+      background: #1a273b;
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+    }
+
+    /* ==================================================================== */
+    /* FEATURE GRID                                                         */
+    /* ==================================================================== */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 20px;
+      margin: 40px 0 70px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 26px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(0, 240, 255, 0.4);
+      box-shadow: 0 12px 30px -10px rgba(0, 240, 255, 0.12);
+    }
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      display: inline-block;
+    }
+    .feature-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ==================================================================== */
+    /* SLASH COMMANDS TABLE WITH SEARCH FILTER                              */
+    /* ==================================================================== */
+    .table-header-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .search-filter {
+      background: #0b111a;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      width: 100%;
+      max-width: 260px;
+      transition: border-color 0.2s ease;
+    }
+    .search-filter:focus {
+      border-color: var(--accent-cyan);
+    }
+    .commands-table-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin-bottom: 70px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+    th, td {
+      padding: 14px 20px;
+      border-bottom: 1px solid #16202e;
+    }
+    th {
+      background: #0b1019;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.82rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    td code {
+      font-family: var(--font-mono);
+      background: #05080e;
+      border: 1px solid #1b2636;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: var(--accent-cyan);
+      font-size: 0.82rem;
+    }
+    .cat-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #162233;
+      color: #93c5fd;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 36px 0 54px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      background: #05070c;
+      margin-top: auto;
+    }
+    footer a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ==================================================================== */
+    /* RESPONSIVE POLISH (Mobile First)                                     */
+    /* ==================================================================== */
+    @media (max-width: 680px) {
+      .install-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 14px 14px;
+      }
+      .cmd-name {
+        color: var(--accent-cyan);
+        font-size: 0.84rem;
+      }
+      .btn-copy {
+        align-self: flex-start;
+      }
+      .nav-links a:not(.btn-github) {
+        display: none;
+      }
+      .search-filter {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav-wrapper">
+      <a href="#" class="logo">
+        <span>⚡ LENSETEK</span>
+        <span class="logo-badge">AGENT</span>
+      </a>
+      <div class="nav-links">
+        <a href="#install">Install</a>
+        <a href="#demo">Live Demo</a>
+        <a href="#features">Architecture</a>
+        <a href="#commands">Commands</a>
+        <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" class="btn-github">
+          <span>🤗 Space</span>
+        </a>
+        <a href="https://github.com/lensetek/local-llm" target="_blank" class="btn-github">
+          <svg height="15" width="15" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="container">
+    <section class="hero">
+      <div class="badge-pill">
+        <span class="pulse-dot"></span>
+        <span>EDGE-COMPUTING SLM AGENT HARNESS (v2.0)</span>
+      </div>
+      <h1 class="hero-title">
+        The Autonomous AI Agent Harness for <span>Local GGUF Models</span>
+      </h1>
+      <p class="hero-subtitle">
+        Run full agentic loops, dynamic MCP servers, headless web search, and 230+ skills with interactive Tab autocomplete — 100% locally on a 4-core Ryzen CPU without GPU dependencies.
+      </p>
+
+      <!-- Hardware Spec Badges -->
+      <div class="spec-pills">
+        <span class="spec-pill">💻 <strong>AMD Ryzen 3 5300U</strong> (4 Cores / 8 Threads)</span>
+        <span class="spec-pill">🧠 <strong>3B SLM (Q4_K_M)</strong> (RAM &lt; 2.5 GB)</span>
+        <span class="spec-pill">⚡ <strong>8-bit KV Cache</strong> (-ctk q8_0 -ctv q8_0)</span>
+        <span class="spec-pill">🛡️ <strong>Zero Data Leak</strong> (Air-Gapped & Sovereign)</span>
+      </div>
+
+      <!-- ========================================================== -->
+      <!-- INSTALLATION WIDGET (Image Match & One-Click Copy)          -->
+      <!-- ========================================================== -->
+      <section id="install" class="install-widget-card">
+        <div class="widget-header">
+          <div class="widget-title">
+            <span class="pulse-dot"></span>
+            <span>Fast Installation &amp; Launch</span>
+          </div>
+          <div class="widget-tab-toggle">
+            <button class="view-btn active" onclick="switchView('list')">List View</button>
+            <button class="view-btn" onclick="switchView('tabs')">Tab View</button>
+          </div>
+        </div>
+
+        <!-- 1. List View (As shown in user's reference image) -->
+        <div id="listView" class="install-list">
+          <!-- Windows PowerShell One-Liner -->
+          <div class="install-row">
+            <div class="cmd-name">powershell</div>
+            <div class="cmd-code">irm https://raw.githubusercontent.com/lensetek/local-llm/main/install.ps1 | iex</div>
+            <button class="btn-copy" onclick="copySnippet(this, 'irm https://raw.githubusercontent.com/lensetek/local-llm/main/install.ps1 | iex')">
+              Copy
+            </button>
+          </div>
+
+          <!-- Linux / macOS curl One-Liner -->
+          <div class="install-row">
+            <div class="cmd-name">curl</div>
+            <div class="cmd-code">curl -fsSL https://raw.githubusercontent.com/lensetek/local-llm/main/install.sh | bash</div>
+            <button class="btn-copy" onclick="copySnippet(this, 'curl -fsSL https://raw.githubusercontent.com/lensetek/local-llm/main/install.sh | bash')">
+              Copy
+            </button>
+          </div>
+
+          <!-- Git Clone & Run -->
+          <div class="install-row">
+            <div class="cmd-name">git</div>
+            <div class="cmd-code">git clone https://github.com/lensetek/local-llm.git &amp;&amp; cd local-llm/cli-agent &amp;&amp; run_agent.bat</div>
+            <button class="btn-copy" onclick="copySnippet(this, 'git clone https://github.com/lensetek/local-llm.git && cd local-llm/cli-agent && run_agent.bat')">
+              Copy
+            </button>
+          </div>
+
+          <!-- Python Pip -->
+          <div class="install-row">
+            <div class="cmd-name">pip</div>
+            <div class="cmd-code">pip install -r cli-agent/requirements.txt &amp;&amp; py cli-agent/main.py</div>
+            <button class="btn-copy" onclick="copySnippet(this, 'pip install -r cli-agent/requirements.txt && py cli-agent/main.py')">
+              Copy
+            </button>
+          </div>
+
+          <!-- NPX CLI Wrapper -->
+          <div class="install-row">
+            <div class="cmd-name">npx</div>
+            <div class="cmd-code">npx @lensetek/agent</div>
+            <button class="btn-copy" onclick="copySnippet(this, 'npx @lensetek/agent')">
+              Copy
+            </button>
+          </div>
+
+          <!-- Homebrew / Mac -->
+          <div class="install-row">
+            <div class="cmd-name">brew</div>
+            <div class="cmd-code">brew install lensetek/tap/agent-harness</div>
+            <button class="btn-copy" onclick="copySnippet(this, 'brew install lensetek/tap/agent-harness')">
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Tabbed View (Compact Mode) -->
+        <div id="tabbedView" class="tabbed-container">
+          <div class="tab-bar">
+            <div class="tab-item active" onclick="selectTab(0)">powershell</div>
+            <div class="tab-item" onclick="selectTab(1)">curl</div>
+            <div class="tab-item" onclick="selectTab(2)">git</div>
+            <div class="tab-item" onclick="selectTab(3)">pip</div>
+            <div class="tab-item" onclick="selectTab(4)">npx</div>
+          </div>
+          <div class="tab-content">
+            <div id="tabCode" class="cmd-code">irm https://raw.githubusercontent.com/lensetek/local-llm/main/install.ps1 | iex</div>
+            <button id="tabCopyBtn" class="btn-copy" onclick="copySnippet(this, currentTabCommand)">Copy</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- INTERACTIVE TERMINAL PREVIEW                               -->
+    <!-- ========================================================== -->
+    <section id="demo" class="terminal-section">
+      <h2 class="section-title">Live Interactive Terminal Experience</h2>
+      <p class="section-desc">Test slash commands, autocompletions, and skills right in this live terminal preview.</p>
+      
+      <div class="terminal-card">
+        <div class="terminal-bar">
+          <div class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <div class="terminal-title">⚡ LENSETEK LEAN AGENT HARNESS (port: 8081, ctx: 8192)</div>
+          <div style="width: 30px;"></div>
+        </div>
+        <div id="terminalBody" class="terminal-body">
+<span class="term-cyan term-bold">====================================================================</span><br>
+<span class="term-cyan term-bold">        ⚡ LENSETEK LEAN AGENT HARNESS                             </span><br>
+<span class="term-cyan term-bold">====================================================================</span><br>
+ <span class="term-bold">Workspace:</span> C:\Users\ACER\Documents\GitHub\local-llm\cli-agent<br>
+ <span class="term-bold">Model:</span>     lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(port: 8081, ctx: 8192)</span><br>
+ <span class="term-bold">Language:</span>  [EN] English <span class="term-dim">(/language en|id|cn)</span><br>
+ <span class="term-bold">Safety:</span>    [STRICT] <span class="term-dim">(/strict, /auto-approve, /yolo)</span><br>
+ <span class="term-bold">Web Search:</span><span class="term-green"> Headless Active</span> <span class="term-dim">(web_search tool &amp; /search &lt;q&gt;)</span><br>
+ <span class="term-bold">MCP:</span>       fetch<br>
+ <span class="term-bold">Skills:</span>    233 skills detected <span class="term-dim">(type '/' and press Tab to autocomplete)</span><br>
+<span class="term-dim">Type '/help' for commands. Press Ctrl+C while thinking to cancel task.</span><br>
+<span class="term-cyan">--------------------------------------------------------------------</span><br><br>
+<span class="term-dim">~ [cli-agent] 0.0%/8k tok [STRICT|EN] (lensetek-edge-loop-3b-q4_k_m.gguf)</span><br>
+<div id="termHistory"></div>
+<div class="cli-prompt-container">
+  <span class="term-green term-bold">&gt;&nbsp;</span>
+  <input type="text" id="cliInputField" class="cli-input" placeholder="Type /help, /search, or /skills and press Enter..." autocomplete="off" spellcheck="false">
+</div>
+        </div>
+      </div>
+
+      <!-- Quick Interactive Demo Buttons -->
+      <div class="demo-controls">
+        <button class="btn-demo" onclick="triggerCliCommand('/help')">Run /help</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/search local LLM agent')">Run /search</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/research-orchestrator digital marketing')">Run /research-orchestrator</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/language id')">Switch to Indonesian (/language id)</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/language en')">Switch to English (/language en)</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/clear')">Clear Terminal</button>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- ARCHITECTURE & FEATURES                                    -->
+    <!-- ========================================================== -->
+    <section id="features">
+      <h2 class="section-title">Engineered Specifically for Edge Computing</h2>
+      <p class="section-desc">Zero cloud lock-in, zero API token costs, and 100% privacy on local commodity hardware.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3 class="feature-title">Ultra-Lean 3B SLM Engine</h3>
+          <p class="feature-desc">Fine-tuned for agentic loops and tool calling. Runs smoothly on AMD Ryzen 3 5300U with RAM usage under 2.5 GB using 8-bit KV Cache.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔌</div>
+          <h3 class="feature-title">Universal MCP Orchestrator</h3>
+          <p class="feature-desc">Connect and install Model Context Protocol servers dynamically via <code>/mcp install</code>. Ships pre-configured with <code>fetch</code> and <code>playwright-headless</code>.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🌐</div>
+          <h3 class="feature-title">Headless Web Search</h3>
+          <p class="feature-desc">Native multi-engine search tool integrated into the agent reasoning loop. Headlessly crawls Bing and Google without external API keys.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">230+ Skills Auto-Discovery</h3>
+          <p class="feature-desc">Automatically scans and indexes prompt guides from Antigravity, Claude, Codex, and Research Agents. Directly executable via <code>/&lt;skill-name&gt;</code>.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3 class="feature-title">Autonomous /goal &amp; /loop</h3>
+          <p class="feature-desc">Multi-step autonomous execution (up to 20 steps) with pinned goals that survive context trimming, plus recurring task looping and OS scheduler.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3 class="feature-title">3-Tier Safety System</h3>
+          <p class="feature-desc">Switch seamlessly between <code>/strict</code> (confirmation on every tool action), <code>/auto-approve</code> (auto-approves in workspace), and <code>/yolo</code> for scripts.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- SLASH COMMANDS TABLE                                       -->
+    <!-- ========================================================== -->
+    <section id="commands">
+      <div class="table-header-controls">
+        <div>
+          <h2 class="section-title" style="text-align: left; margin-bottom: 4px;">Slash Commands Reference</h2>
+          <p class="section-desc" style="text-align: left; margin-bottom: 0;">Type <code>/</code> and press <kbd>Tab</kbd> in the CLI to see instant completions.</p>
+        </div>
+        <input type="text" id="cmdSearchInput" class="search-filter" placeholder="Filter commands (e.g. mcp, search)..." oninput="filterCommands()">
+      </div>
+
+      <div class="commands-table-wrapper">
+        <table id="commandsTable">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Category</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/help</code></td>
+              <td><span class="cat-badge">SYSTEM</span></td>
+              <td>Displays comprehensive guide of all slash commands and capabilities.</td>
+            </tr>
+            <tr>
+              <td><code>/language &lt;en|id|cn&gt;</code></td>
+              <td><span class="cat-badge">CONFIG</span></td>
+              <td>Switch agent response &amp; prompt language (English, Indonesian, Chinese). Saved persistently.</td>
+            </tr>
+            <tr>
+              <td><code>/search &lt;query&gt;</code></td>
+              <td><span class="cat-badge">WEB</span></td>
+              <td>Perform an instant headless web search directly from the prompt.</td>
+            </tr>
+            <tr>
+              <td><code>/skills [filter]</code></td>
+              <td><span class="cat-badge">SKILLS</span></td>
+              <td>Browse and filter 230+ detected local &amp; global skills.</td>
+            </tr>
+            <tr>
+              <td><code>/&lt;skill-name&gt; [task]</code></td>
+              <td><span class="cat-badge">SKILLS</span></td>
+              <td>Execute a specific skill guide directly with anti-hallucination protection.</td>
+            </tr>
+            <tr>
+              <td><code>/mcp [install|test|remove]</code></td>
+              <td><span class="cat-badge">MCP</span></td>
+              <td>Manage and install Stdio MCP servers with runtime credential injection.</td>
+            </tr>
+            <tr>
+              <td><code>/goal &lt;objective&gt;</code></td>
+              <td><span class="cat-badge">AGENTIC</span></td>
+              <td>Launches multi-step goal solver (up to 20 steps) with context resilience.</td>
+            </tr>
+            <tr>
+              <td><code>/loop &lt;3x|5m&gt; &lt;task&gt;</code></td>
+              <td><span class="cat-badge">AGENTIC</span></td>
+              <td>Repeat a task with automatic context reset to avoid token degradation.</td>
+            </tr>
+            <tr>
+              <td><code>/schedule &lt;add|list&gt;</code></td>
+              <td><span class="cat-badge">SCHEDULER</span></td>
+              <td>Schedule tasks via in-app timer daemon or OS Task Scheduler (Windows/Linux/macOS).</td>
+            </tr>
+            <tr>
+              <td><code>/strict | /auto-approve | /yolo</code></td>
+              <td><span class="cat-badge">SAFETY</span></td>
+              <td>Toggle workspace execution confirmation level on the fly.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>© 2026 <strong>Lensetek AI</strong>. Released under the MIT License.</p>
+      <p style="margin-top: 8px;">
+        Designed for air-gapped edge computing and local-first AI workflows. 
+        <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent">Hugging Face Space</a> • 
+        <a href="https://github.com/lensetek/local-llm">GitHub Repository</a> • 
+        <a href="https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF">Hugging Face Model</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts: Interactive UI & Terminal Simulation -->
+  <script>
+    // Tabbed vs List View Toggle
+    function switchView(mode) {
+      const listView = document.getElementById('listView');
+      const tabbedView = document.getElementById('tabbedView');
+      const buttons = document.querySelectorAll('.view-btn');
+
+      if (mode === 'list') {
+        listView.style.display = 'flex';
+        tabbedView.style.display = 'none';
+        buttons[0].classList.add('active');
+        buttons[1].classList.remove('active');
+      } else {
+        listView.style.display = 'none';
+        tabbedView.style.display = 'block';
+        buttons[0].classList.remove('active');
+        buttons[1].classList.add('active');
+      }
+    }
+
+    // Tabs inside Tabbed View
+    const tabCommands = [
+      "irm https://raw.githubusercontent.com/lensetek/local-llm/main/install.ps1 | iex",
+      "curl -fsSL https://raw.githubusercontent.com/lensetek/local-llm/main/install.sh | bash",
+      "git clone https://github.com/lensetek/local-llm.git && cd local-llm/cli-agent && run_agent.bat",
+      "pip install -r cli-agent/requirements.txt && py cli-agent/main.py",
+      "npx @lensetek/agent"
+    ];
+    let currentTabCommand = tabCommands[0];
+
+    function selectTab(index) {
+      document.querySelectorAll('.tab-item').forEach((el, idx) => {
+        if (idx === index) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+      currentTabCommand = tabCommands[index];
+      document.getElementById('tabCode').textContent = currentTabCommand;
+    }
+
+    // One-Click Copy Handler with Feedback
+    function copySnippet(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "✓ Copied";
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        alert("Copy failed: " + err);
+      });
+    }
+
+    // Interactive CLI Terminal Input
+    const cliInputField = document.getElementById('cliInputField');
+    cliInputField.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const val = this.value.trim();
+        if (val) {
+          triggerCliCommand(val);
+          this.value = '';
+        }
+      }
+    });
+
+    // Command Trigger
+    function triggerCliCommand(cmd) {
+      const termHistory = document.getElementById('termHistory');
+      const termBody = document.getElementById('terminalBody');
+
+      if (cmd === '/clear') {
+        termHistory.innerHTML = '';
+        return;
+      }
+
+      let output = "";
+      if (cmd === '/help') {
+        output = `
+<span class="term-bold">Commands Guide / Daftar Perintah Slash (/):</span><br>
+  <span class="term-yellow">/help</span>                               - Show this help guide<br>
+  <span class="term-yellow">/language &lt;en|id|cn&gt;</span>                 - Switch language (saved to user settings)<br>
+  <span class="term-yellow">/search &lt;query&gt;</span>                      - Instant headless web search (Bing/Google)<br>
+  <span class="term-yellow">/skills [filter]</span>                    - List available local &amp; global skills<br>
+  <span class="term-yellow">/&lt;skill-name&gt; [task]</span>                - Activate specific skill for a task<br>
+  <span class="term-yellow">/mcp</span>                                - MCP server status &amp; install/test/remove<br>
+  <span class="term-yellow">/goal &lt;target&gt;</span>                       - Multi-step autonomous agentic goal<br>
+  <span class="term-yellow">/strict | /auto-approve | /yolo</span>     - Toggle security confirmation mode<br>
+`;
+      } else if (cmd.startsWith('/search')) {
+        output = `
+<span class="term-dim">Searching web (headless)...</span><br>
+<span class="term-cyan">=== Web Search Results for '${cmd.replace('/search', '').trim()}' ===</span><br>
+[1] <strong>Lensetek Edge AI Agent</strong> - Autonomous local SLM runner for commodity hardware.<br>
+    URL: https://github.com/lensetek/local-llm<br>
+    Snippet: Self-contained local agent harness featuring MCP orchestrator &amp; skills.<br>
+[2] <strong>llama.cpp HTTP Server API</strong> - Lightweight OpenAI compatible engine.<br>
+`;
+      } else if (cmd.startsWith('/research-orchestrator')) {
+        output = `
+<span class="term-dim">⏳ Sedang berpikir... (Langkah 1/4) [Tekan Ctrl+C untuk membatalkan]</span><br>
+<span class="term-magenta">⚙️  [TOOL CALL] web_search({'query': 'digital marketing trends 2026'})</span><br>
+<span class="term-dim">   └─ Result: Found 5 authoritative sources on AI-driven omnichannel strategies.</span><br>
+<span class="term-dim">⏳ Sedang berpikir... (Langkah 2/4) [Tekan Ctrl+C untuk membatalkan]</span><br><br>
+<span class="term-bold">Laporan Riset Awal: Tren Strategi Digital Marketing 2026</span><br>
+1. <strong>AI Agent &amp; Customer Journey:</strong> Otomasi touchpoint dengan model lokal edge.<br>
+2. <strong>Omnichannel Attribution:</strong> Analisis funnel multi-touch berbasis data privacy-first.<br>
+3. <strong>SEO Semantik &amp; AIO:</strong> Optimalisasi konten untuk mesin pencari berbasis generative AI.<br>
+`;
+      } else if (cmd === '/language id') {
+        output = `<span class="term-green">✓ Bahasa aktif diubah menjadi: Bahasa Indonesia (id). Pengaturan disimpan ke user_settings.json.</span><br>`;
+      } else if (cmd === '/language en') {
+        output = `<span class="term-green">✓ Active language switched to: English (en). Settings saved to user_settings.json.</span><br>`;
+      } else {
+        output = `<span class="term-dim">Executing command '${cmd}' via Lensetek Agent Harness... [OK]</span><br>`;
+      }
+
+      const entry = document.createElement('div');
+      entry.style.marginBottom = '12px';
+      entry.innerHTML = `
+        <div><span class="term-green term-bold">&gt;&nbsp;</span><span>${cmd}</span></div>
+        <div>${output}</div>
+        <div class="term-dim" style="font-size: 0.78rem;">~ [cli-agent] 0.5%/8k tok [STRICT] (lensetek-edge-loop-3b-q4_k_m.gguf)</div>
+      `;
+      termHistory.appendChild(entry);
+      termBody.scrollTop = termBody.scrollHeight;
+    }
+
+    // Filter Commands Table
+    function filterCommands() {
+      const q = document.getElementById('cmdSearchInput').value.toLowerCase();
+      const rows = document.querySelectorAll('#commandsTable tbody tr');
+      rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        r.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

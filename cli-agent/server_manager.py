@@ -1,0 +1,104 @@
+import os
+import sys
+import time
+import subprocess
+import urllib.request
+import urllib.error
+from pathlib import Path
+
+from config import (
+    REPO_ROOT,
+    LLAMA_SERVER_EXE,
+    DEFAULT_PORT,
+    DEFAULT_CTX,
+    DEFAULT_THREADS,
+    DEFAULT_KV_CACHE
+)
+
+class LlamaServerManager:
+    def __init__(self, port: int = DEFAULT_PORT, ctx_size: int = DEFAULT_CTX, threads: int = DEFAULT_THREADS):
+        self.port = port
+        self.ctx_size = ctx_size
+        self.threads = threads
+        self.process = None
+        self.model_name = None
+        self.base_url = f"http://127.0.0.1:{self.port}"
+
+    def is_healthy(self) -> bool:
+        """Memeriksa apakah llama-server sedang aktif dan merespons /health."""
+        try:
+            req = urllib.request.Request(f"{self.base_url}/health")
+            with urllib.request.urlopen(req, timeout=1) as resp:
+                return resp.status == 200
+        except Exception:
+            return False
+
+    def start(self, model_name: str):
+        """Menjalankan llama-server dengan profil hemat RAM Ryzen 3."""
+        if not LLAMA_SERVER_EXE.exists():
+            raise FileNotFoundError(f"Binary llama-server tidak ditemukan di: {LLAMA_SERVER_EXE}")
+
+        model_path = REPO_ROOT / model_name
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model {model_name} tidak ditemukan di: {model_path}")
+
+        # Jika sudah berjalan dengan model yang sama dan sehat, tidak perlu restart
+        if self.process and self.process.poll() is None and self.model_name == model_name:
+            if self.is_healthy():
+                return
+
+        # Hentikan proses sebelumnya jika ada
+        self.stop()
+
+        cmd = [
+            str(LLAMA_SERVER_EXE),
+            "-m", str(model_path),
+            "--host", "127.0.0.1",
+            "--port", str(self.port),
+            "-c", str(self.ctx_size),
+            "--jinja",
+            "-ctk", DEFAULT_KV_CACHE,
+            "-ctv", DEFAULT_KV_CACHE,
+            "-t", str(self.threads),
+            "-fa", "auto",
+            "--temp", "0.4"
+        ]
+
+        creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+        self.process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=creationflags
+        )
+        self.model_name = model_name
+
+        # Polling /health hingga maksimal 30 detik
+        started = False
+        for _ in range(60):
+            time.sleep(0.5)
+            if self.is_healthy():
+                started = True
+                break
+            if self.process.poll() is not None:
+                break
+
+        if not started:
+            self.stop()
+            raise RuntimeError(f"Gagal memulai llama-server untuk model {model_name} pada port {self.port}")
+
+    def stop(self):
+        """Menghentikan proses llama-server yang dikelola secara aman."""
+        if self.process:
+            try:
+                if self.process.poll() is None:
+                    self.process.terminate()
+                    try:
+                        self.process.wait(timeout=3)
+                    except subprocess.TimeoutExpired:
+                        self.process.kill()
+            except Exception:
+                pass
+            finally:
+                self.process = None
+                self.model_name = None

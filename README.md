@@ -1,4 +1,10 @@
 ---
+title: Lensetek Edge AI Agent Harness
+emoji: ⚡
+colorFrom: cyan
+colorTo: green
+sdk: static
+pinned: false
 license: mit
 tags:
 - llama.cpp
@@ -42,6 +48,32 @@ tags:
 # 🇬🇧 English
 
 A self-contained local AI workspace featuring text inference, vision understanding, and **Realtime Hands-Free Voice with Barge-In (Interruption)** capability. It includes a built-in **OpenAI-Compatible API Server (`/v1/chat/completions`)** designed for autonomous AI agents (**LangChain, CrewAI, AutoGen, OpenAI Python/Node SDK, Cursor, and Continue.dev**).
+
+---
+
+### ⚡ 0. LENSETEK LEAN AGENT HARNESS (CLI & Universal MCP Orchestrator)
+
+> 🚀 **Interactive Web Landing Page**: Open [`docs/index.html`](docs/index.html) (or `index.html`) in your browser to test interactive terminal commands and view one-click installation snippets!
+
+The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous agent harness running locally on top of edge GGUF models (3B / 7B) on commodity 4-core CPUs (AMD Ryzen 3 5300U) with RAM &lt; 2.5 GB.
+
+#### 📦 One-Liner Quick Installation
+
+| Package / Method | Command | Description |
+| :--- | :--- | :--- |
+| **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek/local-llm/main/install.ps1 \| iex` | One-liner auto installer & launcher |
+| **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek/local-llm/main/install.sh \| bash` | Headless auto-install to `~/.lensetek-agent` |
+| **git & local run** | `git clone https://github.com/lensetek/local-llm.git && cd local-llm/cli-agent && run_agent.bat` | Standard developer repository workflow |
+| **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Direct Python launch with `prompt_toolkit` |
+
+#### 🛠️ Key Agentic Features:
+- **Universal MCP Orchestrator**: Manage and connect Stdio MCP servers dynamically via `/mcp` (`fetch`, `playwright-headless`, etc.).
+- **Headless Web Search**: Built-in Bing & Google headless search via `/search <query>` and native `web_search` tool without external API keys.
+- **230+ Skills Auto-Discovery**: Detects and parses prompt guides across local and global skill catalogs (`~/.agents/skills`, `~/.claude/skills`, `~/.gemini/`).
+- **Interactive Autocomplete**: Powered by `prompt_toolkit` with `Tab` completion that auto-fills commands/skills and closes the popup list.
+- **Autonomous /goal & /loop**: Multi-step goal planner (up to 20 steps) with context resilience and recurring task loops.
+- **Multilingual System**: Persistent `/language <en|id|cn>` setting (English, Bahasa Indonesia, Chinese).
+- **Safety Modes**: `/strict` [y/N], `/auto-approve`, and `/yolo` (unattended).
 
 ---
 
@@ -269,6 +301,32 @@ Our specialized model **`lensetek-edge-loop-3b-q4_k_m.gguf`** has been formally 
 # 🇮🇩 Bahasa Indonesia
 
 Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (vision), dan percakapan suara **Realtime Hands-Free Voice dengan fitur Sela Bicara (Barge-In)**. Dilengkapi **OpenAI-Compatible API Server (`/v1/chat/completions`)** agar dapat langsung dihubungkan ke berbagai framework AI Agent (**LangChain, CrewAI, AutoGen, OpenAI Python/Node SDK, Cursor, dan Continue.dev**).
+
+---
+
+### ⚡ 0. LENSETEK LEAN AGENT HARNESS (CLI & Universal MCP Orchestrator)
+
+> 🚀 **Halaman Web Interaktif (Landing Page)**: Buka [`docs/index.html`](docs/index.html) (atau `index.html`) di browser Anda untuk melihat demo terminal interaktif dan tombol 1-klik salin perintah instalasi!
+
+**LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) adalah harness agen AI otonom khusus yang berjalan 100% lokal di atas model edge GGUF (3B / 7B) pada prosesor 4-core hemat daya (AMD Ryzen 3 5300U) dengan penggunaan RAM &lt; 2.5 GB.
+
+#### 📦 Perintah Cepat Instalasi 1-Baris
+
+| Metode / Manajer Paket | Perintah Terminal | Keterangan |
+| :--- | :--- | :--- |
+| **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek/local-llm/main/install.ps1 \| iex` | Pemasangan otomatis & launcher global |
+| **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek/local-llm/main/install.sh \| bash` | Pemasangan headless ke `~/.lensetek-agent` |
+| **git & local run** | `git clone https://github.com/lensetek/local-llm.git && cd local-llm/cli-agent && run_agent.bat` | Alur kerja lokal pengembang |
+| **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Jalankan langsung via Python & prompt_toolkit |
+
+#### 🛠️ Fitur-Fitur Utama Agen:
+- **Universal MCP Orchestrator**: Pasang dan operasikan server MCP secara dinamis via `/mcp` (`fetch`, `playwright-headless`, dll.).
+- **Pencarian Web Headless**: Fitur pencarian Bing & Google tanpa API key melalui `/search <kueri>` dan tool bawaan `web_search`.
+- **Deteksi 230+ Skills Otomatis**: Mendeteksi panduan skill lokal dan global dari Antigravity, Claude, Codex, dan Research Agent.
+- **Autocomplete Interaktif**: Didukung `prompt_toolkit` dengan tombol `Tab` yang otomatis melengkapi nama perintah/skill dan menutup popup suggestion.
+- **Otonom /goal & /loop**: Penyelesaian misi multi-langkah (hingga 20 langkah) dengan *pinned goal* yang kebal pemangkasan konteks, serta pengulangan tugas berkala.
+- **Multi-Bahasa**: Pilihan bahasa aktif yang tersimpan permanen via `/language <en|id|cn>`.
+- **Mode Keamanan**: `/strict` [y/N], `/auto-approve`, dan `/yolo` (unattended).
 
 ---
 
