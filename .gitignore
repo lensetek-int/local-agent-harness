@@ -24,6 +24,8 @@ venv/
 *.log
 logs/
 cli-agent/logs/
+sessions/
+cli-agent/sessions/
 *.db
 *.sqlite
 *.sqlite3

@@ -50,19 +50,30 @@ PEDOMAN KERJA:
 }
 
 class LeanAgent:
-    def __init__(self, base_url: str, fs_tools, mcp_manager, skills_manager=None, ctx_size: int = 8192, model_name: str = None, language: str = "en"):
+    def __init__(self, base_url: str, fs_tools, mcp_manager, skills_manager=None, session_manager=None, ctx_size: int = 8192, model_name: str = None, language: str = "en", effort_level: str = "medium"):
         self.base_url = base_url.rstrip("/")
         self.fs_tools = fs_tools
         self.mcp_manager = mcp_manager
         self.skills_manager = skills_manager
+        self.session_manager = session_manager
         self.web_search_tool = WebSearchTool()
         self.ctx_size = ctx_size
         self.model_name = model_name
         self.language = language if language in SYSTEM_PROMPTS else "en"
+        self.effort_level = effort_level.lower().strip() if effort_level in ("off", "low", "medium", "high") else "medium"
         self.messages = []
         self.last_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         self.active_goal = None
         self.reset_session()
+
+    def load_session(self, session_data: dict):
+        """Memuat riwayat percakapan dari session tersimpan ke dalam messages aktif."""
+        self.reset_session()
+        for m in session_data.get("messages", []):
+            role = m.get("role")
+            content = m.get("content")
+            if role in ("user", "assistant") and content:
+                self.messages.append({"role": role, "content": content})
 
     def set_language(self, lang_code: str):
         """Mengubah bahasa agen dan memperbarui system prompt."""
@@ -73,13 +84,74 @@ class LeanAgent:
             self.language = code
             self.reset_session()
 
+    def set_effort(self, effort_level: str):
+        """Mengubah tingkat thinking effort ('off', 'low', 'medium', 'high')."""
+        level = effort_level.lower().strip()
+        if level in ("off", "low", "medium", "high"):
+            self.effort_level = level
+            self.reset_session()
+
     def reset_session(self):
         prompt_text = SYSTEM_PROMPTS.get(self.language, SYSTEM_PROMPTS["en"])
+        
+        # Injeksi directive effort ke system prompt
+        if self.effort_level == "off":
+            if self.language == "id":
+                prompt_text += "\n\n[PANDUAN PENALARAN: Tingkat effort = OFF. JANGAN hasilkan blok tag <think>...</think> atau monolog panjang. Berikan jawaban atau pemanggilan tool secara langsung dan cepat.]"
+            elif self.language == "cn":
+                prompt_text += "\n\n[思考准则：思考强度 = OFF。请勿输出 <think>...</think> 内部思考过程，直接提供明确答复或调用工具。]"
+            else:
+                prompt_text += "\n\n[REASONING DIRECTIVE: Effort = OFF. Do NOT generate internal <think>...</think> monologue. Provide direct, immediate answers and tool calls.]"
+        elif self.effort_level == "low":
+            if self.language == "id":
+                prompt_text += "\n\n[PANDUAN PENALARAN: Tingkat effort = LOW. Buat penalaran internal dalam <think>...</think> secara ringkas, padat, dan terfokus.]"
+            elif self.language == "cn":
+                prompt_text += "\n\n[思考准则：思考强度 = LOW。保持 <think>...</think> 内的思考过程简明扼要。]"
+            else:
+                prompt_text += "\n\n[REASONING DIRECTIVE: Effort = LOW. Keep internal chain of thought in <think> tags concise and focused.]"
+        elif self.effort_level == "high":
+            if self.language == "id":
+                prompt_text += "\n\n[PANDUAN PENALARAN: Tingkat effort = HIGH. Lakukan penalaran mendalam dan sistematis langkah demi langkah dalam <think>...</think> sebelum memberikan jawaban final.]"
+            elif self.language == "cn":
+                prompt_text += "\n\n[思考准则：思考强度 = HIGH。在 <think>...</think> 中进行深入、细致的多步推演后再输出最终结论。]"
+            else:
+                prompt_text += "\n\n[REASONING DIRECTIVE: Effort = HIGH. Perform rigorous, multi-step deep reasoning inside <think>...</think> tags before delivering conclusions.]"
+
         self.messages = [
             {"role": "system", "content": prompt_text}
         ]
         self.last_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         self.active_goal = None
+
+    def _format_content_with_effort(self, content: str) -> str:
+        """Memformat atau membersihkan tag <think>...</think> sesuai tingkat effort."""
+        if not content:
+            return ""
+        
+        # Jika effort OFF: buang seluruh blok <think>...</think>
+        if self.effort_level == "off":
+            cleaned = re.sub(r"<think>[\s\S]*?</think>", "", content)
+            return cleaned.strip()
+
+        # Jika effort low, medium, high: tata tampilan thinking secara elegan
+        think_match = re.search(r"<think>([\s\S]*?)</think>", content)
+        if think_match:
+            thought_text = think_match.group(1).strip()
+            answer_text = re.sub(r"<think>[\s\S]*?</think>", "", content).strip()
+            
+            if self.language == "id":
+                lbl = "💭 [Proses Berpikir / Penalaran]"
+            elif self.language == "cn":
+                lbl = "💭 [思维链 / 深度思考过程]"
+            else:
+                lbl = "💭 [Thinking Process / Reasoning]"
+
+            header = f"\033[2m\033[36m{lbl}:\n{thought_text}\n{'─' * 44}\033[0m"
+            if answer_text:
+                return f"{header}\n\n{answer_text}"
+            return header
+
+        return content
 
     def _get_all_tools(self) -> list[dict]:
         tools = []
@@ -188,13 +260,18 @@ class LeanAgent:
                         status_msg = f"Sedang berpikir... (Langkah {step + 1}/{max_steps}) [Tekan Ctrl+C untuk membatalkan]"
                     on_status(status_msg)
 
+                temp_map = {"off": 0.1, "low": 0.2, "medium": 0.4, "high": 0.7}
+                temperature = temp_map.get(self.effort_level, 0.4)
+
                 payload = {
                     "model": self.model_name or "local-model",
                     "messages": self.messages,
                     "tools": self._get_all_tools(),
-                    "temperature": 0.4,
+                    "temperature": temperature,
                     "stream": False
                 }
+                if self.effort_level != "medium":
+                    payload["reasoning_effort"] = self.effort_level
 
                 req = urllib.request.Request(
                     f"{self.base_url}/v1/chat/completions",
@@ -225,7 +302,14 @@ class LeanAgent:
 
                 if not raw_tool_calls:
                     self.messages.append({"role": "assistant", "content": content})
-                    return content
+                    final_ans = self._format_content_with_effort(content)
+                    if self.session_manager:
+                        try:
+                            act_id = self.session_manager.get_active_session_id()
+                            self.session_manager.save_turn(act_id, user_text, final_ans, model_name=self.model_name or "")
+                        except Exception:
+                            pass
+                    return final_ans
 
                 self.messages.append(message)
 
@@ -267,7 +351,14 @@ class LeanAgent:
                         "content": result
                     })
 
-            return f"Completed: Maximum tool steps ({max_steps}) reached."
+            final_max = f"Completed: Maximum tool steps ({max_steps}) reached."
+            if self.session_manager:
+                try:
+                    act_id = self.session_manager.get_active_session_id()
+                    self.session_manager.save_turn(act_id, user_text, final_max, model_name=self.model_name or "")
+                except Exception:
+                    pass
+            return final_max
         except KeyboardInterrupt:
             return "⚠️ [Interrupted: Operation cancelled by user via Ctrl+C]"
 

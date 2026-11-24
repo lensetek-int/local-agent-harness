@@ -126,6 +126,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
     }
     .logo {
       display: flex;
@@ -136,6 +137,7 @@
       color: #fff;
       text-decoration: none;
       letter-spacing: -0.5px;
+      flex-shrink: 0;
     }
     .logo-badge {
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
@@ -148,7 +150,7 @@
     }
     .nav-links {
       display: flex;
-      gap: 20px;
+      gap: 18px;
       align-items: center;
     }
     .nav-links a {
@@ -157,6 +159,7 @@
       font-size: 0.88rem;
       font-weight: 500;
       transition: color 0.2s ease;
+      white-space: nowrap;
     }
     .nav-links a:hover {
       color: var(--accent-cyan);
@@ -174,11 +177,86 @@
       font-weight: 600;
       text-decoration: none;
       transition: all 0.2s ease;
+      flex-shrink: 0;
     }
     .btn-github:hover {
       background: #223249;
       border-color: var(--accent-cyan);
       box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+    }
+
+    /* Language Switcher Dropdown */
+    .lang-dropdown-wrapper {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .lang-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #141c2b;
+      border: 1px solid #28374d;
+      color: #f1f5f9;
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .lang-btn:hover {
+      background: #1f2a3e;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+    }
+    .lang-btn .chevron {
+      transition: transform 0.2s ease;
+    }
+    .lang-dropdown-wrapper.open .chevron {
+      transform: rotate(180deg);
+    }
+    .lang-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: #0d131f;
+      border: 1px solid #28374d;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      min-width: 175px;
+      display: none;
+      flex-direction: column;
+      z-index: 200;
+      overflow: hidden;
+      animation: fadeIn 0.15s ease-out;
+    }
+    .lang-menu.show {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .lang-option {
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .lang-option:hover {
+      background: rgba(0, 240, 255, 0.08);
+      color: var(--accent-cyan);
+    }
+    .lang-option.active {
+      color: var(--accent-green);
+      font-weight: 700;
+      background: rgba(0, 255, 136, 0.06);
     }
 
     /* ==================================================================== */
@@ -264,7 +342,7 @@
     }
 
     /* ==================================================================== */
-    /* INSTALLATION WIDGET (Faithful Replica of User's Image Snippet)      */
+    /* INSTALLATION WIDGET                                                  */
     /* ==================================================================== */
     .install-widget-card {
       background: var(--bg-card);
@@ -329,7 +407,7 @@
       color: #fff;
     }
 
-    /* List View (Exact replica of user's image snippet) */
+    /* List View */
     .install-list {
       display: flex;
       flex-direction: column;
@@ -444,315 +522,299 @@
     .why-lean-section {
       margin: 10px 0 70px;
     }
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.3rem);
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .section-desc {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 40px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
     .comparison-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
-      margin-top: 30px;
+      margin-bottom: 28px;
     }
     .comparison-card {
       background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
       position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease;
     }
     .comparison-card.conventional {
-      border: 1px solid rgba(239, 68, 68, 0.28);
-      background: linear-gradient(180deg, rgba(239, 68, 68, 0.04) 0%, rgba(13, 19, 31, 0.95) 100%);
+      border-top: 3px solid #ef4444;
     }
     .comparison-card.lean {
-      border: 1px solid rgba(0, 240, 255, 0.35);
-      background: linear-gradient(180deg, rgba(0, 240, 255, 0.05) 0%, rgba(13, 19, 31, 0.95) 100%);
-      box-shadow: 0 12px 35px -10px rgba(0, 240, 255, 0.12);
+      border-top: 3px solid var(--accent-green);
+      background: linear-gradient(180deg, rgba(0, 255, 136, 0.03) 0%, var(--bg-card) 40%);
     }
     .comp-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      margin-bottom: 12px;
     }
     .comp-badge {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
+      font-size: 0.76rem;
+      font-weight: 800;
       padding: 4px 10px;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .comp-badge.bad {
-      background: rgba(239, 68, 68, 0.14);
-      color: #f87171;
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
     .comp-badge.good {
-      background: rgba(0, 255, 136, 0.12);
+      background: rgba(0, 255, 136, 0.15);
       color: var(--accent-green);
       border: 1px solid rgba(0, 255, 136, 0.3);
     }
     .comp-tag {
-      font-size: 0.76rem;
-      font-family: var(--font-mono);
+      font-size: 0.78rem;
       color: var(--text-dim);
+      font-family: var(--font-mono);
     }
     .comp-title {
       font-size: 1.15rem;
-      font-weight: 800;
+      font-weight: 700;
       color: #fff;
-      line-height: 1.35;
+      margin-bottom: 18px;
     }
     .comp-list {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      margin: 0;
-      padding: 0;
     }
     .comp-list li {
       display: flex;
-      gap: 12px;
       align-items: flex-start;
+      gap: 12px;
       font-size: 0.88rem;
-      line-height: 1.55;
+      line-height: 1.5;
     }
     .comp-icon {
-      font-size: 1.05rem;
       flex-shrink: 0;
-      margin-top: 1px;
+      margin-top: 2px;
+      font-size: 1rem;
     }
     .comp-list strong {
+      color: #e2e8f0;
       display: block;
-      color: #fff;
-      font-size: 0.9rem;
       margin-bottom: 3px;
     }
     .comp-list p {
       color: var(--text-muted);
+      font-size: 0.84rem;
       margin: 0;
-      font-size: 0.85rem;
     }
+
+    /* Reality Banner */
     .reality-banner {
-      background: #0b121e;
-      border: 1px solid #1e293b;
-      border-left: 4px solid var(--accent-cyan);
-      border-radius: var(--radius-sm);
-      padding: 18px 22px;
-      margin-top: 24px;
+      background: rgba(13, 19, 31, 0.8);
+      border: 1px solid #1f2c42;
+      border-radius: var(--radius-md);
+      padding: 18px 24px;
       display: flex;
       align-items: center;
       gap: 16px;
-      font-size: 0.88rem;
-      line-height: 1.6;
-      color: #cbd5e1;
+      max-width: 880px;
+      margin: 0 auto;
     }
     .reality-icon {
       font-size: 1.6rem;
       flex-shrink: 0;
     }
+    .reality-text {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
     .reality-text strong {
-      color: var(--accent-cyan);
-      display: inline-block;
-      margin-right: 6px;
+      color: #fff;
+      display: block;
+      margin-bottom: 2px;
     }
     .reality-text em {
-      color: #fff;
+      color: var(--accent-cyan);
       font-style: normal;
       font-weight: 600;
     }
 
     /* ==================================================================== */
-    /* INTERACTIVE TERMINAL PREVIEW                                         */
+    /* TERMINAL INTERFACE SHOWCASE                                          */
     /* ==================================================================== */
     .terminal-section {
-      margin: 40px 0 70px;
-    }
-    .section-title {
-      text-align: center;
-      font-size: clamp(1.4rem, 3vw, 2rem);
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin-bottom: 10px;
-    }
-    .section-desc {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.96rem;
-      margin-bottom: 28px;
-      max-width: 620px;
-      margin-left: auto;
-      margin-right: auto;
+      margin-bottom: 80px;
     }
     .terminal-card {
-      background: #04060a;
-      border: 1px solid var(--border-color);
+      background: #05070c;
+      border: 1px solid #1a2333;
       border-radius: var(--radius-md);
       overflow: hidden;
-      box-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.8);
-      max-width: 880px;
-      margin: 0 auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      max-width: 900px;
+      margin: 0 auto 24px;
     }
     .terminal-bar {
-      background: #0c121d;
-      padding: 12px 18px;
+      background: #090e17;
+      padding: 10px 16px;
+      border-bottom: 1px solid #141c2b;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid #192435;
     }
     .terminal-dots {
       display: flex;
-      gap: 7px;
+      gap: 6px;
     }
     .dot {
-      width: 12px;
-      height: 12px;
+      width: 11px;
+      height: 11px;
       border-radius: 50%;
     }
     .dot-red { background: #ef4444; }
-    .dot-yellow { background: #eab308; }
-    .dot-green { background: #22c55e; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
     .terminal-title {
+      font-size: 0.78rem;
       font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: #94a3b8;
-      font-weight: 500;
+      color: var(--text-dim);
     }
     .terminal-body {
-      padding: 20px 22px;
+      padding: 22px;
       font-family: var(--font-mono);
-      font-size: 0.86rem;
-      color: #d1d7e0;
-      min-height: 280px;
-      line-height: 1.55;
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #d1d5db;
       overflow-x: auto;
+      max-height: 480px;
+      overflow-y: auto;
+      text-align: left;
     }
     .term-cyan { color: var(--accent-cyan); }
     .term-green { color: var(--accent-green); }
     .term-yellow { color: var(--accent-yellow); }
-    .term-dim { color: #64748b; }
-    .term-magenta { color: #ff79c6; }
-    .term-bold { font-weight: 700; }
+    .term-dim { color: #6b7280; }
+    .term-bold { font-weight: 700; color: #fff; }
 
-    /* Interactive Live Prompt Input */
     .cli-prompt-container {
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-top: 6px;
-    }
-    .cli-input {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #fff;
-      font-family: var(--font-mono);
-      font-size: 0.86rem;
-      width: 100%;
-      caret-color: var(--accent-green);
+      margin-top: 10px;
     }
 
     .demo-controls {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 18px;
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto;
     }
     .btn-demo {
-      background: #111926;
-      border: 1px solid #243447;
+      background: #111824;
+      border: 1px solid #1f2c42;
       color: #94a3b8;
       font-family: var(--font-mono);
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       padding: 7px 14px;
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all 0.2s ease;
     }
     .btn-demo:hover {
-      background: #1a273b;
+      background: #192436;
       color: var(--accent-cyan);
       border-color: var(--accent-cyan);
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
     }
 
     /* ==================================================================== */
-    /* FEATURE GRID                                                         */
+    /* ARCHITECTURE & FEATURES                                              */
     /* ==================================================================== */
     .feature-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 20px;
-      margin: 40px 0 70px;
+      margin-bottom: 80px;
     }
     .feature-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 26px;
-      transition: all 0.25s ease;
-      position: relative;
-      overflow: hidden;
+      padding: 24px;
+      transition: all 0.2s ease;
     }
     .feature-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(0, 240, 255, 0.4);
-      box-shadow: 0 12px 30px -10px rgba(0, 240, 255, 0.12);
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px -10px rgba(0, 240, 255, 0.1);
     }
     .feature-icon {
-      font-size: 2rem;
+      font-size: 1.8rem;
       margin-bottom: 14px;
-      display: inline-block;
     }
     .feature-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
-      margin-bottom: 10px;
       color: #fff;
+      margin-bottom: 8px;
     }
     .feature-desc {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
       line-height: 1.6;
     }
 
     /* ==================================================================== */
-    /* SLASH COMMANDS TABLE WITH SEARCH FILTER                              */
+    /* SLASH COMMANDS TABLE                                                 */
     /* ==================================================================== */
     .table-header-controls {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 16px;
+      margin-bottom: 20px;
     }
     .search-filter {
-      background: #0b111a;
+      background: #090e17;
       border: 1px solid var(--border-color);
       color: #fff;
-      font-family: var(--font-sans);
-      font-size: 0.85rem;
-      padding: 8px 14px;
+      padding: 9px 16px;
       border-radius: var(--radius-sm);
-      outline: none;
+      font-size: 0.86rem;
+      font-family: var(--font-sans);
       width: 100%;
-      max-width: 260px;
+      max-width: 300px;
       transition: border-color 0.2s ease;
     }
     .search-filter:focus {
+      outline: none;
       border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
     }
     .commands-table-wrapper {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       overflow-x: auto;
-      margin-bottom: 70px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 80px;
     }
     table {
       width: 100%;
@@ -760,43 +822,57 @@
       text-align: left;
       font-size: 0.88rem;
     }
-    th, td {
-      padding: 14px 20px;
-      border-bottom: 1px solid #16202e;
-    }
     th {
-      background: #0b1019;
-      color: var(--text-muted);
-      font-weight: 600;
+      background: #0a0f19;
+      padding: 14px 18px;
+      color: #fff;
+      font-weight: 700;
       font-size: 0.82rem;
-      letter-spacing: 0.5px;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border-color);
     }
-    td code {
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #121a28;
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+    code {
       font-family: var(--font-mono);
-      background: #05080e;
-      border: 1px solid #1b2636;
-      padding: 4px 8px;
-      border-radius: 4px;
       color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
       font-size: 0.82rem;
     }
     .cat-badge {
+      display: inline-block;
       font-size: 0.72rem;
       font-weight: 700;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 4px;
-      background: #162233;
-      color: #93c5fd;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: var(--font-mono);
     }
 
-    /* Footer */
+    /* ==================================================================== */
+    /* FOOTER                                                               */
+    /* ==================================================================== */
     footer {
-      border-top: 1px solid var(--border-color);
-      padding: 36px 0 54px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 40px 0;
       text-align: center;
-      color: var(--text-muted);
-      font-size: 0.88rem;
+      font-size: 0.84rem;
+      color: var(--text-dim);
       background: #05070c;
       margin-top: auto;
     }
@@ -843,6 +919,9 @@
       .search-filter {
         max-width: 100%;
       }
+      .lang-btn span:nth-child(2) {
+        display: none; /* Icon only on extra small mobile */
+      }
     }
   </style>
 </head>
@@ -860,11 +939,32 @@
         <span class="logo-badge">AGENT</span>
       </a>
       <div class="nav-links">
-        <a href="#install">Install</a>
-        <a href="#why-lean">Why Lean?</a>
-        <a href="#showcase">Terminal UI</a>
-        <a href="#features">Architecture</a>
-        <a href="#commands">Commands</a>
+        <a href="#install" data-i18n="nav_install">Install</a>
+        <a href="#why-lean" data-i18n="nav_why_lean">Why Lean?</a>
+        <a href="#showcase" data-i18n="nav_terminal">Terminal UI</a>
+        <a href="#features" data-i18n="nav_features">Architecture</a>
+        <a href="#commands" data-i18n="nav_commands">Commands</a>
+
+        <!-- Language Switcher Dropdown -->
+        <div class="lang-dropdown-wrapper" id="langDropdownWrap">
+          <button class="lang-btn" id="langDropdownBtn" onclick="toggleLangDropdown(event)" aria-label="Select Language">
+            <span>🌐</span>
+            <span id="currentLangLabel">English</span>
+            <svg class="chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="lang-menu" id="langMenu">
+            <div class="lang-option active" data-lang="en" onclick="setLanguage('en')">
+              <span>🇺🇸 English (EN)</span>
+            </div>
+            <div class="lang-option" data-lang="id" onclick="setLanguage('id')">
+              <span>🇮🇩 Bahasa Indonesia (ID)</span>
+            </div>
+            <div class="lang-option" data-lang="cn" onclick="setLanguage('cn')">
+              <span>🇨🇳 简体中文 (CN)</span>
+            </div>
+          </div>
+        </div>
+
         <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" class="btn-github">
           <span>🤗 Space</span>
         </a>
@@ -883,96 +983,90 @@
     <section class="hero">
       <div class="badge-pill">
         <span class="pulse-dot"></span>
-        <span>EDGE-COMPUTING AGENT HARNESS (v2.0)</span>
+        <span data-i18n="hero_badge">EDGE-COMPUTING AGENT HARNESS (v2.0)</span>
       </div>
-      <h1 class="hero-title">
+      <h1 class="hero-title" data-i18n-html="hero_title">
         The Autonomous AI Agent Harness for <span>Local Models</span>
       </h1>
-      <p class="hero-subtitle">
+      <p class="hero-subtitle" data-i18n="hero_subtitle">
         Run full agentic loops, dynamic MCP servers, headless web search, and extensible skills — 100% locally on standard commodity CPUs without GPU dependencies.
       </p>
 
       <!-- Hardware Spec Badges -->
       <div class="spec-pills">
-        <span class="spec-pill">💻 <strong>Standard Commodity CPU</strong> (Pure CPU Execution)</span>
-        <span class="spec-pill">🧠 <strong>Multi-Model Architecture</strong> (3B, 7B &amp; Custom Models)</span>
-        <span class="spec-pill">⚡ <strong>Adaptive Memory Footprint</strong> (Low RAM Edge Inference)</span>
-        <span class="spec-pill">🛡️ <strong>Zero Data Leak</strong> (Air-Gapped &amp; Sovereign)</span>
+        <span class="spec-pill" data-i18n-html="pill_cpu">💻 <strong>Standard Commodity CPU</strong> (Pure CPU Execution)</span>
+        <span class="spec-pill" data-i18n-html="pill_model">🧠 <strong>Multi-Model Architecture</strong> (3B, 7B &amp; Custom Models)</span>
+        <span class="spec-pill" data-i18n-html="pill_ram">⚡ <strong>Adaptive Memory Footprint</strong> (Low RAM Edge Inference)</span>
+        <span class="spec-pill" data-i18n-html="pill_privacy">🛡️ <strong>Zero Data Leak</strong> (Air-Gapped &amp; Sovereign)</span>
       </div>
 
       <!-- ========================================================== -->
-      <!-- INSTALLATION WIDGET (Image Match & One-Click Copy)          -->
+      <!-- INSTALLATION WIDGET                                        -->
       <!-- ========================================================== -->
       <section id="install" class="install-widget-card">
         <div class="widget-header">
           <div class="widget-title">
             <span class="pulse-dot"></span>
-            <span>Fast Installation &amp; Launch</span>
+            <span data-i18n="install_title">Fast Installation &amp; Launch</span>
           </div>
           <div class="widget-tab-toggle">
-            <button class="view-btn active" onclick="switchView('list')">List View</button>
-            <button class="view-btn" onclick="switchView('tabs')">Tab View</button>
+            <button class="view-btn active" onclick="switchView('list')" data-i18n="view_list">List View</button>
+            <button class="view-btn" onclick="switchView('tabs')" data-i18n="view_tabs">Tab View</button>
           </div>
         </div>
 
-        <!-- 1. List View (As shown in user's reference image) -->
+        <!-- 1. List View -->
         <div id="listView" class="install-list">
-          <!-- Windows PowerShell One-Liner -->
           <div class="install-row">
             <div class="cmd-name">powershell</div>
             <div class="cmd-code">irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex')">
+            <button class="btn-copy" onclick="copySnippet(this, 'irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
 
-          <!-- Linux / macOS curl One-Liner -->
           <div class="install-row">
             <div class="cmd-name">curl</div>
             <div class="cmd-code">curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash')">
+            <button class="btn-copy" onclick="copySnippet(this, 'curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh | bash')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
 
-          <!-- Git Clone & Run -->
           <div class="install-row">
             <div class="cmd-name">git</div>
             <div class="cmd-code">git clone https://github.com/lensetek-int/local-agent-harness.git &amp;&amp; cd local-agent-harness/cli-agent &amp;&amp; run_agent.bat</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat')">
+            <button class="btn-copy" onclick="copySnippet(this, 'git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
 
-          <!-- Python Pip -->
           <div class="install-row">
             <div class="cmd-name">pip</div>
             <div class="cmd-code">pip install -r cli-agent/requirements.txt &amp;&amp; py cli-agent/main.py</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'pip install -r cli-agent/requirements.txt && py cli-agent/main.py')">
+            <button class="btn-copy" onclick="copySnippet(this, 'pip install -r cli-agent/requirements.txt && py cli-agent/main.py')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
 
-          <!-- NPX CLI Wrapper -->
           <div class="install-row">
             <div class="cmd-name">npx</div>
             <div class="cmd-code">npx @lensetek/agent</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'npx @lensetek/agent')">
+            <button class="btn-copy" onclick="copySnippet(this, 'npx @lensetek/agent')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
 
-          <!-- Homebrew / Mac -->
           <div class="install-row">
             <div class="cmd-name">brew</div>
             <div class="cmd-code">brew install lensetek/tap/agent-harness</div>
-            <button class="btn-copy" onclick="copySnippet(this, 'brew install lensetek/tap/agent-harness')">
+            <button class="btn-copy" onclick="copySnippet(this, 'brew install lensetek/tap/agent-harness')" data-i18n="btn_copy">
               Copy
             </button>
           </div>
         </div>
 
-        <!-- 2. Tabbed View (Compact Mode) -->
+        <!-- 2. Tabbed View -->
         <div id="tabbedView" class="tabbed-container">
           <div class="tab-bar">
             <div class="tab-item active" onclick="selectTab(0)">powershell</div>
@@ -983,63 +1077,62 @@
           </div>
           <div class="tab-content">
             <div id="tabCode" class="cmd-code">irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex</div>
-            <button id="tabCopyBtn" class="btn-copy" onclick="copySnippet(this, currentTabCommand)">Copy</button>
+            <button id="tabCopyBtn" class="btn-copy" onclick="copySnippet(this, currentTabCommand)" data-i18n="btn_copy">Copy</button>
           </div>
         </div>
       </section>
     </section>
 
     <!-- ========================================================== -->
-    <!-- WHY LEAN AGENT: SLM REALITY & EDGE ADVANTAGE               -->
+    <!-- WHY LEAN AGENT                                             -->
     <!-- ========================================================== -->
     <section id="why-lean" class="why-lean-section">
       <div style="text-align: center;">
         <div class="badge-pill" style="margin-bottom: 14px;">
           <span class="pulse-dot"></span>
-          <span>THE ARCHITECTURAL DIFFERENCE</span>
+          <span data-i18n="why_badge">THE ARCHITECTURAL DIFFERENCE</span>
         </div>
       </div>
-      <h2 class="section-title">Why Conventional Harnesses Fail on SLMs — And Why Lean Works</h2>
-      <p class="section-desc">
+      <h2 class="section-title" data-i18n="why_title">Why Conventional Harnesses Fail on SLMs — And Why Lean Works</h2>
+      <p class="section-desc" data-i18n="why_desc">
         Most agent frameworks were built for massive 100B+ cloud API models with 128k context windows. On small edge models (SLMs), their heavy token overhead causes instant failure. Here is the realistic engineering behind our lean edge-first approach.
       </p>
 
-      <!-- Side-by-Side Comparison Grid -->
       <div class="comparison-grid">
         <!-- Card 1: Conventional Harnesses -->
         <div class="comparison-card conventional">
           <div class="comp-header">
-            <span class="comp-badge bad">Conventional Frameworks</span>
-            <span class="comp-tag">Cloud-First / API-Centric</span>
+            <span class="comp-badge bad" data-i18n="conv_badge">Conventional Frameworks</span>
+            <span class="comp-tag" data-i18n="conv_tag">Cloud-First / API-Centric</span>
           </div>
-          <h3 class="comp-title">LangChain, CrewAI, AutoGPT, OpenHands</h3>
+          <h3 class="comp-title" data-i18n="conv_title">LangChain, CrewAI, AutoGPT, OpenHands</h3>
           <ul class="comp-list">
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong>Massive Initial Token Bloat (4,000 – 8,000+ tokens)</strong>
-                <p>Injects verbose JSON schemas, dozens of tool definitions, and dense few-shot examples into the system prompt before the user even types a single word.</p>
+                <strong data-i18n="conv_1_title">Massive Initial Token Bloat (4,000 – 8,000+ tokens)</strong>
+                <p data-i18n="conv_1_desc">Injects verbose JSON schemas, dozens of tool definitions, and dense few-shot examples into the system prompt before the user even types a single word.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong>Context Collapse &amp; Hallucination on SLMs (3B Models)</strong>
-                <p>Small language models suffer from attention dilution and context saturation. They hallucinate non-existent tool arguments, emit malformed JSON, or freeze in infinite loops.</p>
+                <strong data-i18n="conv_2_title">Context Collapse &amp; Hallucination on SLMs (3B Models)</strong>
+                <p data-i18n="conv_2_desc">Small language models suffer from attention dilution and context saturation. They hallucinate non-existent tool arguments, emit malformed JSON, or freeze in infinite loops.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong>Heavy Infrastructure &amp; Tool Dependencies</strong>
-                <p>Often requires Docker daemon, Redis message queues, external vector databases, and massive Node.js/Python dependency trees just to boot.</p>
+                <strong data-i18n="conv_3_title">Heavy Infrastructure &amp; Tool Dependencies</strong>
+                <p data-i18n="conv_3_desc">Often requires Docker daemon, Redis message queues, external vector databases, and massive Node.js/Python dependency trees just to boot.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong>Cloud Cost &amp; Privacy Leakage</strong>
-                <p>Requires ongoing paid cloud API tokens (OpenAI / Anthropic). Private code, proprietary data, and prompts are continuously streamed to third-party cloud servers.</p>
+                <strong data-i18n="conv_4_title">Cloud Cost &amp; Privacy Leakage</strong>
+                <p data-i18n="conv_4_desc">Requires ongoing paid cloud API tokens (OpenAI / Anthropic). Private code, proprietary data, and prompts are continuously streamed to third-party cloud servers.</p>
               </div>
             </li>
           </ul>
@@ -1048,44 +1141,44 @@
         <!-- Card 2: Lensetek Lean Agent -->
         <div class="comparison-card lean">
           <div class="comp-header">
-            <span class="comp-badge good">Lensetek Lean Harness</span>
-            <span class="comp-tag">Edge-First / Autonomous</span>
+            <span class="comp-badge good" data-i18n="lean_badge">Lensetek Lean Harness</span>
+            <span class="comp-tag" data-i18n="lean_tag">Edge-First / Autonomous</span>
           </div>
-          <h3 class="comp-title">Purpose-Built for Local SLMs &amp; Local LLMs</h3>
+          <h3 class="comp-title" data-i18n="lean_title">Purpose-Built for Local SLMs &amp; Local LLMs</h3>
           <ul class="comp-list">
             <li>
               <div class="comp-icon green">✅</div>
               <div>
-                <strong>Ultra-Lean Token Budgeting (&lt; 350 tokens initial prompt)</strong>
-                <p>Minimalist ReAct instruction set. Leaves &gt;90% of the context window wide open for actual user prompts, file contents, and step-by-step reasoning.</p>
+                <strong data-i18n-html="lean_1_title">Ultra-Lean Token Budgeting (&lt; 350 tokens initial prompt)</strong>
+                <p data-i18n-html="lean_1_desc">Minimalist ReAct instruction set. Leaves &gt;90% of the context window wide open for actual user prompts, file contents, and step-by-step reasoning.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon green">✅</div>
               <div>
-                <strong>Runs Edge SLMs (3B) with Scalability to Local LLMs (7B / 14B)</strong>
-                <p>Flawlessly drives 3B edge models on modest hardware, yet instantly scales to 7B or custom local models via <code>/model switch</code> and <code>/model add</code>.</p>
+                <strong data-i18n-html="lean_2_title">Runs Edge SLMs (3B) with Scalability to Local LLMs (7B / 14B)</strong>
+                <p data-i18n-html="lean_2_desc">Flawlessly drives 3B edge models on modest hardware, yet instantly scales to 7B or custom local models via <code>/model switch</code> and <code>/model add</code>.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon green">✅</div>
               <div>
-                <strong>Zero GPU Requirement &amp; Low RAM (&lt; 2.5 GB)</strong>
-                <p>Optimized for commodity CPUs (everyday laptops, mini PCs, SBCs). Pure GGUF execution with 8-bit KV cache compression without requiring discrete GPUs.</p>
+                <strong data-i18n-html="lean_3_title">Zero GPU Requirement &amp; Low RAM (&lt; 2.5 GB)</strong>
+                <p data-i18n="lean_3_desc">Optimized for commodity CPUs (everyday laptops, mini PCs, SBCs). Pure GGUF execution with 8-bit KV cache compression without requiring discrete GPUs.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon green">✅</div>
               <div>
-                <strong>Built-in Anti-Hallucination &amp; Loop Circuit-Breakers</strong>
-                <p>Small models can spiral when a tool fails. Our harness includes runtime interceptors and retry caps that detect failure patterns and rescue the agent.</p>
+                <strong data-i18n="lean_4_title">Built-in Anti-Hallucination &amp; Loop Circuit-Breakers</strong>
+                <p data-i18n="lean_4_desc">Small models can spiral when a tool fails. Our harness includes runtime interceptors and retry caps that detect failure patterns and rescue the agent.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon green">✅</div>
               <div>
-                <strong>100% Air-Gapped &amp; True Data Sovereignty</strong>
-                <p>Runs entirely offline with zero cloud telemetry. Your source code, sensitive documents, and prompt thoughts never leave your local machine.</p>
+                <strong data-i18n="lean_5_title">100% Air-Gapped &amp; True Data Sovereignty</strong>
+                <p data-i18n="lean_5_desc">Runs entirely offline with zero cloud telemetry. Your source code, sensitive documents, and prompt thoughts never leave your local machine.</p>
               </div>
             </li>
           </ul>
@@ -1096,8 +1189,8 @@
       <div class="reality-banner">
         <div class="reality-icon">🎯</div>
         <div class="reality-text">
-          <strong>Realistic Edge Positioning:</strong>
-          <span>We don't claim to replace trillion-parameter cloud clusters with 200 microservices. Our mission is distinct: delivering a <em>truly autonomous, lightweight AI agent harness</em> that actually executes reliably on everyday edge devices and local small models without breaking your RAM, budget, or privacy.</span>
+          <strong data-i18n="reality_title">Realistic Edge Positioning:</strong>
+          <span data-i18n-html="reality_desc">We don't claim to replace trillion-parameter cloud clusters with 200 microservices. Our mission is distinct: delivering a <em>truly autonomous, lightweight AI agent harness</em> that actually executes reliably on everyday edge devices and local small models without breaking your RAM, budget, or privacy.</span>
         </div>
       </div>
     </section>
@@ -1106,8 +1199,8 @@
     <!-- TERMINAL INTERFACE SHOWCASE                                -->
     <!-- ========================================================== -->
     <section id="showcase" class="terminal-section">
-      <h2 class="section-title">Terminal Interface Showcase</h2>
-      <p class="section-desc">A visual demonstration of the developer experience, command telemetry, and agent workflow in your terminal.</p>
+      <h2 class="section-title" data-i18n="terminal_title">Terminal Interface Showcase</h2>
+      <p class="section-desc" data-i18n="terminal_desc">A visual demonstration of the developer experience, command telemetry, and agent workflow in your terminal.</p>
       
       <div class="terminal-card">
         <div class="terminal-bar">
@@ -1121,22 +1214,23 @@
         </div>
         <div id="terminalBody" class="terminal-body">
 <span class="term-cyan term-bold">====================================================================</span><br>
-<span class="term-cyan term-bold">        ⚡ LENSETEK LEAN AGENT HARNESS                             </span><br>
+<span class="term-cyan term-bold">        ⚡ LENSETEK LEAN AGENT HARNESS (v0.2.0)                    </span><br>
 <span class="term-cyan term-bold">====================================================================</span><br>
  <span class="term-bold">Workspace:</span> C:\Users\ACER\Documents\GitHub\local-agent-harness\cli-agent<br>
- <span class="term-bold">Model:</span>     lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(port: 8081, ctx: 8192) [/model to switch]</span><br>
- <span class="term-bold">Language:</span>  [EN] English <span class="term-dim">(/language en|id|cn)</span><br>
+ <span class="term-bold">Model:</span>     lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(port: 8081, ctx: 8192)</span><br>
+ <span class="term-bold">Effort:</span>    [MEDIUM] <span class="term-dim">(/effort off|low|medium|high)</span><br>
+ <span class="term-bold">Language:</span>  <span id="termBannerLang">[EN] English (/language en|id|cn)</span><br>
  <span class="term-bold">Safety:</span>    [STRICT] <span class="term-dim">(/strict, /auto-approve, /yolo)</span><br>
  <span class="term-bold">Web Search:</span><span class="term-green"> Headless Active</span> <span class="term-dim">(web_search tool &amp; /search &lt;q&gt;)</span><br>
- <span class="term-bold">MCP:</span>       fetch<br>
+ <span class="term-bold">MCP:</span>       fetch, playwright-headless<br>
  <span class="term-bold">Skills:</span>    Extensible Skills Engine <span class="term-dim">(/skills, /skill create)</span><br>
-<span class="term-dim">Type '/help' for commands. Press Ctrl+C while thinking to cancel task.</span><br>
+<span id="termBannerTip" class="term-dim">Type '/help' for commands. Press Ctrl+C while thinking to cancel task.</span><br>
 <span class="term-cyan">--------------------------------------------------------------------</span><br><br>
-<span class="term-dim">~ [cli-agent] 0.0%/8k tok [STRICT|EN] (lensetek-edge-loop-3b-q4_k_m.gguf)</span><br>
+<span class="term-dim">~ [cli-agent] 0.0%/8k tok [STRICT|EN|EFFORT:MEDIUM] (lensetek-edge-loop-3b-q4_k_m.gguf)</span><br>
 <div id="termHistory"></div>
 <div class="cli-prompt-container">
   <span class="term-green term-bold">&gt;&nbsp;</span>
-  <span id="termActivePrompt" class="term-dim">Click any button below to preview command telemetry...</span>
+  <span id="termActivePrompt" class="term-dim" data-i18n="terminal_prompt_placeholder">Click any button below to preview command telemetry...</span>
   <span style="border-right: 2px solid #00ff88; animation: pulse 1s infinite;">&nbsp;</span>
 </div>
         </div>
@@ -1144,12 +1238,16 @@
 
       <!-- Quick Interactive Demo Buttons -->
       <div class="demo-controls">
-        <button class="btn-demo" onclick="triggerCliCommand('/help')">Preview /help</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/model')">Preview /model</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/skills')">Preview /skills</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/search local AI agent')">Preview /search</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/language id')">Preview /language id</button>
-        <button class="btn-demo" onclick="triggerCliCommand('/clear')">Reset View</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/help')" data-i18n="btn_preview_help">Preview /help</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/model search lensetek')" data-i18n="btn_preview_model_search">Preview /model search</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/model')" data-i18n="btn_preview_model">Preview /model</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/effort')" data-i18n="btn_preview_effort">Preview /effort</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/session')" data-i18n="btn_preview_session">Preview /session</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/update')" data-i18n="btn_preview_update">Preview /update</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/skills')" data-i18n="btn_preview_skills">Preview /skills</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/search local AI agent')" data-i18n="btn_preview_search">Preview /search</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/language')" data-i18n="btn_preview_lang">Preview /language</button>
+        <button class="btn-demo" onclick="triggerCliCommand('/clear')" data-i18n="btn_reset_view">Reset View</button>
       </div>
     </section>
 
@@ -1157,44 +1255,44 @@
     <!-- ARCHITECTURE & FEATURES                                    -->
     <!-- ========================================================== -->
     <section id="features">
-      <h2 class="section-title">Engineered Specifically for Edge Computing</h2>
-      <p class="section-desc">Zero cloud lock-in, zero API token costs, and 100% privacy on local commodity hardware.</p>
+      <h2 class="section-title" data-i18n="arch_title">Engineered Specifically for Edge Computing</h2>
+      <p class="section-desc" data-i18n="arch_desc">Zero cloud lock-in, zero API token costs, and 100% privacy on local commodity hardware.</p>
 
       <div class="feature-grid">
         <div class="feature-card">
           <div class="feature-icon">🧠</div>
-          <h3 class="feature-title">Multi-Model Local SLM / LLM Engine</h3>
-          <p class="feature-desc">Flexible support for local models from 3B edge SLMs to 7B reasoning models. Switch or register new models dynamically via <code>/model</code>.</p>
+          <h3 class="feature-title" data-i18n="feat_1_title">Multi-Model Local SLM / LLM Engine</h3>
+          <p class="feature-desc" data-i18n-html="feat_1_desc">Flexible support for local models from 3B edge SLMs to 7B reasoning models. Switch, search &amp; download via HF Hub, or register new models dynamically via <code>/model</code>.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon">🔌</div>
-          <h3 class="feature-title">Universal MCP Orchestrator</h3>
-          <p class="feature-desc">Connect and install Model Context Protocol servers dynamically via <code>/mcp install</code>. Ships pre-configured with <code>fetch</code> and <code>playwright-headless</code>.</p>
+          <h3 class="feature-title" data-i18n="feat_2_title">Universal MCP Orchestrator</h3>
+          <p class="feature-desc" data-i18n-html="feat_2_desc">Connect and install Model Context Protocol servers dynamically via <code>/mcp install</code>. Ships pre-configured with <code>fetch</code> and <code>playwright-headless</code>.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon">🌐</div>
-          <h3 class="feature-title">Headless Web Search</h3>
-          <p class="feature-desc">Native multi-engine search tool integrated into the agent reasoning loop. Headlessly crawls Bing and Google without external API keys.</p>
+          <h3 class="feature-title" data-i18n="feat_3_title">Headless Web Search</h3>
+          <p class="feature-desc" data-i18n="feat_3_desc">Native multi-engine search tool integrated into the agent reasoning loop. Headlessly crawls Bing and Google without external API keys.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon">⚡</div>
-          <h3 class="feature-title">Extensible Skills Architecture</h3>
-          <p class="feature-desc">Modular skills system. Create reusable domain workflows with <code>/skill create</code>, run bundled local skills like <code>/code-review</code>, or link external skill folders.</p>
+          <h3 class="feature-title" data-i18n="feat_4_title">Extensible Skills Architecture</h3>
+          <p class="feature-desc" data-i18n-html="feat_4_desc">Modular skills system. Create reusable domain workflows with <code>/skill create</code>, run bundled local skills like <code>/code-review</code>, or link external skill folders.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon">🔄</div>
-          <h3 class="feature-title">Autonomous /goal &amp; /loop</h3>
-          <p class="feature-desc">Multi-step autonomous execution (up to 20 steps) with pinned goals that survive context trimming, plus recurring task looping and OS scheduler.</p>
+          <h3 class="feature-title" data-i18n="feat_5_title">Autonomous /goal &amp; /loop</h3>
+          <p class="feature-desc" data-i18n="feat_5_desc">Multi-step autonomous execution (up to 20 steps) with pinned goals that survive context trimming, plus recurring task looping and OS scheduler.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon">🛡️</div>
-          <h3 class="feature-title">3-Tier Safety System</h3>
-          <p class="feature-desc">Switch seamlessly between <code>/strict</code> (confirmation on every tool action), <code>/auto-approve</code> (auto-approves in workspace), and <code>/yolo</code> for scripts.</p>
+          <h3 class="feature-title" data-i18n="feat_6_title">Reasoning Effort &amp; 3-Tier Safety</h3>
+          <p class="feature-desc" data-i18n-html="feat_6_desc">Tune thinking depth via <code>/effort &lt;off|low|medium|high&gt;</code> and toggle safety via <code>/strict</code>, <code>/auto-approve</code>, and <code>/yolo</code>.</p>
         </div>
       </div>
     </section>
@@ -1205,81 +1303,111 @@
     <section id="commands">
       <div class="table-header-controls">
         <div>
-          <h2 class="section-title" style="text-align: left; margin-bottom: 4px;">Slash Commands Reference</h2>
-          <p class="section-desc" style="text-align: left; margin-bottom: 0;">Type <code>/</code> and press <kbd>Tab</kbd> in the CLI to see instant completions.</p>
+          <h2 class="section-title" style="text-align: left; margin-bottom: 4px;" data-i18n="cmd_table_title">Slash Commands Reference</h2>
+          <p class="section-desc" style="text-align: left; margin-bottom: 0;" data-i18n-html="cmd_table_desc">Type <code>/</code> and press <kbd>Tab</kbd> in the CLI to see instant completions.</p>
         </div>
-        <input type="text" id="cmdSearchInput" class="search-filter" placeholder="Filter commands (e.g. mcp, search)..." oninput="filterCommands()">
+        <input type="text" id="cmdSearchInput" class="search-filter" placeholder="Filter commands (e.g. model, effort, search)..." oninput="filterCommands()" data-i18n-placeholder="cmd_search_placeholder">
       </div>
 
       <div class="commands-table-wrapper">
         <table id="commandsTable">
           <thead>
             <tr>
-              <th>Command</th>
-              <th>Category</th>
-              <th>Description</th>
+              <th data-i18n="th_command">Command</th>
+              <th data-i18n="th_category">Category</th>
+              <th data-i18n="th_description">Description</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>/help</code></td>
               <td><span class="cat-badge">SYSTEM</span></td>
-              <td>Displays comprehensive guide of all slash commands and capabilities.</td>
+              <td data-i18n="desc_help">Displays comprehensive guide of all slash commands and capabilities.</td>
             </tr>
             <tr>
               <td><code>/language &lt;en|id|cn&gt;</code></td>
               <td><span class="cat-badge">CONFIG</span></td>
-              <td>Switch agent response &amp; prompt language (English, Indonesian, Chinese). Saved persistently.</td>
+              <td data-i18n="desc_language">Switch agent response &amp; prompt language (English, Indonesian, Chinese). Saved persistently.</td>
             </tr>
             <tr>
-              <td><code>/model [download|add]</code></td>
+              <td><code>/effort &lt;off|low|med|high&gt;</code></td>
               <td><span class="cat-badge">MODEL</span></td>
-              <td>Manage local models. Auto-downloads flagship 3B on first run from <code>list.json</code>. Browse downloads via <code>/model download</code> or add paths with <code>/model add &lt;path&gt;</code>.</td>
+              <td data-i18n="desc_effort">Set thinking effort &amp; reasoning depth (off, low, medium, high). Controls internal thought tokens.</td>
+            </tr>
+            <tr>
+              <td><code>/update</code></td>
+              <td><span class="cat-badge">SYSTEM</span></td>
+              <td data-i18n="desc_update">Check upstream updates, view What's New notes, and auto-restart app safely.</td>
+            </tr>
+            <tr>
+              <td><code>/model search &lt;query&gt;</code></td>
+              <td><span class="cat-badge">MODEL</span></td>
+              <td data-i18n-html="desc_model_search">Search GGUF models on Hugging Face (like llama.cpp), inspect quantizations, and download directly.</td>
+            </tr>
+            <tr>
+              <td><code>/model</code></td>
+              <td><span class="cat-badge">MODEL</span></td>
+              <td data-i18n="desc_model">Browse and switch active local models (3B, 7B, custom).</td>
+            </tr>
+            <tr>
+              <td><code>/model download [id]</code></td>
+              <td><span class="cat-badge">MODEL</span></td>
+              <td data-i18n-html="desc_model_download">Download models from catalog (list.json) with auto-switch.</td>
+            </tr>
+            <tr>
+              <td><code>/model add &lt;path&gt;</code></td>
+              <td><span class="cat-badge">MODEL</span></td>
+              <td data-i18n="desc_model_add">Register custom local *.gguf model path or directory.</td>
+            </tr>
+            <tr>
+              <td><code>/session [list|new|switch|del]</code></td>
+              <td><span class="cat-badge">SESSION</span></td>
+              <td data-i18n="desc_session">Manage conversation sessions, view chat history directly, and persist state.</td>
             </tr>
             <tr>
               <td><code>/search &lt;query&gt;</code></td>
               <td><span class="cat-badge">WEB</span></td>
-              <td>Perform an instant headless web search directly from the prompt.</td>
+              <td data-i18n="desc_search">Perform an instant headless web search directly from the prompt.</td>
             </tr>
             <tr>
               <td><code>/skills [filter]</code></td>
               <td><span class="cat-badge">SKILLS</span></td>
-              <td>Browse and filter available local and custom domain skills.</td>
+              <td data-i18n="desc_skills">Browse and filter available local and custom domain skills.</td>
             </tr>
             <tr>
               <td><code>/skill create &lt;name&gt;</code></td>
               <td><span class="cat-badge">SKILLS</span></td>
-              <td>Create and save a new custom domain skill in <code>cli-agent/skills/</code>.</td>
+              <td data-i18n-html="desc_skill_create">Create and save a new custom domain skill in <code>cli-agent/skills/</code>.</td>
             </tr>
             <tr>
               <td><code>/&lt;skill-name&gt; [task]</code></td>
               <td><span class="cat-badge">SKILLS</span></td>
-              <td>Execute a specific skill guide directly with anti-hallucination protection.</td>
+              <td data-i18n="desc_skill_run">Execute a specific skill guide directly with anti-hallucination protection.</td>
             </tr>
             <tr>
               <td><code>/mcp [install|test|remove]</code></td>
               <td><span class="cat-badge">MCP</span></td>
-              <td>Manage and install Stdio MCP servers with runtime credential injection.</td>
+              <td data-i18n="desc_mcp">Manage and install Stdio MCP servers with runtime credential injection.</td>
             </tr>
             <tr>
               <td><code>/goal &lt;objective&gt;</code></td>
               <td><span class="cat-badge">AGENTIC</span></td>
-              <td>Launches multi-step goal solver (up to 20 steps) with context resilience.</td>
+              <td data-i18n="desc_goal">Launches multi-step goal solver (up to 20 steps) with context resilience.</td>
             </tr>
             <tr>
               <td><code>/loop &lt;3x|5m&gt; &lt;task&gt;</code></td>
               <td><span class="cat-badge">AGENTIC</span></td>
-              <td>Repeat a task with automatic context reset to avoid token degradation.</td>
+              <td data-i18n="desc_loop">Repeat a task with automatic context reset to avoid token degradation.</td>
             </tr>
             <tr>
               <td><code>/schedule &lt;add|list&gt;</code></td>
               <td><span class="cat-badge">SCHEDULER</span></td>
-              <td>Schedule tasks via in-app timer daemon or OS Task Scheduler (Windows/Linux/macOS).</td>
+              <td data-i18n="desc_schedule">Schedule tasks via in-app timer daemon or OS Task Scheduler (Windows/Linux/macOS).</td>
             </tr>
             <tr>
               <td><code>/strict | /auto-approve | /yolo</code></td>
               <td><span class="cat-badge">SAFETY</span></td>
-              <td>Toggle workspace execution confirmation level on the fly.</td>
+              <td data-i18n="desc_safety">Toggle workspace execution confirmation level on the fly.</td>
             </tr>
           </tbody>
         </table>
@@ -1299,17 +1427,450 @@
       </div>
       <p>© 2026 <a href="https://lensetek.com" target="_blank" rel="noopener noreferrer" style="color: #fff; font-weight: 700; text-decoration: none;">Lensetek AI</a>. Released under the MIT License.</p>
       <p style="margin-top: 8px;">
-        Designed for air-gapped edge computing and local-first AI workflows. 
-        <a href="https://lensetek.com" target="_blank" rel="noopener noreferrer">Official Website (lensetek.com)</a> • 
-        <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" rel="noopener noreferrer">Hugging Face Space</a> • 
-        <a href="https://github.com/lensetek-int/local-agent-harness" target="_blank" rel="noopener noreferrer">GitHub Repository</a> • 
-        <a href="https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF" target="_blank" rel="noopener noreferrer">Hugging Face Model</a>
+        <span data-i18n="footer_text">Designed for air-gapped edge computing and local-first AI workflows.</span> 
+        <a href="https://lensetek.com" target="_blank" rel="noopener noreferrer" data-i18n="footer_official">Official Website (lensetek.com)</a> • 
+        <a href="https://huggingface.co/spaces/lensetek/lensetek-edge-ai-agent" target="_blank" rel="noopener noreferrer" data-i18n="footer_space">Hugging Face Space</a> • 
+        <a href="https://github.com/lensetek-int/local-agent-harness" target="_blank" rel="noopener noreferrer" data-i18n="footer_github">GitHub Repository</a> • 
+        <a href="https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF" target="_blank" rel="noopener noreferrer" data-i18n="footer_model">Hugging Face Model</a>
       </p>
     </div>
   </footer>
 
-  <!-- Scripts: Interactive UI & Terminal Simulation -->
+  <!-- Scripts: Interactive UI, i18n & Terminal Simulation -->
   <script>
+    // ====================================================================
+    // INTERNATIONALIZATION (i18n) DICTIONARY: English, Indonesian, Chinese
+    // ====================================================================
+    const i18n = {
+      en: {
+        nav_install: "Install",
+        nav_why_lean: "Why Lean?",
+        nav_terminal: "Terminal UI",
+        nav_features: "Architecture",
+        nav_commands: "Commands",
+        hero_badge: "EDGE-COMPUTING AGENT HARNESS (v2.0)",
+        hero_title: "The Autonomous AI Agent Harness for <span>Local Models</span>",
+        hero_subtitle: "Run full agentic loops, dynamic MCP servers, headless web search, and extensible skills — 100% locally on standard commodity CPUs without GPU dependencies.",
+        pill_cpu: "💻 <strong>Standard Commodity CPU</strong> (Pure CPU Execution)",
+        pill_model: "🧠 <strong>Multi-Model Architecture</strong> (3B, 7B &amp; Custom Models)",
+        pill_ram: "⚡ <strong>Adaptive Memory Footprint</strong> (Low RAM Edge Inference)",
+        pill_privacy: "🛡️ <strong>Zero Data Leak</strong> (Air-Gapped &amp; Sovereign)",
+        install_title: "Fast Installation &amp; Launch",
+        view_list: "List View",
+        view_tabs: "Tab View",
+        btn_copy: "Copy",
+        btn_copied: "✓ Copied",
+        why_badge: "THE ARCHITECTURAL DIFFERENCE",
+        why_title: "Why Conventional Harnesses Fail on SLMs — And Why Lean Works",
+        why_desc: "Most agent frameworks were built for massive 100B+ cloud API models with 128k context windows. On small edge models (SLMs), their heavy token overhead causes instant failure. Here is the realistic engineering behind our lean edge-first approach.",
+        conv_badge: "Conventional Frameworks",
+        conv_tag: "Cloud-First / API-Centric",
+        conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
+        conv_1_title: "Massive Initial Token Bloat (4,000 – 8,000+ tokens)",
+        conv_1_desc: "Injects verbose JSON schemas, dozens of tool definitions, and dense few-shot examples into the system prompt before the user even types a single word.",
+        conv_2_title: "Context Collapse &amp; Hallucination on SLMs (3B Models)",
+        conv_2_desc: "Small language models suffer from attention dilution and context saturation. They hallucinate non-existent tool arguments, emit malformed JSON, or freeze in infinite loops.",
+        conv_3_title: "Heavy Infrastructure &amp; Tool Dependencies",
+        conv_3_desc: "Often requires Docker daemon, Redis message queues, external vector databases, and massive Node.js/Python dependency trees just to boot.",
+        conv_4_title: "Cloud Cost &amp; Privacy Leakage",
+        conv_4_desc: "Requires ongoing paid cloud API tokens (OpenAI / Anthropic). Private code, proprietary data, and prompts are continuously streamed to third-party cloud servers.",
+        lean_badge: "Lensetek Lean Harness",
+        lean_tag: "Edge-First / Autonomous",
+        lean_title: "Purpose-Built for Local SLMs &amp; Local LLMs",
+        lean_1_title: "Ultra-Lean Token Budgeting (&lt; 350 tokens initial prompt)",
+        lean_1_desc: "Minimalist ReAct instruction set. Leaves &gt;90% of the context window wide open for actual user prompts, file contents, and step-by-step reasoning.",
+        lean_2_title: "Runs Edge SLMs (3B) with Scalability to Local LLMs (7B / 14B)",
+        lean_2_desc: "Flawlessly drives 3B edge models on modest hardware, yet instantly scales to 7B or custom local models via <code>/model switch</code> and <code>/model add</code>.",
+        lean_3_title: "Zero GPU Requirement &amp; Low RAM (&lt; 2.5 GB)",
+        lean_3_desc: "Optimized for commodity CPUs (everyday laptops, mini PCs, SBCs). Pure GGUF execution with 8-bit KV cache compression without requiring discrete GPUs.",
+        lean_4_title: "Built-in Anti-Hallucination &amp; Loop Circuit-Breakers",
+        lean_4_desc: "Small models can spiral when a tool fails. Our harness includes runtime interceptors and retry caps that detect failure patterns and rescue the agent.",
+        lean_5_title: "100% Air-Gapped &amp; True Data Sovereignty",
+        lean_5_desc: "Runs entirely offline with zero cloud telemetry. Your source code, sensitive documents, and prompt thoughts never leave your local machine.",
+        reality_title: "Realistic Edge Positioning:",
+        reality_desc: "We don't claim to replace trillion-parameter cloud clusters with 200 microservices. Our mission is distinct: delivering a <em>truly autonomous, lightweight AI agent harness</em> that actually executes reliably on everyday edge devices and local small models without breaking your RAM, budget, or privacy.",
+        terminal_title: "Terminal Interface Showcase",
+        terminal_desc: "A visual demonstration of the developer experience, command telemetry, and agent workflow in your terminal.",
+        terminal_prompt_placeholder: "Click any button below to preview command telemetry...",
+        btn_preview_help: "Preview /help",
+        btn_preview_model_search: "Preview /model search",
+        btn_preview_model: "Preview /model",
+        btn_preview_effort: "Preview /effort",
+        btn_preview_session: "Preview /session",
+        btn_preview_update: "Preview /update",
+        btn_preview_skills: "Preview /skills",
+        btn_preview_search: "Preview /search",
+        btn_preview_lang: "Preview /language",
+        btn_reset_view: "Reset View",
+        arch_title: "Engineered Specifically for Edge Computing",
+        arch_desc: "Zero cloud lock-in, zero API token costs, and 100% privacy on local commodity hardware.",
+        feat_1_title: "Multi-Model Local SLM / LLM Engine",
+        feat_1_desc: "Flexible support for local models from 3B edge SLMs to 7B reasoning models. Switch, search &amp; download via HF Hub, or register new models dynamically via <code>/model</code>.",
+        feat_2_title: "Universal MCP Orchestrator",
+        feat_2_desc: "Connect and install Model Context Protocol servers dynamically via <code>/mcp install</code>. Ships pre-configured with <code>fetch</code> and <code>playwright-headless</code>.",
+        feat_3_title: "Headless Web Search",
+        feat_3_desc: "Native multi-engine search tool integrated into the agent reasoning loop. Headlessly crawls Bing and Google without external API keys.",
+        feat_4_title: "Extensible Skills Architecture",
+        feat_4_desc: "Modular skills system. Create reusable domain workflows with <code>/skill create</code>, run bundled local skills like <code>/code-review</code>, or link external skill folders.",
+        feat_5_title: "Autonomous /goal &amp; /loop",
+        feat_5_desc: "Multi-step autonomous execution (up to 20 steps) with pinned goals that survive context trimming, plus recurring task looping and OS scheduler.",
+        feat_6_title: "Reasoning Effort &amp; 3-Tier Safety",
+        feat_6_desc: "Tune thinking depth via <code>/effort &lt;off|low|medium|high&gt;</code> and toggle safety via <code>/strict</code>, <code>/auto-approve</code>, and <code>/yolo</code>.",
+        cmd_table_title: "Slash Commands Reference",
+        cmd_table_desc: "Type <code>/</code> and press <kbd>Tab</kbd> in the CLI to see instant completions.",
+        cmd_search_placeholder: "Filter commands (e.g. model, effort, search)...",
+        th_command: "Command",
+        th_category: "Category",
+        th_description: "Description",
+        desc_help: "Displays comprehensive guide of all slash commands and capabilities.",
+        desc_language: "Switch agent response &amp; prompt language (English, Indonesian, Chinese). Saved persistently.",
+        desc_effort: "Set thinking effort &amp; reasoning depth (off, low, medium, high). Controls internal thought tokens.",
+        desc_update: "Check upstream updates, view What's New notes, and auto-restart app safely.",
+        desc_model: "Browse and switch active local models (3B, 7B, custom).",
+        desc_model_search: "Search GGUF models on Hugging Face (like llama.cpp), inspect quantizations, and download directly.",
+        desc_model_download: "Download models from catalog (list.json) with auto-switch.",
+        desc_model_add: "Register custom local *.gguf model path or directory.",
+        desc_session: "Manage conversation sessions, view chat history directly, and persist state.",
+        desc_search: "Perform an instant headless web search directly from the prompt.",
+        desc_skills: "Browse and filter available local and custom domain skills.",
+        desc_skill_create: "Create and save a new custom domain skill in <code>cli-agent/skills/</code>.",
+        desc_skill_run: "Execute a specific skill guide directly with anti-hallucination protection.",
+        desc_mcp: "Manage and install Stdio MCP servers with runtime credential injection.",
+        desc_goal: "Launches multi-step goal solver (up to 20 steps) with context resilience.",
+        desc_loop: "Repeat a task with automatic context reset to avoid token degradation.",
+        desc_schedule: "Schedule tasks via in-app timer daemon or OS Task Scheduler (Windows/Linux/macOS).",
+        desc_safety: "Toggle workspace execution confirmation level on the fly.",
+        footer_text: "Designed for air-gapped edge computing and local-first AI workflows.",
+        footer_official: "Official Website (lensetek.com)",
+        footer_space: "Hugging Face Space",
+        footer_github: "GitHub Repository",
+        footer_model: "Hugging Face Model"
+      },
+      id: {
+        nav_install: "Instalasi",
+        nav_why_lean: "Mengapa Lean?",
+        nav_terminal: "Antarmuka CLI",
+        nav_features: "Arsitektur",
+        nav_commands: "Daftar Perintah",
+        hero_badge: "HARNESS AGEN KOMPUTASI EDGE (v2.0)",
+        hero_title: "Harness Agen AI Otonom untuk <span>Model Lokal</span>",
+        hero_subtitle: "Jalankan loop otonom penuh, server MCP dinamis, pencarian web headless, dan skills yang dapat dikembangkan — 100% lokal pada CPU standar tanpa ketergantungan GPU.",
+        pill_cpu: "💻 <strong>CPU Komputer Standar</strong> (Eksekusi CPU Murni)",
+        pill_model: "🧠 <strong>Arsitektur Multi-Model</strong> (3B, 7B &amp; Model Kustom)",
+        pill_ram: "⚡ <strong>Alokasi RAM Adaptif</strong> (Inferensi Ringan di Perangkat Edge)",
+        pill_privacy: "🛡️ <strong>Tanpa Kebocoran Data</strong> (Air-Gapped &amp; Berdaulat)",
+        install_title: "Instalasi Cepat &amp; Peluncuran",
+        view_list: "Tampilan Daftar",
+        view_tabs: "Tampilan Tab",
+        btn_copy: "Salin",
+        btn_copied: "✓ Tersalin",
+        why_badge: "PERBEDAAN ARSITEKTUR",
+        why_title: "Mengapa Framework Konvensional Gagal pada SLM — Dan Mengapa Lean Berhasil",
+        why_desc: "Sebagian besar framework agen dirancang untuk model cloud raksasa 100B+ dengan context window 128k. Pada model edge kecil (SLM), pemborosan token menyebabkan kegagalan instan. Berikut prinsip rekayasa di balik pendekatan lean edge-first kami.",
+        conv_badge: "Framework Konvensional",
+        conv_tag: "Cloud-First / Berbasis API",
+        conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
+        conv_1_title: "Pemborosan Token Awal yang Masif (4.000 – 8.000+ token)",
+        conv_1_desc: "Menyuntikkan skema JSON berbelit-belit, puluhan definisi tool, dan contoh few-shot padat ke dalam system prompt sebelum pengguna mengetik satu kata pun.",
+        conv_2_title: "Kolaps Konteks &amp; Halusinasi pada SLM (Model 3B)",
+        conv_2_desc: "Model bahasa kecil mengalami penurunan atensi dan saturasi konteks. Model sering menghalunisasikan argumen tool, menghasilkan JSON rusak, atau macet dalam loop tak terbatas.",
+        conv_3_title: "Ketergantungan Infrastruktur &amp; Dependensi Berat",
+        conv_3_desc: "Seringkali membutuhkan daemon Docker, message queue Redis, database vektor eksternal, dan instalasi dependensi Node.js/Python yang sangat besar hanya untuk booting.",
+        conv_4_title: "Biaya Cloud &amp; Kebocoran Privasi",
+        conv_4_desc: "Memerlukan biaya token API cloud berbayar (OpenAI / Anthropic). Kode rahasia, data kepemilikan, dan prompt terus-menerus dikirim ke server cloud pihak ketiga.",
+        lean_badge: "Lensetek Lean Harness",
+        lean_tag: "Edge-First / Otonom",
+        lean_title: "Dirancang Khusus untuk SLM &amp; LLM Lokal",
+        lean_1_title: "Anggaran Token Super Hemat (&lt; 350 token prompt awal)",
+        lean_1_desc: "Instruksi ReAct minimalis. Menyisakan &gt;90% context window terbuka lebar untuk prompt asli pengguna, konten file, dan penalaran langkah demi langkah.",
+        lean_2_title: "Menjalankan SLM Edge (3B) dengan Skalabilitas ke LLM Lokal (7B / 14B)",
+        lean_2_desc: "Mengeksekusi model edge 3B dengan mulus di perangkat keras standar, namun dapat diskalakan secara instan ke model 7B atau kustom via <code>/model switch</code> dan <code>/model add</code>.",
+        lean_3_title: "Tanpa Kebutuhan GPU &amp; RAM Rendah (&lt; 2.5 GB)",
+        lean_3_desc: "Dioptimalkan untuk CPU komoditas (laptop harian, mini PC, SBC). Eksekusi murni GGUF dengan kompresi cache KV 8-bit tanpa memerlukan GPU terpisah.",
+        lean_4_title: "Anti-Halusinasi Terpasang &amp; Circuit-Breaker Loop",
+        lean_4_desc: "Model kecil dapat berputar-putar tanpa akhir saat tool gagal. Harness kami mencakup interseptor runtime dan batas coba ulang yang mendeteksi pola kegagalan dan menyelamatkan agen.",
+        lean_5_title: "100% Air-Gapped &amp; Kedaulatan Data Penuh",
+        lean_5_desc: "Berjalan sepenuhnya offline tanpa telemetri cloud. Kode sumber, dokumen rahasia, dan alur berpikir tidak pernah keluar dari komputer lokal Anda.",
+        reality_title: "Posisi Realistis Komputasi Edge:",
+        reality_desc: "Kami tidak mengklaim menggantikan kluster cloud triliunan parameter dengan 200 microservices. Misi kami jelas: menghadirkan <em>harness agen AI yang benar-benar otonom dan ringan</em> yang mampu mengeksekusi tugas secara andal pada perangkat harian dan model lokal kecil tanpa membebani RAM, biaya, atau privasi Anda.",
+        terminal_title: "Showcase Antarmuka Terminal",
+        terminal_desc: "Demonstrasi visual pengalaman pengembang, telemetri perintah, dan alur kerja agen di terminal Anda.",
+        terminal_prompt_placeholder: "Klik tombol di bawah untuk melihat simulasi telemetri perintah...",
+        btn_preview_help: "Lihat /help",
+        btn_preview_model_search: "Lihat /model search",
+        btn_preview_model: "Lihat /model",
+        btn_preview_effort: "Lihat /effort",
+        btn_preview_session: "Lihat /session",
+        btn_preview_update: "Lihat /update",
+        btn_preview_skills: "Lihat /skills",
+        btn_preview_search: "Lihat /search",
+        btn_preview_lang: "Lihat /language",
+        btn_reset_view: "Reset Tampilan",
+        arch_title: "Direkayasa Khusus untuk Komputasi Edge",
+        arch_desc: "Bebas vendor lock-in cloud, tanpa biaya token API, dan privasi 100% aman di perangkat lokal.",
+        feat_1_title: "Mesin Multi-Model SLM / LLM Lokal",
+        feat_1_desc: "Mendukung model lokal dari SLM edge 3B hingga model penalaran 7B. Ganti, cari &amp; unduh dari HF Hub, atau daftarkan model baru via <code>/model</code>.",
+        feat_2_title: "Orkestrator MCP Universal",
+        feat_2_desc: "Hubungkan dan pasang server Model Context Protocol secara dinamis via <code>/mcp install</code>. Dilengkapi preset siap pakai seperti <code>fetch</code> dan <code>playwright-headless</code>.",
+        feat_3_title: "Pencarian Web Headless",
+        feat_3_desc: "Tool pencarian multi-engine bawaan yang terintegrasi langsung ke dalam loop penalaran agen. Menjelajahi web tanpa memerlukan API key eksternal.",
+        feat_4_title: "Arsitektur Skills yang Dapat Diperluas",
+        feat_4_desc: "Sistem skill modular. Buat alur kerja khusus dengan <code>/skill create</code>, jalankan skill bawaan seperti <code>/code-review</code>, atau tautkan folder skill eksternal.",
+        feat_5_title: "Otonom /goal &amp; /loop",
+        feat_5_desc: "Eksekusi otonom multi-langkah (hingga 20 langkah) dengan target yang kebal dari pemangkasan konteks, ditambah pengulangan tugas dan penjadwal OS.",
+        feat_6_title: "Pengaturan Effort Penalaran &amp; Keamanan 3 Tingkat",
+        feat_6_desc: "Atur kedalaman penalaran via <code>/effort &lt;off|low|medium|high&gt;</code> dan sesuaikan tingkat keamanan via <code>/strict</code>, <code>/auto-approve</code>, dan <code>/yolo</code>.",
+        cmd_table_title: "Referensi Perintah Slash",
+        cmd_table_desc: "Ketik <code>/</code> lalu tekan <kbd>Tab</kbd> di CLI untuk melihat saran perintah otomatis.",
+        cmd_search_placeholder: "Saring perintah (contoh: model, effort, search)...",
+        th_command: "Perintah",
+        th_category: "Kategori",
+        th_description: "Penjelasan",
+        desc_help: "Menampilkan panduan lengkap seluruh perintah slash dan kemampuan sistem.",
+        desc_language: "Mengubah bahasa respons &amp; prompt agen (English, Bahasa Indonesia, Chinese). Tersimpan permanen.",
+        desc_effort: "Mengatur kedalaman thinking &amp; penalaran model (off, low, medium, high). Mengontrol token pemikiran internal.",
+        desc_update: "Cek pembaruan upstream, lihat What's New, dan restart aplikasi otomatis.",
+        desc_model: "Lihat dan ganti model lokal yang aktif (3B, 7B, kustom).",
+        desc_model_search: "Cari model GGUF di Hugging Face (seperti llama.cpp), pilih kuantisasi, dan unduh langsung.",
+        desc_model_download: "Unduh model rekomendasi dari katalog (list.json) dengan opsi ganti otomatis.",
+        desc_model_add: "Daftarkan path atau folder file *.gguf model lokal kustom.",
+        desc_session: "Kelola sesi percakapan, lihat riwayat obrolan secara langsung, dan simpan riwayat chat per sesi.",
+        desc_search: "Lakukan pencarian web headless secara instan langsung dari prompt.",
+        desc_skills: "Jelajahi dan saring skill lokal serta kustom yang tersedia.",
+        desc_skill_create: "Buat dan simpan panduan skill baru di <code>cli-agent/skills/</code>.",
+        desc_skill_run: "Jalankan panduan skill spesifik secara langsung dengan proteksi anti-halusinasi.",
+        desc_mcp: "Kelola dan pasang server Stdio MCP dengan injeksi kredensial runtime.",
+        desc_goal: "Jalankan penyelesai target otonom multi-langkah (hingga 20 langkah) yang tahan pemangkasan konteks.",
+        desc_loop: "Ulangi tugas secara berkala dengan reset konteks otomatis untuk menjaga performa token.",
+        desc_schedule: "Jadwalkan tugas via daemon in-app atau Penjadwal Tugas OS (Windows/Linux/macOS).",
+        desc_safety: "Ubah tingkat konfirmasi eksekusi workspace secara langsung.",
+        footer_text: "Dirancang untuk komputasi edge air-gapped dan alur kerja AI lokal murni.",
+        footer_official: "Website Resmi (lensetek.com)",
+        footer_space: "Hugging Face Space",
+        footer_github: "Repositori GitHub",
+        footer_model: "Model Hugging Face"
+      },
+      cn: {
+        nav_install: "快速安装",
+        nav_why_lean: "为什么轻量？",
+        nav_terminal: "终端界面",
+        nav_features: "核心架构",
+        nav_commands: "命令参考",
+        hero_badge: "端侧计算智能体框架 (v2.0)",
+        hero_title: "专为<span>本地模型</span>打造的自主AI智能体框架",
+        hero_subtitle: "在普通消费级CPU上纯本地运行完整的自主代理循环、动态MCP服务、无头网络搜索与扩展技能，无需任何GPU依赖。",
+        pill_cpu: "💻 <strong>普通通用CPU</strong> (纯CPU指令集执行)",
+        pill_model: "🧠 <strong>多模型架构</strong> (支持 3B, 7B 及自定义模型)",
+        pill_ram: "⚡ <strong>自适应内存管理</strong> (低内存端侧轻量推理)",
+        pill_privacy: "🛡️ <strong>零数据泄露</strong> (物理隔离与完全数据主权)",
+        install_title: "极速安装与启动",
+        view_list: "列表视图",
+        view_tabs: "标签视图",
+        btn_copy: "复制",
+        btn_copied: "✓ 已复制",
+        why_badge: "核心架构差异",
+        why_title: "为什么传统框架在小模型(SLM)上表现糟糕 — 以及轻量框架的优势",
+        why_desc: "大多数智能体框架专为拥有128k上下文窗口的100B+庞大云端模型设计。在小型端侧模型(SLM)上，沉重的Token开销会导致即刻崩溃。以下是我们端侧轻量化设计背后的真实工程原理。",
+        conv_badge: "传统框架",
+        conv_tag: "云端优先 / 基于API",
+        conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
+        conv_1_title: "庞大的初始Token开销 (4,000 – 8,000+ Token)",
+        conv_1_desc: "在用户输入第一个词之前，就将冗长的JSON Schema、数十个工具定义和密集的Few-shot示例注入到系统提示词中。",
+        conv_2_title: "小模型(SLM)上的上下文崩溃与严重幻觉",
+        conv_2_desc: "小型模型注意力机制较弱，容易出现上下文饱和，进而伪造不存在的工具参数、输出畸形JSON或陷入死循环。",
+        conv_3_title: "沉重的基础设施与工具依赖",
+        conv_3_desc: "通常仅为了启动就需要Docker守护程序、Redis消息队列、外部向量数据库以及庞大的依赖树。",
+        conv_4_title: "高昂的云端成本与隐私泄露隐患",
+        conv_4_desc: "需要持续支付云端API费用。私有代码、专有业务数据和思考过程被持续上传至第三方云端服务器。",
+        lean_badge: "Lensetek 轻量框架",
+        lean_tag: "端侧优先 / 自主运行",
+        lean_title: "专为本地小模型(SLM)与大模型(LLM)定制",
+        lean_1_title: "极低Token预算 (&lt; 350 Token初始提示)",
+        lean_1_desc: "极简ReAct指令集设计。将&gt;90%的上下文窗口完全留给用户实际Prompt、代码文件和推理过程。",
+        lean_2_title: "驱动3B端侧SLM并可无缝扩展至7B/14B本地模型",
+        lean_2_desc: "在普通硬件上完美驱动3B端侧模型，并通过 <code>/model switch</code> 和 <code>/model add</code> 随时切换至7B甚至更高规格模型。",
+        lean_3_title: "零GPU要求与超低内存 (&lt; 2.5 GB)",
+        lean_3_desc: "针对普通CPU深度优化（轻薄笔记本、工控机、迷你主机）。采用8-bit KV Cache压缩的纯GGUF运行模式，无需独立显卡。",
+        lean_4_title: "内置抗幻觉机制与防死循环断路器",
+        lean_4_desc: "小模型在工具报错时易陷入失控循环。本框架内置运行时拦截器与重试上限，自动检测错误模式并引导代理脱困。",
+        lean_5_title: "100% 物理隔离与纯正数据主权",
+        lean_5_desc: "完全离线运行，零云端遥测。您的源码、机密数据和工作记录绝对不会离开本地设备。",
+        reality_title: "务实的端侧定位:",
+        reality_desc: "我们并不盲目宣称用微型模型取代数万亿参数的云端集群。我们的目标清晰专注：打造一个<em>真正实用、轻量级且高可靠的本地自主AI智能体框架</em>，让普通设备与端侧模型顺畅工作，绝不拖垮您的内存、预算或隐私安全。",
+        terminal_title: "终端界面实机展示",
+        terminal_desc: "直观展示开发者在终端中的真实操作体验、命令遥测与智能体工作流。",
+        terminal_prompt_placeholder: "点击下方按钮以预览对应命令的终端遥测输出...",
+        btn_preview_help: "预览 /help",
+        btn_preview_model_search: "预览 /model search",
+        btn_preview_model: "预览 /model",
+        btn_preview_effort: "预览 /effort",
+        btn_preview_session: "预览 /session",
+        btn_preview_update: "预览 /update",
+        btn_preview_skills: "预览 /skills",
+        btn_preview_search: "预览 /search",
+        btn_preview_lang: "预览 /language",
+        btn_reset_view: "重置视图",
+        arch_title: "专为端侧计算量身打造",
+        arch_desc: "零云端绑定、零API Token开销、在本地通用硬件上实现100%隐私安全。",
+        feat_1_title: "多模型本地SLM / LLM引擎",
+        feat_1_desc: "弹性支持从3B端侧SLM到7B深度推理模型。通过 <code>/model</code> 动态切换、从HF Hub检索下载或注册新模型。",
+        feat_2_title: "通用MCP协议调度器",
+        feat_2_desc: "通过 <code>/mcp install</code> 动态连接并安装标准MCP服务。内置开箱即用的 <code>fetch</code> 和 <code>playwright-headless</code>。",
+        feat_3_title: "无头网络搜索",
+        feat_3_desc: "原生多引擎搜索工具直接集成至推理循环中。无需申请外部API密钥即可无头检索Bing与Google。",
+        feat_4_title: "可扩展技能(Skills)架构",
+        feat_4_desc: "模块化技能系统。使用 <code>/skill create</code> 创建可复用的工作流指南，运行 <code>/code-review</code> 等内置技能，或挂载外部技能包。",
+        feat_5_title: "自主目标模式 /goal 与循环 /loop",
+        feat_5_desc: "多步骤自主任务求解器（最多20步），具备抵御上下文修剪的固定目标锁定，支持循环任务与系统计划任务。",
+        feat_6_title: "思维链深度控制与三级安全体系",
+        feat_6_desc: "使用 <code>/effort &lt;off|low|medium|high&gt;</code> 自由调节思考深度，随时通过 <code>/strict</code>, <code>/auto-approve</code>, <code>/yolo</code> 切换安全级别。",
+        cmd_table_title: "斜杠命令完整速查表",
+        cmd_table_desc: "在CLI终端中输入 <code>/</code> 并按下 <kbd>Tab</kbd> 键即可查看即时补全与说明。",
+        cmd_search_placeholder: "筛选命令 (例如: model, effort, search)...",
+        th_command: "命令",
+        th_category: "分类",
+        th_description: "功能说明",
+        desc_help: "展示所有斜杠命令与系统功能的详细指引手册。",
+        desc_language: "切换智能体响应与提示词语言 (英语、印尼语、中文)，永久保存设置。",
+        desc_effort: "调节思维链思考深度 (off, low, medium, high)，精细控制内部思考Token。",
+        desc_update: "检查上游更新，预览更新内容 (What's New) 并自动重启应用。",
+        desc_model: "浏览并切换当前活跃的本地模型 (3B, 7B, 自定义)。",
+        desc_model_search: "在 Hugging Face 上搜索 GGUF 模型（类似 llama.cpp），选择量化并直接下载切换。",
+        desc_model_download: "从预置目录 (list.json) 下载推荐模型并自动切换。",
+        desc_model_add: "注册本地自定义 *.gguf 模型文件或目录路径。",
+        desc_session: "管理多会话状态、直接查看对话历史记录并持久化保存会话。",
+        desc_search: "直接从命令行终端执行即时无头网络搜索。",
+        desc_skills: "浏览并筛选当前已挂载的本地及自定义技能。",
+        desc_skill_create: "在 <code>cli-agent/skills/</code> 中创建并保存新的自定义技能指南。",
+        desc_skill_run: "直接执行指定的技能指引，具备抗幻觉与防偏离保护。",
+        desc_mcp: "管理并安装Stdio MCP服务，支持运行时机密凭证动态注入。",
+        desc_goal: "启动多步自主目标求解器（最多20步），具备强大的上下文容错能力。",
+        desc_loop: "周期性重复执行任务，并在轮次间自动重置上下文以防止性能衰退。",
+        desc_schedule: "通过内置守护程序或操作系统计划任务(Windows/Linux/macOS)调度后台任务。",
+        desc_safety: "即时切换工作区操作的安全确认与审批严格度。",
+        footer_text: "专为完全物理隔离的端侧计算与本地优先AI工作流打造。",
+        footer_official: "官方网站 (lensetek.com)",
+        footer_space: "Hugging Face Space",
+        footer_github: "GitHub 仓库",
+        footer_model: "Hugging Face 模型"
+      }
+    };
+
+    const langDisplayNames = {
+      en: "English",
+      id: "Bahasa Indonesia",
+      cn: "简体中文"
+    };
+
+    let activeLang = 'en';
+
+    function setLanguage(lang) {
+      if (!i18n[lang]) lang = 'en';
+      activeLang = lang;
+      try {
+        localStorage.setItem('lensetek_landing_lang', lang);
+      } catch (e) {}
+
+      document.documentElement.lang = lang === 'cn' ? 'zh-CN' : (lang === 'id' ? 'id' : 'en');
+      
+      // Update dropdown button label
+      const labelEl = document.getElementById('currentLangLabel');
+      if (labelEl) labelEl.textContent = langDisplayNames[lang];
+
+      // Update active option styling
+      document.querySelectorAll('.lang-option').forEach(el => {
+        if (el.getAttribute('data-lang') === lang) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+
+      // Apply translations for plain text
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang] && i18n[lang][key] !== undefined) {
+          el.textContent = i18n[lang][key];
+        }
+      });
+
+      // Apply translations with HTML formatting
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html');
+        if (i18n[lang] && i18n[lang][key] !== undefined) {
+          el.innerHTML = i18n[lang][key];
+        }
+      });
+
+      // Apply translations for placeholders
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (i18n[lang] && i18n[lang][key] !== undefined) {
+          el.setAttribute('placeholder', i18n[lang][key]);
+        }
+      });
+
+      // Update simulated terminal banner lang
+      const termLang = document.getElementById('termBannerLang');
+      if (termLang) {
+        if (lang === 'id') termLang.textContent = '[ID] Bahasa Indonesia (/language en|id|cn)';
+        else if (lang === 'cn') termLang.textContent = '[CN] 简体中文 (/language en|id|cn)';
+        else termLang.textContent = '[EN] English (/language en|id|cn)';
+      }
+      const termTip = document.getElementById('termBannerTip');
+      if (termTip) {
+        if (lang === 'id') termTip.textContent = "Ketik '/help' untuk melihat perintah. Tekan Ctrl+C saat berpikir untuk membatalkan.";
+        else if (lang === 'cn') termTip.textContent = "输入 '/help' 查看命令。思考中按 Ctrl+C 可取消当前任务。";
+        else termTip.textContent = "Type '/help' for commands. Press Ctrl+C while thinking to cancel task.";
+      }
+
+      // Close dropdown if open
+      closeLangDropdown();
+    }
+
+    function toggleLangDropdown(e) {
+      if (e) e.stopPropagation();
+      const wrap = document.getElementById('langDropdownWrap');
+      const menu = document.getElementById('langMenu');
+      if (menu) {
+        const isOpen = menu.classList.contains('show');
+        if (isOpen) {
+          closeLangDropdown();
+        } else {
+          menu.classList.add('show');
+          if (wrap) wrap.classList.add('open');
+        }
+      }
+    }
+
+    function closeLangDropdown() {
+      const wrap = document.getElementById('langDropdownWrap');
+      const menu = document.getElementById('langMenu');
+      if (menu) menu.classList.remove('show');
+      if (wrap) wrap.classList.remove('open');
+    }
+
+    // Close language dropdown on outside click
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('langDropdownWrap');
+      if (wrap && !wrap.contains(e.target)) {
+        closeLangDropdown();
+      }
+    });
+
+    // Detect initial language
+    (function initLanguage() {
+      let saved = null;
+      try {
+        saved = localStorage.getItem('lensetek_landing_lang');
+      } catch (e) {}
+
+      if (!saved) {
+        const navL = (navigator.language || navigator.userLanguage || '').toLowerCase();
+        if (navL.startsWith('id')) saved = 'id';
+        else if (navL.startsWith('zh')) saved = 'cn';
+        else saved = 'en';
+      }
+      setLanguage(saved);
+    })();
+
     // Tabbed vs List View Toggle
     function switchView(mode) {
       const listView = document.getElementById('listView');
@@ -1348,36 +1909,65 @@
       document.getElementById('tabCode').textContent = currentTabCommand;
     }
 
-    // One-Click Copy Handler with Feedback
+    // Robust One-Click Copy Handler with Iframe / Fallback Support
     function copySnippet(btn, text) {
-      navigator.clipboard.writeText(text).then(() => {
-        const originalText = btn.innerHTML;
-        btn.innerHTML = "✓ Copied";
+      function showSuccess() {
+        if (!btn) return;
+        const originalText = btn.getAttribute('data-original-text') || btn.innerHTML;
+        if (!btn.getAttribute('data-original-text')) {
+          btn.setAttribute('data-original-text', originalText);
+        }
+        btn.innerHTML = i18n[activeLang] ? i18n[activeLang].btn_copied : "✓ Copied";
         btn.classList.add('copied');
         setTimeout(() => {
           btn.innerHTML = originalText;
           btn.classList.remove('copied');
         }, 2000);
-      }).catch(err => {
-        alert("Copy failed: " + err);
-      });
-    }
+      }
 
-    // Optional Interactive CLI Terminal Input
-    const cliInputField = document.getElementById('cliInputField');
-    if (cliInputField) {
-      cliInputField.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          const val = this.value.trim();
-          if (val) {
-            triggerCliCommand(val);
-            this.value = '';
+      function fallbackCopy(str) {
+        const textarea = document.createElement("textarea");
+        textarea.value = str;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        textarea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + "px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+        try {
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textarea);
+          if (successful) {
+            showSuccess();
+            return true;
           }
+        } catch (err) {
+          try {
+            document.body.removeChild(textarea);
+          } catch (e) {}
         }
-      });
+        return false;
+      }
+
+      // Try modern navigator.clipboard first
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(text).then(() => {
+          showSuccess();
+        }).catch(() => {
+          if (!fallbackCopy(text)) {
+            prompt("Copy to clipboard (Ctrl+C, Enter):", text);
+          }
+        });
+      } else {
+        if (!fallbackCopy(text)) {
+          prompt("Copy to clipboard (Ctrl+C, Enter):", text);
+        }
+      }
     }
 
-    // Command Trigger for Preview Showcase
+    // Command Trigger for Preview Showcase with Language Awareness
     function triggerCliCommand(cmd) {
       const termHistory = document.getElementById('termHistory');
       const termBody = document.getElementById('terminalBody');
@@ -1385,7 +1975,6 @@
       if (activePrompt) {
         activePrompt.textContent = cmd;
       }
-      const termBody = document.getElementById('terminalBody');
 
       if (cmd === '/clear') {
         termHistory.innerHTML = '';
@@ -1394,30 +1983,266 @@
 
       let output = "";
       if (cmd === '/help') {
-        output = `
-<span class="term-bold">Commands Guide / Daftar Perintah Slash (/):</span><br>
+        if (activeLang === 'id') {
+          output = `
+<span class="term-bold">Panduan Perintah Slash (/):</span><br>
+  <span class="term-yellow">/help</span>                               - Tampilkan panduan ini<br>
+  <span class="term-yellow">/effort &lt;off|low|med|high&gt;</span>         - Atur kedalaman berpikir / penalaran model<br>
+  <span class="term-yellow">/model [search|download|add]</span>       - Cari di Hugging Face, unduh, atau ganti model lokal<br>
+  <span class="term-yellow">/language &lt;en|id|cn&gt;</span>                 - Ganti bahasa respons agen &amp; prompt sistem<br>
+  <span class="term-yellow">/search &lt;query&gt;</span>                      - Pencarian web headless instan (Bing/Google)<br>
+  <span class="term-yellow">/skills [filter]</span>                    - Daftar &amp; kelola skill lokal &amp; kustom<br>
+  <span class="term-yellow">/mcp</span>                                - Status server MCP &amp; install/test/remove<br>
+  <span class="term-yellow">/goal &lt;target&gt;</span>                       - Pemecah target otonom multi-langkah<br>
+  <span class="term-yellow">/strict | /auto-approve | /yolo</span>     - Ubah mode konfirmasi keamanan kerja<br>
+`;
+        } else if (activeLang === 'cn') {
+          output = `
+<span class="term-bold">斜杠命令速查指南 (/):</span><br>
+  <span class="term-yellow">/help</span>                               - 显示此帮助指南<br>
+  <span class="term-yellow">/effort &lt;off|low|med|high&gt;</span>         - 设置思维链/深度思考强度<br>
+  <span class="term-yellow">/model [search|download|add]</span>       - 在HF检索GGUF、下载或切换本地模型<br>
+  <span class="term-yellow">/language &lt;en|id|cn&gt;</span>                 - 切换智能体响应与提示词语言<br>
+  <span class="term-yellow">/search &lt;query&gt;</span>                      - 即时无头网络搜索 (Bing/Google)<br>
+  <span class="term-yellow">/skills [filter]</span>                    - 列出并管理本地及自定义技能<br>
+  <span class="term-yellow">/mcp</span>                                - 查看MCP服务状态并安装/测试/移除<br>
+  <span class="term-yellow">/goal &lt;target&gt;</span>                       - 多步骤自主目标求解模式<br>
+  <span class="term-yellow">/strict | /auto-approve | /yolo</span>     - 切换工作区操作安全确认级别<br>
+`;
+        } else {
+          output = `
+<span class="term-bold">Commands Guide / Slash Reference (/):</span><br>
   <span class="term-yellow">/help</span>                               - Show this help guide<br>
-  <span class="term-yellow">/model [add|switch]</span>                 - Switch models (3B, 7B) or add new custom GGUF<br>
-  <span class="term-yellow">/language &lt;en|id|cn&gt;</span>                 - Switch language (saved to user settings)<br>
+  <span class="term-yellow">/effort &lt;off|low|med|high&gt;</span>         - Set reasoning / thinking effort level<br>
+  <span class="term-yellow">/model [search|download|add]</span>       - Search Hugging Face, download, or switch models<br>
+  <span class="term-yellow">/language &lt;en|id|cn&gt;</span>                 - Switch agent response &amp; system language<br>
   <span class="term-yellow">/search &lt;query&gt;</span>                      - Instant headless web search (Bing/Google)<br>
   <span class="term-yellow">/skills [filter]</span>                    - List and manage local &amp; custom skills<br>
-  <span class="term-yellow">/skill create &lt;name&gt;</span>                 - Create new custom skill in cli-agent/skills/<br>
   <span class="term-yellow">/mcp</span>                                - MCP server status &amp; install/test/remove<br>
   <span class="term-yellow">/goal &lt;target&gt;</span>                       - Multi-step autonomous agentic goal<br>
   <span class="term-yellow">/strict | /auto-approve | /yolo</span>     - Toggle security confirmation mode<br>
 `;
+        }
+      } else if (cmd === '/effort' || cmd.startsWith('/effort')) {
+        if (activeLang === 'id') {
+          output = `
+<span class="term-bold">Pengaturan Thinking / Kedalaman Penalaran Model:</span><br>
+  • <span class="term-bold">Model Aktif:</span> lensetek-edge-loop-3b-q4_k_m.gguf<br>
+  • <span class="term-bold">Dukungan Thinking:</span> <span class="term-green">YA (Native reasoning &amp; iterative loop didukung)</span><br>
+  • <span class="term-bold">Tingkat Effort Aktif:</span> <span class="term-cyan">[MEDIUM]</span><br>
+<span class="term-bold">Pilihan Tingkat Effort:</span><br>
+  [1] <span class="term-bold">off</span>     : Nonaktifkan token thinking untuk respons langsung &amp; tercepat<br>
+  [2] <span class="term-bold">low</span>     : Penalaran ringkas dengan langkah terfokus (~1,024 token)<br>
+  [3] <span class="term-bold">medium</span>  : Kedalaman penalaran seimbang standar (~4,096 token) <span class="term-green">* aktif</span><br>
+  [4] <span class="term-bold">high</span>    : Penalaran mendalam &amp; verifikasi ketat (~8,192+ token)<br>
+<span class="term-cyan">Pilih nomor (1-4) atau nama (off|low|medium|high), atau gunakan '/effort &lt;level&gt;'</span><br>
+`;
+        } else if (activeLang === 'cn') {
+          output = `
+<span class="term-bold">思维链与深度思考配置:</span><br>
+  • <span class="term-bold">当前模型:</span> lensetek-edge-loop-3b-q4_k_m.gguf<br>
+  • <span class="term-bold">思维链支持:</span> <span class="term-green">是 (原生支持思维链与迭代自反思)</span><br>
+  • <span class="term-bold">当前强度:</span> <span class="term-cyan">[MEDIUM]</span><br>
+<span class="term-bold">可选思考强度:</span><br>
+  [1] <span class="term-bold">off</span>     : 禁用思维链标签，直接且极速回答<br>
+  [2] <span class="term-bold">low</span>     : 简要推演，保持思考简短专注 (~1,024 tokens)<br>
+  [3] <span class="term-bold">medium</span>  : 均衡推演深度（默认） (~4,096 tokens) <span class="term-green">* 当前激活</span><br>
+  [4] <span class="term-bold">high</span>    : 深度多步推演与严密验证 (~8,192+ tokens)<br>
+<span class="term-cyan">输入序号 (1-4) 或名称 (off|low|medium|high)，或使用 '/effort &lt;强度&gt;'</span><br>
+`;
+        } else {
+          output = `
+<span class="term-bold">Reasoning / Thinking Effort Settings:</span><br>
+  • <span class="term-bold">Active Model:</span> lensetek-edge-loop-3b-q4_k_m.gguf<br>
+  • <span class="term-bold">Thinking Capability:</span> <span class="term-green">YES (Native reasoning &amp; iterative loop supported)</span><br>
+  • <span class="term-bold">Current Effort Level:</span> <span class="term-cyan">[MEDIUM]</span><br>
+<span class="term-bold">Available Effort Levels:</span><br>
+  [1] <span class="term-bold">off</span>     : Disable thinking tokens for fastest direct answers<br>
+  [2] <span class="term-bold">low</span>     : Concise reasoning with brief focused thought steps (~1,024 tokens)<br>
+  [3] <span class="term-bold">medium</span>  : Balanced reasoning depth (default) (~4,096 tokens) <span class="term-green">* active</span><br>
+  [4] <span class="term-bold">high</span>    : Deep iterative thinking and thorough verification (~8,192+ tokens)<br>
+<span class="term-cyan">Select number (1-4) or name (off|low|medium|high), or use '/effort &lt;level&gt;'</span><br>
+`;
+        }
+      } else if (cmd === '/update') {
+        if (activeLang === 'id') {
+          output = `
+<span class="term-dim">Memeriksa pembaruan dari repositori upstream...</span><br>
+<span class="term-bold">=== Manajer Pembaruan Aplikasi ===</span><br>
+  • <span class="term-bold">Versi Saat Ini:</span> <span class="term-cyan">v0.2.0</span><br>
+  • <span class="term-bold">Versi Terbaru:</span> <span class="term-green">v0.2.1</span><br>
+<br>
+<span class="term-yellow term-bold">★ What's New pada v0.2.1:</span><br>
+  • Model Search: Cari dan unduh model GGUF langsung dari Hugging Face Hub (/model search)<br>
+  • Thinking Effort: Atur kedalaman berpikir model (off, low, medium, high) secara interaktif (/effort)<br>
+  • Update Manager: Otomatisasi cek update saat startup, perintah /update, dan restart mandiri<br>
+  • Trilingual Support: Pilihan bahasa dinamis (English, Bahasa Indonesia, 简体中文) via /language<br>
+<br>
+<span class="term-bold">Apakah Anda ingin memperbarui sekarang dan me-restart aplikasi? [Y/n]:</span> <span class="term-green">Y</span><br>
+<span class="term-dim">Mengunduh dan menerapkan pembaruan via Git...</span><br>
+<span class="term-green">✓ Pembaruan berhasil! Memulai ulang Lensetek Local LLM Agent Harness...</span><br>
+`;
+        } else if (activeLang === 'cn') {
+          output = `
+<span class="term-dim">正在从远程仓库检查更新...</span><br>
+<span class="term-bold">=== 应用更新管理器 ===</span><br>
+  • <span class="term-bold">当前版本:</span> <span class="term-cyan">v0.2.0</span><br>
+  • <span class="term-bold">最新可用版本:</span> <span class="term-green">v0.2.1</span><br>
+<br>
+<span class="term-yellow term-bold">★ v0.2.1 更新内容 (What's New):</span><br>
+  • 模型检索: 支持直接搜索并下载 Hugging Face Hub 上的 GGUF 模型 (/model search)<br>
+  • 思考深度: 交互式调节思维链推演深度 (off, low, medium, high) (/effort)<br>
+  • 自动更新: 启动时静默检查更新，提供 /update 命令与自动重启升级流程<br>
+  • 三语支持: 支持随时切换 English、中文与印尼语 (/language)<br>
+<br>
+<span class="term-bold">是否立即应用更新并重启应用? [Y/n]:</span> <span class="term-green">Y</span><br>
+<span class="term-dim">正在通过 Git 拉取并应用最新代码...</span><br>
+<span class="term-green">✓ 更新成功！正在重启 Lensetek Local LLM Agent Harness...</span><br>
+`;
+        } else {
+          output = `
+<span class="term-dim">Checking for updates from remote repository...</span><br>
+<span class="term-bold">=== Application Update Manager ===</span><br>
+  • <span class="term-bold">Current Version:</span> <span class="term-cyan">v0.2.0</span><br>
+  • <span class="term-bold">Latest Available:</span> <span class="term-green">v0.2.1</span><br>
+<br>
+<span class="term-yellow term-bold">★ What's New in v0.2.1:</span><br>
+  • Model Search: Search &amp; download GGUF models directly from Hugging Face Hub (/model search)<br>
+  • Thinking Effort: Tune reasoning depth (off, low, medium, high) interactively (/effort)<br>
+  • Update Manager: Startup update checks, in-app /update command, and auto-restart<br>
+  • Trilingual Interface: Seamlessly switch between English, Indonesian, and Chinese (/language)<br>
+<br>
+<span class="term-bold">Do you want to update now and restart? [Y/n]:</span> <span class="term-green">Y</span><br>
+<span class="term-dim">Applying update via Git...</span><br>
+<span class="term-green">✓ Update successful! Restarting Lensetek Local LLM Agent Harness...</span><br>
+`;
+        }
+      } else if (cmd === '/session' || cmd.startsWith('/session')) {
+        if (activeLang === 'id') {
+          output = `
+<span class="term-cyan term-bold">====================================================================</span><br>
+<span class="term-bold">💬 RIWAYAT CHAT SESI AKTIF: Refactor Auth Middleware (sess_20261124_141012)</span><br>
+<span class="term-dim">   Dibuat: 2026-11-24 14:10 | Diperbarui: 2026-11-24 14:15 | 2 pesan</span><br>
+<span class="term-cyan term-bold">====================================================================</span><br>
+<span class="term-dim">[14:10:12]</span> <span class="term-green term-bold">[USER]</span>:<br>
+  Tolong refactor fungsi verifikasi token JWT agar menggunakan constant-time comparison.<br>
+<br>
+<span class="term-dim">[14:10:15]</span> <span class="term-cyan term-bold">[ASSISTANT]</span>:<br>
+  Tentu! Berikut adalah implementasi fungsi verifikasi JWT menggunakan hmac.compare_digest untuk mencegah timing side-channel attacks...<br>
+<span class="term-cyan">--------------------------------------------------------------------</span><br>
+<br>
+<span class="term-bold">Daftar Sesi Percakapan:</span><br>
+  [1] <span class="term-bold">Refactor Auth Middleware</span> <span class="term-dim">(ID: sess_20261124_141012 | 2 pesan | 2026-11-24 14:15)</span> <span class="term-green">* aktif</span><br>
+  [2] <span class="term-bold">Research GGUF Models</span> <span class="term-dim">(ID: sess_20261124_134500 | 4 pesan | 2026-11-24 13:58)</span><br>
+  [3] <span class="term-bold">Default Session</span> <span class="term-dim">(ID: sess_20261124_100000 | 0 pesan | 2026-11-24 10:00)</span><br>
+<br>
+<span class="term-bold">Pilihan Aksi Sesi:</span><br>
+  [1-3] Beralih ke sesi & tampilkan riwayat chat (/session switch &lt;id&gt;)<br>
+  [n]   Mulai sesi baru (/session new [nama])<br>
+  [r]   Ubah nama sesi saat ini (/session rename &lt;nama&gt;)<br>
+  [d]   Hapus sesi (/session delete &lt;id&gt;)<br>
+<span class="term-cyan">Gunakan '/session switch 2' atau ketik '/session new Project-B'</span><br>
+`;
+        } else if (activeLang === 'cn') {
+          output = `
+<span class="term-cyan term-bold">====================================================================</span><br>
+<span class="term-bold">💬 当前活动会话对话历史: 重构鉴权中间件 (sess_20261124_141012)</span><br>
+<span class="term-dim">   创建时间: 2026-11-24 14:10 | 更新时间: 2026-11-24 14:15 | 2 条消息</span><br>
+<span class="term-cyan term-bold">====================================================================</span><br>
+<span class="term-dim">[14:10:12]</span> <span class="term-green term-bold">[USER]</span>:<br>
+  请使用恒定时间比较算法重构 JWT Token 验证函数，以防御时序攻击。<br>
+<br>
+<span class="term-dim">[14:10:15]</span> <span class="term-cyan term-bold">[ASSISTANT]</span>:<br>
+  好的！以下是采用 hmac.compare_digest 重构的 JWT 验证函数代码...<br>
+<span class="term-cyan">--------------------------------------------------------------------</span><br>
+<br>
+<span class="term-bold">对话会话列表:</span><br>
+  [1] <span class="term-bold">重构鉴权中间件 (Auth Middleware)</span> <span class="term-dim">(ID: sess_20261124_141012 | 2 条消息 | 2026-11-24 14:15)</span> <span class="term-green">* 当前激活</span><br>
+  [2] <span class="term-bold">调研 GGUF 端侧模型</span> <span class="term-dim">(ID: sess_20261124_134500 | 4 条消息 | 2026-11-24 13:58)</span><br>
+  [3] <span class="term-bold">默认会话 (Default Session)</span> <span class="term-dim">(ID: sess_20261124_100000 | 0 条消息 | 2026-11-24 10:00)</span><br>
+<br>
+<span class="term-bold">会话操作选项:</span><br>
+  [1-3] 切换至对应会话并立即查看历史记录 (/session switch &lt;id&gt;)<br>
+  [n]   开启全新独立会话 (/session new [名称])<br>
+  [r]   重命名当前会话 (/session rename &lt;名称&gt;)<br>
+  [d]   删除指定会话 (/session delete &lt;id&gt;)<br>
+<span class="term-cyan">使用 '/session switch 2' 或输入 '/session new Project-B'</span><br>
+`;
+        } else {
+          output = `
+<span class="term-cyan term-bold">====================================================================</span><br>
+<span class="term-bold">💬 ACTIVE SESSION CHAT HISTORY: Refactor Auth Middleware (sess_20261124_141012)</span><br>
+<span class="term-dim">   Created: 2026-11-24 14:10 | Updated: 2026-11-24 14:15 | 2 messages</span><br>
+<span class="term-cyan term-bold">====================================================================</span><br>
+<span class="term-dim">[14:10:12]</span> <span class="term-green term-bold">[USER]</span>:<br>
+  Please refactor our JWT verification function to use constant-time comparison.<br>
+<br>
+<span class="term-dim">[14:10:15]</span> <span class="term-cyan term-bold">[ASSISTANT]</span>:<br>
+  Certainly! Here is the refactored JWT verification logic using hmac.compare_digest to eliminate timing side-channels...<br>
+<span class="term-cyan">--------------------------------------------------------------------</span><br>
+<br>
+<span class="term-bold">Conversation Sessions:</span><br>
+  [1] <span class="term-bold">Refactor Auth Middleware</span> <span class="term-dim">(ID: sess_20261124_141012 | 2 msgs | 2026-11-24 14:15)</span> <span class="term-green">* active</span><br>
+  [2] <span class="term-bold">Research GGUF Models</span> <span class="term-dim">(ID: sess_20261124_134500 | 4 msgs | 2026-11-24 13:58)</span><br>
+  [3] <span class="term-bold">Default Session</span> <span class="term-dim">(ID: sess_20261124_100000 | 0 msgs | 2026-11-24 10:00)</span><br>
+<br>
+<span class="term-bold">Session Actions:</span><br>
+  [1-3] Switch to session & view chat history (/session switch &lt;id&gt;)<br>
+  [n]   Start a fresh session (/session new [name])<br>
+  [r]   Rename current session (/session rename &lt;name&gt;)<br>
+  [d]   Delete a session file (/session delete &lt;id&gt;)<br>
+<span class="term-cyan">Use '/session switch 2' or type '/session new Project-B'</span><br>
+`;
+        }
+      } else if (cmd.startsWith('/model search')) {
+        const q = cmd.replace('/model search', '').trim() || 'lensetek';
+        if (activeLang === 'id') {
+          output = `
+<span class="term-dim">Mencari model GGUF di Hugging Face Hub untuk '${q}' (filter: GGUF)...</span><br>
+<span class="term-bold">Daftar Repositori Model Hugging Face (seperti llama.cpp):</span><br>
+  [1] <span class="term-cyan">lensetek/lensetek-edge-loop-3b-GGUF</span> <span class="term-dim">(↓ 127 | ♥ 1 | <span class="term-green">📦 1.80 GB</span>)</span><br>
+  [2] <span class="term-cyan">Qwen/Qwen2.5-Coder-7B-Instruct-GGUF</span> <span class="term-dim">(↓ 488,939 | ♥ 681 | <span class="term-green">📦 ~4.4 GB (Q4) [2.8-14.2 GB]</span>)</span><br>
+<span class="term-dim">Mengambil daftar file kuantisasi untuk 'lensetek/lensetek-edge-loop-3b-GGUF'...</span><br>
+  • <span class="term-green">lensetek-edge-loop-3b-q4_k_m.gguf</span> (1.80 GB) [Direkomendasikan]<br>
+<span class="term-green">✓ Mengunduh ke models/ dan beralih ke model tersebut secara otomatis!</span><br>
+`;
+        } else if (activeLang === 'cn') {
+          output = `
+<span class="term-dim">正在 Hugging Face Hub 上检索 '${q}' (过滤: GGUF)...</span><br>
+<span class="term-bold">Hugging Face 匹配的模型仓库 (类似 llama.cpp):</span><br>
+  [1] <span class="term-cyan">lensetek/lensetek-edge-loop-3b-GGUF</span> <span class="term-dim">(↓ 127 | ♥ 1 | <span class="term-green">📦 1.80 GB</span>)</span><br>
+  [2] <span class="term-cyan">Qwen/Qwen2.5-Coder-7B-Instruct-GGUF</span> <span class="term-dim">(↓ 488,939 | ♥ 681 | <span class="term-green">📦 ~4.4 GB (Q4) [2.8-14.2 GB]</span>)</span><br>
+<span class="term-dim">获取 'lensetek/lensetek-edge-loop-3b-GGUF' 的可用量化文件...</span><br>
+  • <span class="term-green">lensetek-edge-loop-3b-q4_k_m.gguf</span> (1.80 GB) [端侧推荐]<br>
+<span class="term-green">✓ 下载至 models/ 目录并自动切换运行！</span><br>
+`;
+        } else {
+          output = `
+<span class="term-dim">Searching Hugging Face Hub for '${q}' (filter: GGUF)...</span><br>
+<span class="term-bold">Hugging Face GGUF Model Repositories (like llama.cpp):</span><br>
+  [1] <span class="term-cyan">lensetek/lensetek-edge-loop-3b-GGUF</span> <span class="term-dim">(↓ 127 | ♥ 1 | <span class="term-green">📦 1.80 GB</span>)</span><br>
+  [2] <span class="term-cyan">Qwen/Qwen2.5-Coder-7B-Instruct-GGUF</span> <span class="term-dim">(↓ 488,939 | ♥ 681 | <span class="term-green">📦 ~4.4 GB (Q4) [2.8-14.2 GB]</span>)</span><br>
+<span class="term-dim">Fetching quantization files for 'lensetek/lensetek-edge-loop-3b-GGUF'...</span><br>
+  • <span class="term-green">lensetek-edge-loop-3b-q4_k_m.gguf</span> (1.80 GB) [Edge Recommended]<br>
+<span class="term-green">✓ Direct download into models/ directory and auto-switch model!</span><br>
+`;
+        }
       } else if (cmd === '/model' || cmd.startsWith('/model')) {
         output = `
 <span class="term-bold">Available Local Models (3B, 7B &amp; Custom):</span><br>
-  [1] lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(1.93 GB)</span> <span class="term-green">* active</span><br>
-  [2] Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf <span class="term-dim">(4.68 GB)</span><br>
-<span class="term-dim">Tip: Auto-downloads flagship 3B on fresh launch. Use '/model download' to browse list.json or '/model add &lt;path&gt;' anytime.</span><br>
+  [1] lensetek-edge-loop-3b-q4_k_m.gguf <span class="term-dim">(1.80 GB)</span> <span class="term-green">* active</span><br>
+  [2] Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf <span class="term-dim">(4.68 GB)</span><br><br>
+<span class="term-bold">Model Actions / Pilihan Aksi:</span><br>
+  [s] <span class="term-cyan">Search GGUF models on Hugging Face (/model search)</span><br>
+  [d] <span class="term-cyan">Download models from catalog (/model download)</span><br>
+  [a] <span class="term-cyan">Register custom local path (/model add &lt;path&gt;)</span><br>
 `;
       } else if (cmd === '/skills' || cmd.startsWith('/skills')) {
         output = `
 <span class="term-bold">Installed Skills / Daftar Skill:</span><br>
   - <span class="term-cyan">/code-review</span> (local): Automated clean-code reviewer &amp; security audit<br>
   - <span class="term-cyan">/web-research</span> (local): Deep headless web research and synthesis<br>
+  - <span class="term-cyan">/refactor</span> (local): Architecture optimization and safe code refactoring<br>
 <span class="term-dim">Tip: Use '/skill create &lt;name&gt;' to generate new custom domain skills.</span><br>
 `;
       } else if (cmd.startsWith('/search')) {
@@ -1429,10 +2254,8 @@
     Snippet: Self-contained local agent harness featuring MCP orchestrator &amp; skills.<br>
 [2] <strong>llama.cpp HTTP Server API</strong> - Lightweight OpenAI compatible engine.<br>
 `;
-      } else if (cmd === '/language id') {
-        output = `<span class="term-green">✓ Bahasa aktif diubah menjadi: Bahasa Indonesia (id). Pengaturan disimpan ke user_settings.json.</span><br>`;
-      } else if (cmd === '/language en') {
-        output = `<span class="term-green">✓ Active language switched to: English (en). Settings saved to user_settings.json.</span><br>`;
+      } else if (cmd.startsWith('/language')) {
+        output = `<span class="term-green">✓ Active language: ${activeLang.toUpperCase()} (${langDisplayNames[activeLang]}). Settings saved to user_settings.json.</span><br>`;
       } else {
         output = `<span class="term-dim">Executing command '${cmd}' via Lensetek Agent Harness... [OK]</span><br>`;
       }
@@ -1442,7 +2265,7 @@
       entry.innerHTML = `
         <div><span class="term-green term-bold">&gt;&nbsp;</span><span>${cmd}</span></div>
         <div>${output}</div>
-        <div class="term-dim" style="font-size: 0.78rem;">~ [cli-agent] 0.5%/8k tok [STRICT] (lensetek-edge-loop-3b-q4_k_m.gguf)</div>
+        <div class="term-dim" style="font-size: 0.78rem;">~ [cli-agent] 0.5%/8k tok [STRICT|${activeLang.toUpperCase()}|EFFORT:MEDIUM] (lensetek-edge-loop-3b-q4_k_m.gguf)</div>
       `;
       termHistory.appendChild(entry);
       termBody.scrollTop = termBody.scrollHeight;

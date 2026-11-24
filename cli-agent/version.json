@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "name": "Lensetek Local LLM Agent Harness",
+  "release_date": "2026-11-24",
+  "changelog": {
+    "0.2.0": [
+      "Hugging Face Hub model search & direct download (/model search)",
+      "Reasoning & thinking effort depth adjustment (/effort off|low|medium|high)",
+      "Automated startup update check, /update command, and auto-restart",
+      "Full multilingual interface (English, Bahasa Indonesia, 简体中文) via /language",
+      "Headless web search integration with multi-engine fallback (/search)"
+    ],
+    "0.1.0": [
+      "Initial release of Lensetek Local LLM Agent Harness",
+      "Autonomous multi-turn agent with /goal, /loop, and /schedule modes",
+      "Built-in llama.cpp server lifecycle management",
+      "Local workspace file tools with safety sandbox modes"
+    ]
+  }
+}

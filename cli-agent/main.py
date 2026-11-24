@@ -1,18 +1,27 @@
 import os
 import sys
 import argparse
+import threading
 from pathlib import Path
 
 # Aktifkan dukungan ANSI escape sequences di Windows terminal
 os.system("")
 
 import config
+try:
+    import version
+except ImportError:
+    try:
+        from cli_agent import version
+    except ImportError:
+        version = None
 from server_manager import LlamaServerManager
 from tools_fs import LocalWorkspaceTools
 from mcp_client import MCPManager
 from skills_manager import SkillManager
 from scheduler import TaskScheduler
 from web_search import headless_web_search, format_search_results
+from session_manager import SessionManager
 from agent import LeanAgent
 try:
     from i18n import t, get_localized_slash_items
@@ -79,8 +88,37 @@ if HAS_PROMPT_TOOLKIT:
             if " " in text:
                 tokens = text.split()
                 first_word = tokens[0].lower()
-                if first_word == "/mcp" and len(tokens) == 2 and not text.endswith(" "):
-                    sub = tokens[1].lower()
+                trailing_space = text.endswith(" ")
+
+                if first_word == "/model":
+                    sub = "" if trailing_space else (tokens[1].lower() if len(tokens) >= 2 else "")
+                    model_subs = [
+                        ("search", t("model_sub_search", cur_lang)),
+                        ("download", t("model_sub_download", cur_lang)),
+                        ("add", t("model_sub_add", cur_lang))
+                    ]
+                    for sc, desc in model_subs:
+                        if not sub or sc.startswith(sub):
+                            start_pos = 0 if trailing_space or len(tokens) < 2 else -len(tokens[1])
+                            yield Completion(sc, start_position=start_pos, display=sc, display_meta=desc)
+                    return
+
+                elif first_word == "/effort":
+                    sub = "" if trailing_space else (tokens[1].lower() if len(tokens) >= 2 else "")
+                    effort_subs = [
+                        ("off", t("effort_sub_off", cur_lang)),
+                        ("low", t("effort_sub_low", cur_lang)),
+                        ("medium", t("effort_sub_medium", cur_lang)),
+                        ("high", t("effort_sub_high", cur_lang))
+                    ]
+                    for sc, desc in effort_subs:
+                        if not sub or sc.startswith(sub):
+                            start_pos = 0 if trailing_space or len(tokens) < 2 else -len(tokens[1])
+                            yield Completion(sc, start_position=start_pos, display=sc, display_meta=desc)
+                    return
+
+                elif first_word == "/mcp":
+                    sub = "" if trailing_space else (tokens[1].lower() if len(tokens) >= 2 else "")
                     mcp_subs = [
                         ("install", t("mcp_sub_install", cur_lang)),
                         ("test", t("mcp_sub_test", cur_lang)),
@@ -89,27 +127,38 @@ if HAS_PROMPT_TOOLKIT:
                         ("disable", t("mcp_sub_disable", cur_lang))
                     ]
                     for sc, desc in mcp_subs:
-                        if sc.startswith(sub):
-                            yield Completion(sc, start_position=-len(tokens[1]), display=sc, display_meta=desc)
-                elif first_word == "/model" and len(tokens) == 2 and not text.endswith(" "):
-                    sub = tokens[1].lower()
-                    model_subs = [
-                        ("download", t("model_sub_download", cur_lang)),
-                        ("add", t("model_sub_add", cur_lang))
-                    ]
-                    for sc, desc in model_subs:
-                        if sc.startswith(sub):
-                            yield Completion(sc, start_position=-len(tokens[1]), display=sc, display_meta=desc)
-                elif first_word == "/language" and len(tokens) == 2 and not text.endswith(" "):
-                    sub = tokens[1].lower()
+                        if not sub or sc.startswith(sub):
+                            start_pos = 0 if trailing_space or len(tokens) < 2 else -len(tokens[1])
+                            yield Completion(sc, start_position=start_pos, display=sc, display_meta=desc)
+                    return
+
+                elif first_word == "/language":
+                    sub = "" if trailing_space else (tokens[1].lower() if len(tokens) >= 2 else "")
                     lang_opts = [
                         ("en", "English (Default)"),
                         ("id", "Bahasa Indonesia"),
                         ("cn", "简体中文 (Chinese)")
                     ]
                     for lc, ldesc in lang_opts:
-                        if lc.startswith(sub):
-                            yield Completion(lc, start_position=-len(tokens[1]), display=lc, display_meta=ldesc)
+                        if not sub or lc.startswith(sub):
+                            start_pos = 0 if trailing_space or len(tokens) < 2 else -len(tokens[1])
+                            yield Completion(lc, start_position=start_pos, display=lc, display_meta=ldesc)
+                    return
+
+                elif first_word == "/session":
+                    sub = "" if trailing_space else (tokens[1].lower() if len(tokens) >= 2 else "")
+                    session_subs = [
+                        ("list", t("session_sub_list", cur_lang)),
+                        ("new", t("session_sub_new", cur_lang)),
+                        ("switch", t("session_sub_switch", cur_lang)),
+                        ("rename", t("session_sub_rename", cur_lang)),
+                        ("delete", t("session_sub_delete", cur_lang))
+                    ]
+                    for sc, desc in session_subs:
+                        if not sub or sc.startswith(sub):
+                            start_pos = 0 if trailing_space or len(tokens) < 2 else -len(tokens[1])
+                            yield Completion(sc, start_position=start_pos, display=sc, display_meta=desc)
+                    return
                 return
 
             query = text.lower()
@@ -132,15 +181,23 @@ if HAS_PROMPT_TOOLKIT:
                     display_meta=f"[{cat}] {desc[:55]}"
                 )
 
-def print_banner(workspace: Path, model_name: str, ctx_size: int, port: int, mcp_names: list[str], safety_mode: str, skills_count: int, language: str):
+def print_banner(workspace: Path, model_name: str, ctx_size: int, port: int, mcp_names: list[str], safety_mode: str, skills_count: int, language: str, effort: str = "medium", update_info: dict | None = None, session_name: str = "Default Session"):
     lang_name = config.SUPPORTED_LANGUAGES.get(language, language.upper())
     skills_lbl = t("banner_skills_detected", language)
     tip_lbl = t("banner_tip", language)
+    ver_str = f"v{version.APP_VERSION}" if version else ""
     print(f"{C_CYAN}{C_BOLD}===================================================================={C_RESET}")
-    print(f"{C_CYAN}{C_BOLD}        ⚡ LENSETEK LEAN AGENT HARNESS                             {C_RESET}")
+    print(f"{C_CYAN}{C_BOLD}        ⚡ LENSETEK LEAN AGENT HARNESS {ver_str:<10}                  {C_RESET}")
     print(f"{C_CYAN}{C_BOLD}===================================================================={C_RESET}")
+    if update_info and update_info.get("update_available"):
+        lat_v = update_info.get("latest_version")
+        notice = t("update_notice_banner", language, ver=lat_v)
+        print(f" {C_BOLD}{C_YELLOW}{notice}{C_RESET}")
+        print(f"{C_CYAN}--------------------------------------------------------------------{C_RESET}")
+    print(f" {C_BOLD}Session:{C_RESET}   {session_name} {C_DIM}(/session){C_RESET}")
     print(f" {C_BOLD}Workspace:{C_RESET} {workspace}")
     print(f" {C_BOLD}Model:{C_RESET}     {model_name} {C_DIM}(port: {port}, ctx: {ctx_size}){C_RESET}")
+    print(f" {C_BOLD}Effort:{C_RESET}    [{effort.upper()}] {C_DIM}(/effort off|low|medium|high){C_RESET}")
     print(f" {C_BOLD}Language:{C_RESET}  [{language.upper()}] {lang_name} {C_DIM}(/language en|id|cn){C_RESET}")
     print(f" {C_BOLD}Safety:{C_RESET}    [{safety_mode.upper()}] {C_DIM}(/strict, /auto-approve, /yolo){C_RESET}")
     print(f" {C_BOLD}Web Search:{C_RESET}{C_GREEN} Headless Active {C_DIM}(web_search tool & /search <q>){C_RESET}")
@@ -173,6 +230,7 @@ def main():
 
     # Baca preferensi bahasa pengguna terlebih dahulu (default: en)
     active_language = config.get_active_language()
+    active_effort = config.get_active_effort()
 
     workspace_path = Path(args.workspace).resolve()
     model_name = args.model or config.pick_default_model()
@@ -220,16 +278,22 @@ def main():
     mcp_mgr = MCPManager(config_dict=mcp_config, safety_mode=safety_mode)
     skills_mgr = SkillManager(local_skills_dir=config.CLI_DIR / "skills", workspace_root=workspace_path, safety_mode=safety_mode)
     scheduler = TaskScheduler()
+    session_mgr = SessionManager()
+    active_session_data = session_mgr.get_active_session()
 
     agent = LeanAgent(
         base_url=f"http://127.0.0.1:{args.port}",
         fs_tools=fs_tools,
         mcp_manager=mcp_mgr,
         skills_manager=skills_mgr,
+        session_manager=session_mgr,
         ctx_size=args.ctx,
         model_name=model_name,
-        language=active_language
+        language=active_language,
+        effort_level=active_effort
     )
+    if active_session_data:
+        agent.load_session(active_session_data)
 
     def on_status(msg):
         if not args.once:
@@ -301,15 +365,33 @@ def main():
         except Exception:
             prompt_session = None
 
+    # Cek update secara non-blocking di latar belakang saat startup
+    startup_update_info = None
+    if version:
+        def _bg_check_update():
+            nonlocal startup_update_info
+            try:
+                startup_update_info = version.check_for_updates(timeout_sec=2.5)
+            except Exception:
+                pass
+
+        up_thread = threading.Thread(target=_bg_check_update, daemon=True)
+        up_thread.start()
+        up_thread.join(timeout=0.9)  # beri jeda hingga 0.9s untuk fetch cepat
+
     # --- INTERACTIVE CLI UI ---
     all_skills = skills_mgr.scan_skills()
-    print_banner(workspace_path, model_name, args.ctx, args.port, mcp_mgr.get_server_names(), safety_mode, len(all_skills), active_language)
+    curr_sess_info = session_mgr.get_active_session()
+    print_banner(workspace_path, model_name, args.ctx, args.port, mcp_mgr.get_server_names(), safety_mode, len(all_skills), active_language, active_effort, startup_update_info, session_name=curr_sess_info.get("name", "Default Session"))
 
     try:
         while True:
+            cur_sess = session_mgr.get_active_session()
+            sess_name_disp = cur_sess.get("name", "Default")[:20]
+            user_turns = len([m for m in cur_sess.get("messages", []) if m.get("role") == "user"])
             total_tok = agent.last_usage.get("total_tokens", 0)
             pct = (total_tok / args.ctx) * 100.0 if args.ctx else 0.0
-            print(f"{C_DIM}~ [{workspace_path.name}] {pct:.1f}%/{args.ctx // 1024}k tok [{safety_mode.upper()}|{active_language.upper()}] ({model_name}){C_RESET}")
+            print(f"{C_DIM}~ [{workspace_path.name}] [Sess: {sess_name_disp} ({user_turns} msgs)] {pct:.1f}%/{args.ctx // 1024}k tok [{safety_mode.upper()}|{active_language.upper()}|EFFORT:{active_effort.upper()}] ({model_name}){C_RESET}")
 
             try:
                 if prompt_session:
@@ -348,6 +430,200 @@ def main():
                     print(f"{C_CYAN}{t('chat_cleared', active_language)}{C_RESET}\n")
                     continue
 
+                # --- SESSION COMMAND (MENAMPILKAN HISTORY LANGSUNG) ---
+                elif cmd == "/session":
+                    sub_parts = arg.split(maxsplit=1) if arg else []
+                    s_action = sub_parts[0].lower() if sub_parts else ""
+                    s_param = sub_parts[1].strip() if len(sub_parts) > 1 else ""
+
+                    if s_action in ("new", "create"):
+                        new_s = session_mgr.create_session(s_param or "", model_name=model_name or "")
+                        agent.load_session(new_s)
+                        print(f"{C_GREEN}✓ {t('session_created', active_language)} '{new_s['name']}' ({new_s['id']}){C_RESET}\n")
+                        continue
+
+                    if s_action in ("switch", "use"):
+                        if not s_param:
+                            print(f"{C_YELLOW}Usage: /session switch <id|number>{C_RESET}\n")
+                        else:
+                            ok, msg, s_data = session_mgr.switch_session(s_param)
+                            if ok and s_data:
+                                agent.load_session(s_data)
+                                print(f"{C_GREEN}✓ {t('session_switched', active_language)} '{s_data['name']}' ({s_data['id']}){C_RESET}\n")
+                                print(f"{session_mgr.format_session_history(s_data['id'], lang=active_language)}\n")
+                            else:
+                                print(f"{C_RED}{msg}{C_RESET}\n")
+                        continue
+
+                    if s_action in ("rename", "mv"):
+                        target_id = None
+                        new_name = ""
+                        if not s_param:
+                            act_session = session_mgr.get_active_session()
+                            cur_name = act_session.get("name", "Session")
+                            print(f"{C_CYAN}Mengubah nama sesi aktif: {C_BOLD}{cur_name}{C_RESET}")
+                            new_name = input("Masukkan nama sesi baru (Enter new name): ").strip()
+                        else:
+                            parts = s_param.split(maxsplit=1)
+                            all_s = session_mgr.list_sessions()
+                            if parts[0].isdigit() and int(parts[0]) <= len(all_s) and len(parts) > 1:
+                                target_id = parts[0]
+                                new_name = parts[1].strip()
+                            elif any(s["id"] == parts[0] for s in all_s) and len(parts) > 1:
+                                target_id = parts[0]
+                                new_name = parts[1].strip()
+                            else:
+                                target_id = None
+                                new_name = s_param.strip()
+
+                        if not new_name:
+                            print(f"{C_YELLOW}Perubahan nama dibatalkan (nama kosong).{C_RESET}\n")
+                        else:
+                            ok, msg = session_mgr.rename_session(target_id, new_name)
+                            if ok:
+                                cur_s = session_mgr.get_active_session()
+                                agent.load_session(cur_s)
+                                print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                            else:
+                                print(f"{C_RED}{msg}{C_RESET}\n")
+                        continue
+
+                    if s_action in ("delete", "rm", "remove"):
+                        if not s_param:
+                            print(f"{C_YELLOW}Usage: /session delete <id|number>{C_RESET}\n")
+                        else:
+                            ok, msg = session_mgr.delete_session(s_param)
+                            if ok:
+                                cur_s = session_mgr.get_active_session()
+                                agent.load_session(cur_s)
+                                print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                            else:
+                                print(f"{C_RED}{msg}{C_RESET}\n")
+                        continue
+
+                    # Menampilkan riwayat percakapan sesi aktif secara langsung
+                    act_id = session_mgr.get_active_session_id()
+                    print(f"\n{session_mgr.format_session_history(act_id, lang=active_language)}\n")
+
+                    # Menampilkan daftar session dan menu aksi interaktif
+                    all_sessions = session_mgr.list_sessions()
+                    sess_title = t("session_title", active_language)
+                    print(f"{C_BOLD}{sess_title}{C_RESET}")
+                    for idx, s in enumerate(all_sessions, start=1):
+                        is_active = (s["id"] == act_id)
+                        marker = f" {C_GREEN}* {t('session_active_marker', active_language)}{C_RESET}" if is_active else ""
+                        up_time = s.get("updated_at", "")[:16].replace("T", " ")
+                        print(f"  [{idx}] {C_BOLD}{s['name']}{C_RESET} {C_DIM}(ID: {s['id']} | {s['total_messages']} msgs | {up_time}){C_RESET}{marker}")
+
+                    print(f"\n{C_BOLD}Session Actions / Pilihan Aksi Sesi:{C_RESET}")
+                    print(f"  [{C_CYAN}1-{len(all_sessions)}{C_RESET}] {t('session_sub_switch', active_language)}")
+                    print(f"  [{C_CYAN}n{C_RESET}] {t('session_sub_new', active_language)} (/session new [nama])")
+                    print(f"  [{C_CYAN}r{C_RESET}] {t('session_sub_rename', active_language)} (/session rename <nama>)")
+                    print(f"  [{C_CYAN}d{C_RESET}] {t('session_sub_delete', active_language)} (/session delete <id>)")
+
+                    prompt_str = t("session_prompt", active_language, count=len(all_sessions))
+                    choice = input(f"\n{prompt_str}").strip()
+                    if not choice:
+                        continue
+
+                    if choice.lower() in ("n", "new"):
+                        name_in = input("Enter new session name (or press enter for default): ").strip()
+                        new_s = session_mgr.create_session(name_in, model_name=model_name or "")
+                        agent.load_session(new_s)
+                        print(f"{C_GREEN}✓ {t('session_created', active_language)} '{new_s['name']}' ({new_s['id']}){C_RESET}\n")
+                    elif choice.lower().startswith("r ") or choice.lower() == "r":
+                        r_param = choice[2:].strip() if choice.lower().startswith("r ") else ""
+                        target_id = None
+                        new_name = ""
+                        if not r_param:
+                            act_session = session_mgr.get_active_session()
+                            cur_name = act_session.get("name", "Session")
+                            print(f"{C_CYAN}Mengubah nama sesi aktif: {C_BOLD}{cur_name}{C_RESET}")
+                            new_name = input("Masukkan nama sesi baru (Enter new name): ").strip()
+                        else:
+                            parts = r_param.split(maxsplit=1)
+                            if parts[0].isdigit() and int(parts[0]) <= len(all_sessions) and len(parts) > 1:
+                                target_id = parts[0]
+                                new_name = parts[1].strip()
+                            else:
+                                target_id = None
+                                new_name = r_param.strip()
+
+                        if new_name:
+                            ok, msg = session_mgr.rename_session(target_id, new_name)
+                            if ok:
+                                cur_s = session_mgr.get_active_session()
+                                agent.load_session(cur_s)
+                                print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                            else:
+                                print(f"{C_RED}{msg}{C_RESET}\n")
+                    elif choice.lower().startswith("d ") or choice.lower() == "d":
+                        d_target = choice[2:].strip() if choice.lower().startswith("d ") else input("Enter session number or ID to delete: ").strip()
+                        if d_target:
+                            ok, msg = session_mgr.delete_session(d_target)
+                            if ok:
+                                cur_s = session_mgr.get_active_session()
+                                agent.load_session(cur_s)
+                            print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
+                    elif choice.isdigit():
+                        ok, msg, s_data = session_mgr.switch_session(choice)
+                        if ok and s_data:
+                            agent.load_session(s_data)
+                            print(f"{C_GREEN}✓ {t('session_switched', active_language)} '{s_data['name']}' ({s_data['id']}){C_RESET}\n")
+                            print(f"{session_mgr.format_session_history(s_data['id'], lang=active_language)}\n")
+                        else:
+                            print(f"{C_RED}{msg}{C_RESET}\n")
+                    continue
+
+                # --- UPDATE COMMAND ---
+                elif cmd == "/update":
+                    if not version:
+                        print(f"{C_RED}[ERROR] Version & Update module not loaded.{C_RESET}\n")
+                        continue
+
+                    print(f"\n{C_CYAN}⏳ {t('update_checking', active_language)}{C_RESET}")
+                    u_info = version.check_for_updates(timeout_sec=5.0, force_refresh=True)
+                    cur_v = u_info.get("current_version", version.APP_VERSION)
+                    latest_v = u_info.get("latest_version", cur_v)
+                    whats_new = u_info.get("whats_new", [])
+                    has_update = u_info.get("update_available", False)
+
+                    print(f"\n{C_BOLD}=== {t('update_header', active_language)} ==={C_RESET}")
+                    print(f"  • {C_BOLD}{t('update_current_ver', active_language)}:{C_RESET} {C_CYAN}v{cur_v}{C_RESET}")
+                    print(f"  • {C_BOLD}{t('update_latest_ver', active_language)}:{C_RESET} {C_GREEN}v{latest_v}{C_RESET}")
+
+                    if has_update:
+                        wn_title = t("update_whats_new_title", active_language, ver=latest_v)
+                        print(f"\n{C_BOLD}{C_YELLOW}★ {wn_title}{C_RESET}")
+                        for item in whats_new:
+                            print(f"  • {item}")
+
+                        confirm_lbl = t("update_confirm_prompt", active_language)
+                        ask_up = input(f"\n{C_BOLD}{confirm_lbl}{C_RESET}").strip().lower()
+                        if ask_up in ("", "y", "yes"):
+                            print(f"\n{C_CYAN}{t('update_in_progress', active_language)}{C_RESET}")
+                            ok, msg = version.perform_update()
+                            if ok:
+                                print(f"{C_GREEN}✓ {t('update_success', active_language)}{C_RESET}\n")
+                                mcp_mgr.close_all()
+                                if started_by_us and server_mgr:
+                                    server_mgr.stop()
+                                version.restart_application()
+                            else:
+                                err_msg = t("update_failed", active_language, error=msg)
+                                print(f"{C_RED}[ERROR] {err_msg}{C_RESET}\n")
+                        else:
+                            print(f"{C_DIM}{t('update_cancelled', active_language)}{C_RESET}\n")
+                    else:
+                        latest_msg = t("update_already_latest", active_language, ver=cur_v)
+                        print(f"\n{C_GREEN}✓ {latest_msg}{C_RESET}")
+                        wn_title = t("update_whats_new_title", active_language, ver=cur_v)
+                        print(f"\n{C_BOLD}{wn_title}{C_RESET}")
+                        for item in version.get_whats_new(cur_v):
+                            print(f"  • {item}")
+                        print()
+                    continue
+
                 # --- LANGUAGE COMMAND ---
                 elif cmd == "/language":
                     if not arg:
@@ -361,6 +637,52 @@ def main():
                             active_language = config.get_active_language()
                             agent.set_language(active_language)
                             print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                        else:
+                            print(f"{C_RED}{msg}{C_RESET}\n")
+                    continue
+
+                # --- EFFORT (REASONING / THINKING DEPTH) COMMAND ---
+                elif cmd == "/effort":
+                    if not arg:
+                        has_thinking, reason_str = config.check_model_thinking_support(model_name)
+                        eff_title = t("effort_title", active_language)
+                        print(f"\n{C_BOLD}{eff_title}{C_RESET}")
+                        print(f"  • {C_BOLD}{t('effort_active_model', active_language)}{C_RESET} {model_name or 'None'}")
+                        support_badge = f"{C_GREEN}YES ({reason_str}){C_RESET}" if has_thinking else f"{C_YELLOW}NO ({reason_str}){C_RESET}"
+                        print(f"  • {C_BOLD}{t('effort_support_status', active_language)}{C_RESET} {support_badge}")
+                        curr_eff = config.get_active_effort()
+                        print(f"  • {C_BOLD}{t('effort_current_level', active_language)}{C_RESET} {C_CYAN}[{curr_eff.upper()}]{C_RESET}")
+                        print(f"\n{C_BOLD}{t('effort_options_title', active_language)}{C_RESET}")
+                        levels_list = list(config.SUPPORTED_EFFORT_LEVELS.keys())
+                        for idx, (lvl, desc) in enumerate(config.SUPPORTED_EFFORT_LEVELS.items(), start=1):
+                            marker = f" {C_GREEN}* active{C_RESET}" if lvl == curr_eff else ""
+                            print(f"  [{C_CYAN}{idx}{C_RESET}] {C_BOLD}{lvl:<8}{C_RESET}: {desc}{marker}")
+
+                        if active_language == "id":
+                            eff_prompt = f"\nPilih nomor (1-{len(levels_list)}) atau nama (off|low|medium|high), atau enter untuk batal: "
+                        elif active_language == "cn":
+                            eff_prompt = f"\n选择序号 (1-{len(levels_list)}) 或输入强度 (off|low|medium|high), 或按回车取消: "
+                        else:
+                            eff_prompt = f"\nSelect number (1-{len(levels_list)}) or level name (off|low|medium|high), or press enter to cancel: "
+
+                        user_choice = input(eff_prompt).strip().lower()
+                        if user_choice:
+                            ok, msg = config.set_active_effort(user_choice)
+                            if ok:
+                                active_effort = config.get_active_effort()
+                                agent.set_effort(active_effort)
+                                print(f"{C_GREEN}{t('effort_updated', active_language)} {active_effort.upper()}{C_RESET}\n")
+                            else:
+                                print(f"{C_RED}{msg}{C_RESET}\n")
+                        else:
+                            print(f"{C_DIM}{t('effort_tip', active_language)}{C_RESET}\n")
+                    else:
+                        lvl_arg = arg.strip().lower()
+                        ok, msg = config.set_active_effort(lvl_arg)
+                        if ok:
+                            active_effort = config.get_active_effort()
+                            agent.set_effort(active_effort)
+                            print(f"{C_GREEN}{t('effort_updated', active_language)} {active_effort.upper()}{C_RESET}\n")
                         else:
                             print(f"{C_RED}{msg}{C_RESET}\n")
                     continue
@@ -560,6 +882,73 @@ def main():
                             print(f"{C_RED}{msg}{C_RESET}\n")
                         continue
 
+                    def do_model_search(query_str: str):
+                        nonlocal model_name
+                        query = query_str
+                        if not query:
+                            q_prompt = t("hf_search_query_prompt", active_language)
+                            query = input(q_prompt).strip()
+                        if not query:
+                            return
+
+                        import hf_hub
+                        print(f"\n{C_CYAN}Searching Hugging Face Hub for '{query}' (filter: GGUF)...{C_RESET}")
+                        results = hf_hub.search_hf_gguf_models(query, limit=10)
+                        if not results:
+                            print(f"{C_YELLOW}{t('hf_search_no_results', active_language)} '{query}'{C_RESET}\n")
+                            return
+
+                        search_title = t("hf_search_title", active_language)
+                        print(f"\n{C_BOLD}{search_title}{C_RESET}")
+                        for idx, item in enumerate(results, start=1):
+                            dl_count = item.get("downloads", 0)
+                            likes = item.get("likes", 0)
+                            sz_disp = item.get("size_display")
+                            sz_badge = f" | {C_GREEN}📦 {sz_disp}{C_RESET}" if sz_disp and sz_disp != "N/A" else ""
+                            print(f"  [{idx}] {C_CYAN}{item.get('id')}{C_RESET} (↓ {dl_count:,} | ♥ {likes}{sz_badge})")
+
+                        choice_prompt = t("hf_search_select_repo", active_language, count=len(results))
+                        repo_choice = input(f"\n{choice_prompt}").strip()
+                        if not repo_choice.isdigit() or not (1 <= int(repo_choice) <= len(results)):
+                            return
+
+                        selected_repo = results[int(repo_choice) - 1]["id"]
+                        print(f"\n{C_CYAN}Fetching GGUF files for {selected_repo}...{C_RESET}")
+                        files = hf_hub.list_hf_gguf_files(selected_repo)
+                        if not files:
+                            print(f"{C_YELLOW}{t('hf_files_no_gguf', active_language)}{C_RESET}\n")
+                            return
+
+                        files_title = t("hf_files_title", active_language, repo=selected_repo)
+                        print(f"\n{C_BOLD}{files_title}{C_RESET}")
+                        for f_idx, f_item in enumerate(files, start=1):
+                            print(f"  [{f_idx}] {C_GREEN}{f_item.get('path')}{C_RESET} {C_DIM}({f_item.get('size_display')}){C_RESET}")
+
+                        file_prompt = t("hf_files_select", active_language, count=len(files))
+                        file_choice = input(f"\n{file_prompt}").strip()
+                        if not file_choice.isdigit() or not (1 <= int(file_choice) <= len(files)):
+                            return
+
+                        chosen_file = files[int(file_choice) - 1]["path"]
+                        models_dir = config.REPO_ROOT / "models"
+                        ok, msg, path_res = hf_hub.download_hf_gguf_file(selected_repo, chosen_file, models_dir, lang=active_language)
+                        if ok and path_res:
+                            print(f"\n{C_GREEN}✓ {msg}{C_RESET}\n")
+                            ask_sw = input(t("model_switch_ask", active_language)).strip().lower()
+                            if ask_sw in ("", "y", "yes") and server_mgr:
+                                chosen_name = Path(path_res).name
+                                server_mgr.start(str(path_res))
+                                model_name = chosen_name
+                                agent.model_name = chosen_name
+                                agent.reset_session()
+                                print(f"{C_GREEN}{t('model_switch_success', active_language)} {model_name}{C_RESET}\n")
+                        else:
+                            print(f"\n{C_RED}{msg}{C_RESET}\n")
+
+                    if sub_cmd == "search":
+                        do_model_search(sub_val)
+                        continue
+
                     if sub_cmd == "download":
                         if sub_val:
                             ok, msg, path_res = config.download_model_from_catalog(sub_val, lang=active_language)
@@ -604,14 +993,52 @@ def main():
                         marker = f"{C_GREEN}* active{C_RESET}" if m == model_name or p.name == model_name else ""
                         print(f"  [{idx}] {m_display} {C_DIM}{size_str}{C_RESET} {marker}")
 
-                    print(f"\n{C_DIM}{t('model_selection_tip', active_language)}{C_RESET}")
-                    choice_prompt = t("model_select_prompt", active_language, count=len(available))
+                    print(f"\n{C_BOLD}Model Actions / Pilihan Aksi:{C_RESET}")
+                    print(f"  [{C_CYAN}s{C_RESET}] {t('model_sub_search', active_language)} (/model search)")
+                    print(f"  [{C_CYAN}d{C_RESET}] {t('model_sub_download', active_language)} (/model download)")
+                    print(f"  [{C_CYAN}a{C_RESET}] {t('model_sub_add', active_language)} (/model add <path>)")
+
+                    if active_language == "id":
+                        choice_prompt = f"\nPilih nomor (1-{len(available)}), 's' (cari HF), 'd' (katalog), 'a' (tambah), atau enter: "
+                    elif active_language == "cn":
+                        choice_prompt = f"\n输入模型序号 (1-{len(available)}), 's' (搜索HF), 'd' (推荐目录), 'a' (添加), 或按回车: "
+                    else:
+                        choice_prompt = f"\nEnter model number (1-{len(available)}), 's' (search HF), 'd' (catalog), 'a' (add), or press enter: "
+
                     choice = input(choice_prompt).strip()
 
-                    if choice.lower().startswith("add "):
-                        add_path = choice[4:].strip()
-                        ok, msg = config.add_custom_model_path(add_path)
-                        print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
+                    if choice.lower() in ("s", "search") or choice.lower().startswith("search ") or choice.lower().startswith("s "):
+                        s_q = ""
+                        if " " in choice:
+                            s_q = choice.split(maxsplit=1)[1].strip()
+                        do_model_search(s_q)
+                        continue
+
+                    if choice.lower() in ("d", "download") or choice.lower().startswith("download "):
+                        d_id = choice.split(maxsplit=1)[1].strip() if " " in choice else ""
+                        if d_id:
+                            ok, msg, path_res = config.download_model_from_catalog(d_id, lang=active_language)
+                            if ok and path_res:
+                                print(f"{C_GREEN}✓ {msg}{C_RESET}\n")
+                        else:
+                            catalog = config.load_model_catalog()
+                            cat_title = t("catalog_title", active_language)
+                            print(f"\n{C_BOLD}{cat_title}{C_RESET}")
+                            for m in catalog.get("models", []):
+                                print(f"  • {C_CYAN}{m.get('id')}{C_RESET} ({m.get('size_display')}): {m.get('name')}")
+                            print(f"\n{C_DIM}{t('model_download_tip', active_language)}{C_RESET}\n")
+                        continue
+
+                    if choice.lower().startswith("add ") or choice.lower().startswith("a ") or choice.lower() == "a":
+                        if choice.lower().startswith("add "):
+                            add_path = choice[4:].strip()
+                        elif choice.lower().startswith("a "):
+                            add_path = choice[2:].strip()
+                        else:
+                            add_path = input("Enter custom GGUF model path or folder: ").strip()
+                        if add_path:
+                            ok, msg = config.add_custom_model_path(add_path)
+                            print(f"{C_GREEN if ok else C_RED}{msg}{C_RESET}\n")
                         continue
 
                     if choice.isdigit() and 1 <= int(choice) <= len(available):

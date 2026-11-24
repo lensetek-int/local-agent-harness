@@ -351,3 +351,46 @@ def set_active_language(lang_code: str) -> tuple[bool, str]:
     st["language"] = code
     save_user_settings(st)
     return True, f"Language successfully updated to: {SUPPORTED_LANGUAGES[code]} ({code})"
+
+SUPPORTED_EFFORT_LEVELS = {
+    "off": "Thinking disabled (fast direct responses without internal monologue)",
+    "low": "Concise reasoning (brief focused chain of thought)",
+    "medium": "Balanced reasoning (standard exploratory thinking)",
+    "high": "Deep iterative reasoning (rigorous deep thinking & verification)"
+}
+
+def get_active_effort() -> str:
+    """Mendapatkan tingkat thinking effort aktif ('off', 'low', 'medium', 'high'). Default: 'medium'."""
+    st = load_user_settings()
+    eff = st.get("effort", "medium").lower().strip()
+    if eff in SUPPORTED_EFFORT_LEVELS:
+        return eff
+    return "medium"
+
+def set_active_effort(effort_level: str) -> tuple[bool, str]:
+    """Mengubah dan menyimpan tingkat thinking effort ke user_settings.json."""
+    level = effort_level.lower().strip()
+    num_map = {"1": "off", "2": "low", "3": "medium", "4": "high", "med": "medium"}
+    if level in num_map:
+        level = num_map[level]
+    if level not in SUPPORTED_EFFORT_LEVELS:
+        opts = ", ".join(SUPPORTED_EFFORT_LEVELS.keys())
+        return False, f"Invalid effort level '{effort_level}'. Supported: {opts} (or 1-4)"
+    st = load_user_settings()
+    st["effort"] = level
+    save_user_settings(st)
+    return True, f"Reasoning effort set to: '{level}' ({SUPPORTED_EFFORT_LEVELS[level]})"
+
+def check_model_thinking_support(model_name: str | None) -> tuple[bool, str]:
+    """
+    Mengecek apakah model yang sedang aktif memiliki kemampuan native reasoning / thinking tags (<think>...</think>).
+    """
+    if not model_name:
+        return False, "No active model loaded"
+    m_lower = Path(model_name).name.lower()
+    reasoning_keywords = ["lensetek", "loop", "r1", "reasoning", "think", "qwq", "deepseek"]
+    for kw in reasoning_keywords:
+        if kw in m_lower:
+            return True, f"Native reasoning & iterative loop supported ({kw})"
+    return False, "Standard autoregressive model (no specialized reasoning token pattern)"
+
