@@ -23,6 +23,7 @@ tags:
 # lensetek-edge-ai-agent
 ### Self-Contained Local Edge AI Studio & OpenAI-Compatible API for AI Agents
 
+🌐 **Official Website / Website Resmi**: [**lensetek.com**](https://lensetek.com) • [**GitHub Organization**](https://github.com/lensetek-int)  
 🌐 **Language Navigation / Navigasi Bahasa / 语言导航**:  
 [English](#-english) • [Bahasa Indonesia](#-bahasa-indonesia) • [简体中文](#-chinese-简体中文)
 
