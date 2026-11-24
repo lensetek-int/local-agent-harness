@@ -12,7 +12,7 @@ You manage files in the workspace/laptop, assist with coding, operate MCP server
 
 CORE GUIDELINES:
 1. Always inspect files using `list_dir`, `search_files`, or `read_file` before making modifications.
-2. You have full filesystem and shell execution tools. When asked to create, generate, or edit any file, code, or document, always execute it directly in the active workspace using `write_or_edit_file` (mode='write' or 'edit', or a script via `run_command` for binary formats) rather than refusing or only printing text in chat.
+2. You have full filesystem and shell execution tools. When asked to create, generate, or edit any file, code, or document, or when asked if you can create files, NEVER refuse and NEVER say "As an AI, I cannot create files". Immediately execute directly in the active workspace using `write_or_edit_file` (mode='write' or 'edit', or a script via `run_command` for binary formats) rather than giving code examples, tutorials, or plain text in chat.
 3. You have HEADLESS WEB SEARCH capability via `web_search(query)`. If you need up-to-date information, documentation, news, or technical solutions, use `web_search` first. To read full article/page contents from a discovered URL, call MCP fetch (`mcp_call` with server='fetch', tool='fetch', arguments={'url': ...}).
 4. For browser or external MCP tools, call `mcp_list_tools` first to see available tools before calling `mcp_call`.
 5. SKILLS ARE NOT MCP SERVERS:
@@ -26,7 +26,7 @@ Tugas Anda mengelola file di workspace aktif, membantu coding, mengoperasikan MC
 
 PEDOMAN KERJA:
 1. Selalu periksa file dengan `list_dir`, `search_files`, atau `read_file` sebelum memodifikasi file.
-2. Anda memiliki akses penuh ke filesystem dan terminal. Saat diminta membuat, menulis, atau mengedit file, kode, maupun dokumen apa pun, selalu eksekusi langsung di workspace aktif menggunakan `write_or_edit_file` (mode='write' atau 'edit', atau skrip via `run_command` untuk format biner) alih-alih menolak atau hanya menampilkan teks di chat.
+2. Anda memiliki akses penuh ke filesystem dan terminal. Saat diminta membuat, menulis, atau mengedit file, kode, maupun dokumen apa pun (atau saat ditanya apakah Anda bisa membuatnya), JANGAN PERNAH menolak dan JANGAN PERNAH berkata "Sebagai asisten AI saya tidak dapat membuat file". Eksekusi langsung di workspace aktif menggunakan `write_or_edit_file` (mode='write' atau 'edit', atau skrip via `run_command` untuk format biner) alih-alih hanya memberikan contoh kode, tutorial, atau teks di chat.
 3. Anda memiliki kemampuan PENCARIAN WEB HEADLESS via `web_search(query)`. Gunakan tool ini jika Anda membutuhkan informasi terbaru, dokumentasi, tren, atau solusi error teknis sebelum menjawab. Untuk membaca isi lengkap dari URL yang ditemukan, panggil MCP fetch (`mcp_call` dengan server='fetch', tool='fetch', arguments={'url': ...}).
 4. Untuk browser atau MCP eksternal: panggil `mcp_list_tools` terlebih dahulu untuk melihat daftar tool yang tersedia sebelum memanggil `mcp_call`.
 5. ATURAN SKILL & MCP (PENTING):
@@ -40,7 +40,7 @@ PEDOMAN KERJA:
 
 工作准则：
 1. 在修改文件之前，务必先通过 `list_dir`、`search_files` 或 `read_file` 检查文件内容。
-2. 您拥有完整的文件系统与终端执行权限。当用户要求创建、编写或编辑任何文件、代码或文档时，务必直接使用 `write_or_edit_file`（mode='write' 或 'edit'，二进制格式可通过 `run_command` 运行生成脚本）在当前工作区落地执行，切勿推脱或仅在对话中输出文本。
+2. 您拥有完整的文件系统与终端执行权限。当用户要求创建、编写或编辑任何文件、代码或文档，或询问您是否能够创建时，切勿推脱，切勿声称“作为AI我无法直接创建文件”。务必直接使用 `write_or_edit_file`（mode='write' 或 'edit'，二进制格式可通过 `run_command` 运行生成脚本）在当前工作区落地执行，切勿仅输出示例代码、教程或解释性文本。
 3. 您具备无头网络搜索功能 `web_search(query)`。当您需要获取最新资讯、学术文献或报错解决方案时，请先使用 `web_search`。如需阅读搜索结果中URL的完整内容，请调用 MCP fetch（`mcp_call`，server='fetch'）。
 4. 对于浏览器或其他MCP服务，在调用 `mcp_call` 前请先通过 `mcp_list_tools` 查看可用工具。
 5. 技能与MCP规范（重要）：
@@ -213,29 +213,88 @@ class LeanAgent:
                 del self.messages[1:3]
 
     def _parse_xml_tool_calls(self, text: str) -> list[dict]:
-        """Fallback parser jika model SLM menghasilkan tag <tool_call>...</tool_call> langsung di teks."""
+        """Fallback parser when a 3B SLM emits <tool_call>{...}</tool_call> or a literal Python tool call in text."""
         tool_calls = []
-        if not text or "<tool_call>" not in text:
+        if not text:
             return tool_calls
 
-        pattern = r"<tool_call>\s*(\{.*?\})\s*</tool_call>"
-        matches = re.findall(pattern, text, re.DOTALL)
-        for idx, match in enumerate(matches):
-            try:
-                data = json.loads(match.strip())
-                name = data.get("name")
-                args = data.get("arguments", {})
-                if name:
-                    tool_calls.append({
-                        "id": f"call_xml_{idx}",
-                        "type": "function",
-                        "function": {
-                            "name": name,
-                            "arguments": json.dumps(args) if isinstance(args, dict) else str(args)
-                        }
-                    })
-            except Exception:
-                continue
+        if "<tool_call>" in text:
+            pattern = r"<tool_call>\s*(\{.*?\})\s*</tool_call>"
+            matches = re.findall(pattern, text, re.DOTALL)
+            for idx, match in enumerate(matches):
+                try:
+                    data = json.loads(match.strip())
+                    name = data.get("name")
+                    args = data.get("arguments", {})
+                    if name:
+                        tool_calls.append({
+                            "id": f"call_xml_{idx}",
+                            "type": "function",
+                            "function": {
+                                "name": name,
+                                "arguments": json.dumps(args) if isinstance(args, dict) else str(args)
+                            }
+                        })
+                except Exception:
+                    continue
+            if tool_calls:
+                return tool_calls
+
+        # Safe AST fallback if SLM wrote literal `write_or_edit_file(path="...", mode="write", content="...")` in a code block
+        known_tools = {"list_dir", "search_files", "read_file", "write_or_edit_file", "run_command", "web_search"}
+        if any(f"{t}(" in text for t in known_tools):
+            import ast
+            code_blocks = re.findall(r"```(?:python)?\s*([\s\S]*?)```", text)
+            candidates = code_blocks if code_blocks else [text]
+            for blk in candidates:
+                try:
+                    tree = ast.parse(blk.strip())
+                except Exception:
+                    continue
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in known_tools:
+                        if node.args:
+                            continue  # require explicit keyword arguments with constant literals only
+                        kw_dict = {}
+                        valid_literals = True
+                        for kw in node.keywords:
+                            if not kw.arg:
+                                valid_literals = False
+                                break
+                            try:
+                                kw_dict[kw.arg] = ast.literal_eval(kw.value)
+                            except Exception:
+                                # Fallback evaluation for f-strings or string concatenation
+                                if isinstance(kw.value, ast.JoinedStr):
+                                    parts = []
+                                    for part in kw.value.values:
+                                        if isinstance(part, ast.Constant):
+                                            parts.append(str(part.value))
+                                        elif isinstance(part, ast.FormattedValue) and isinstance(part.value, ast.Constant):
+                                            parts.append(str(part.value.value))
+                                    if parts:
+                                        kw_dict[kw.arg] = "".join(parts)
+                                    else:
+                                        valid_literals = False
+                                        break
+                                elif isinstance(kw.value, ast.BinOp) and isinstance(kw.value.op, ast.Add):
+                                    try:
+                                        kw_dict[kw.arg] = str(ast.literal_eval(kw.value.left)) + str(ast.literal_eval(kw.value.right))
+                                    except Exception:
+                                        valid_literals = False
+                                        break
+                                else:
+                                    valid_literals = False
+                                    break
+                        if valid_literals and kw_dict:
+                            tool_calls.append({
+                                "id": f"call_ast_{len(tool_calls)}",
+                                "type": "function",
+                                "function": {
+                                    "name": node.func.id,
+                                    "arguments": json.dumps(kw_dict, ensure_ascii=False)
+                                }
+                            })
         return tool_calls
 
     def _execute_tool(self, name: str, args: dict) -> str:
@@ -296,8 +355,40 @@ class LeanAgent:
 
         return f"Error: Tool '{name}' tidak terdaftar pada sistem."
 
+    def _expand_at_mentions(self, user_text: str) -> str:
+        """Auto-attach content preview for @"file with spaces" or @path/to/file mentions."""
+        if not self.fs_tools or "@" not in user_text:
+            return user_text
+
+        mentioned = []
+        for m in re.finditer(r'@"([^"]+)"|(?:^|\s)@([^\s"\']+)', user_text):
+            raw_p = (m.group(1) or m.group(2) or "").strip()
+            if raw_p and raw_p not in mentioned:
+                mentioned.append(raw_p)
+
+        if not mentioned:
+            return user_text
+
+        blocks = []
+        for rel_p in mentioned[:3]:
+            try:
+                target = self.fs_tools._resolve_path(rel_p)
+                if target.exists() and target.is_file() and self.fs_tools._is_inside_workspace(target):
+                    low = target.name.lower()
+                    if low.startswith(".env") or target.suffix.lower() in {".pem", ".key", ".p12", ".pfx"}:
+                        continue
+                    snippet = self.fs_tools.read_file(rel_p, 1, 90)
+                    blocks.append(f"[ATTACHED FILE: {rel_p}]\n{snippet}")
+            except Exception:
+                continue
+
+        if not blocks:
+            return user_text
+        return user_text + "\n\n" + "\n\n".join(blocks)
+
     def run_turn(self, user_text: str, on_status=None, on_tool=None, max_steps: int = 8) -> str:
-        self.messages.append({"role": "user", "content": user_text})
+        enriched_text = self._expand_at_mentions(user_text)
+        self.messages.append({"role": "user", "content": enriched_text})
         failed_calls = {}
 
         try:
@@ -350,7 +441,7 @@ class LeanAgent:
                 if usage:
                     self.last_usage = usage
 
-                if not raw_tool_calls and "<tool_call>" in content:
+                if not raw_tool_calls and content:
                     raw_tool_calls = self._parse_xml_tool_calls(content)
 
                 if not raw_tool_calls:

@@ -1349,7 +1349,12 @@
         acMatches = workspaceFiles
           .filter((f) => !query || f.path.toLowerCase().includes(query))
           .slice(0, 15)
-          .map((f) => ({ label: '@' + f.path, desc: f.size, cat: 'FILE', raw: '@' + f.path }));
+          .map((f) => ({
+            label: '@' + f.path,
+            desc: f.size,
+            cat: 'FILE',
+            raw: f.path.includes(' ') ? `@"${f.path}"` : `@${f.path}`,
+          }));
       } else if (inp.value.startsWith('/') && !inp.value.includes('\n') && !inp.value.includes(' ')) {
         // 2. Check '/' slash command at start
         const token = inp.value.toLowerCase();

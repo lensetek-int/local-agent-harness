@@ -57,7 +57,11 @@ if [ ! -d "$INSTALL_DIR" ]; then
         mv "$HOME/local-agent-harness-main" "$INSTALL_DIR"
     fi
 else
-    echo "✓ [2/5] Directory $INSTALL_DIR already exists."
+    echo "⬇️  [2/5] Updating existing installation in $INSTALL_DIR..."
+    if [ -d "$INSTALL_DIR/.git" ] && command -v git &>/dev/null; then
+        git -C "$INSTALL_DIR" pull --quiet || true
+    fi
+    echo "✓ [2/5] Directory $INSTALL_DIR is up to date."
 fi
 
 # 3. Install Dependencies

@@ -154,12 +154,147 @@ class LocalWorkspaceTools:
 
         return "\n".join(matches) if matches else f"Tidak ditemukan kecocokan untuk: '{query}'"
 
+    def _extract_docx_lines(self, target: Path) -> list[str]:
+        import zipfile
+        import xml.etree.ElementTree as ET
+        lines = []
+        with zipfile.ZipFile(target, "r") as zf:
+            xml_bytes = zf.read("word/document.xml")
+        root = ET.fromstring(xml_bytes)
+        ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+        for p in root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"):
+            texts = [t.text for t in p.findall(".//w:t", ns) if t.text]
+            row_txt = "".join(texts).strip()
+            if row_txt:
+                lines.append(row_txt)
+        return lines
+
+    def _extract_pdf_lines(self, target: Path) -> list[str]:
+        # 1. PyMuPDF (fitz)
+        try:
+            import fitz
+            doc = fitz.open(str(target))
+            lines = []
+            for page_idx, page in enumerate(doc, start=1):
+                lines.append(f"--- [Page {page_idx}] ---")
+                for ln in page.get_text("text").splitlines():
+                    if ln.strip():
+                        lines.append(ln.strip())
+            doc.close()
+            return lines
+        except ImportError:
+            pass
+
+        # 2. pypdf (auto-install lightweight pure-Python wheel on demand if missing)
+        try:
+            import pypdf
+        except ImportError:
+            subprocess.run([sys.executable, "-m", "pip", "install", "--quiet", "--no-cache-dir", "pypdf"], check=False)
+            import pypdf
+
+        reader = pypdf.PdfReader(str(target))
+        lines = []
+        for page_idx, page in enumerate(reader.pages, start=1):
+            lines.append(f"--- [Page {page_idx}] ---")
+            txt = page.extract_text() or ""
+            for ln in txt.splitlines():
+                if ln.strip():
+                    lines.append(ln.strip())
+        return lines
+
+    def _write_docx_file(self, target_path: Path, content: str):
+        """Write Markdown/plain text content as a valid Microsoft Word (.docx) document."""
+        try:
+            import docx
+            doc = docx.Document()
+            for raw_line in content.splitlines():
+                ln = raw_line.rstrip()
+                if not ln:
+                    continue
+                if ln.startswith("### "):
+                    doc.add_heading(ln[4:].strip(), level=3)
+                elif ln.startswith("## "):
+                    doc.add_heading(ln[3:].strip(), level=2)
+                elif ln.startswith("# "):
+                    doc.add_heading(ln[2:].strip(), level=1)
+                elif ln.lstrip().startswith(("- ", "* ")):
+                    doc.add_paragraph(ln.lstrip()[2:].strip(), style="List Bullet")
+                else:
+                    clean_ln = ln.replace("**", "")
+                    doc.add_paragraph(clean_ln)
+            doc.save(str(target_path))
+            return
+        except ImportError:
+            pass
+
+        # Pure-stdlib OpenXML fallback (zero external dependencies)
+        import zipfile
+        from xml.sax.saxutils import escape as xml_escape
+
+        paras_xml = []
+        for raw_line in content.splitlines():
+            ln = raw_line.strip()
+            if not ln:
+                continue
+            is_heading = ln.startswith("#")
+            clean_txt = xml_escape(ln.lstrip("#").strip().replace("**", ""))
+            if is_heading:
+                paras_xml.append(
+                    f'<w:p><w:r><w:rPr><w:b/><w:sz w:val="32"/></w:rPr><w:t>{clean_txt}</w:t></w:r></w:p>'
+                )
+            else:
+                paras_xml.append(f'<w:p><w:r><w:t>{clean_txt}</w:t></w:r></w:p>')
+
+        doc_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+            f'<w:body>{"".join(paras_xml)}</w:body></w:document>'
+        )
+        content_types = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+            '</Types>'
+        )
+        rels_xml = (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+            '</Relationships>'
+        )
+        with zipfile.ZipFile(target_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("[Content_Types].xml", content_types)
+            zf.writestr("_rels/.rels", rels_xml)
+            zf.writestr("word/document.xml", doc_xml)
+
     def read_file(self, path: str, start_line: int = 1, end_line: int = 120) -> str:
         target = self._resolve_path(path)
         if not target.exists():
             return f"Error: File '{path}' ({target}) tidak ditemukan."
         if not target.is_file():
             return f"Error: '{path}' bukan sebuah file."
+
+        start_line = max(1, int(start_line))
+        end_line = max(start_line, int(end_line))
+        if end_line - start_line > 150:
+            end_line = start_line + 150
+
+        ext = target.suffix.lower()
+        if ext in (".docx", ".pdf"):
+            try:
+                all_lines = self._extract_docx_lines(target) if ext == ".docx" else self._extract_pdf_lines(target)
+                total = len(all_lines)
+                sliced = all_lines[start_line - 1 : end_line]
+                if not sliced:
+                    return f"File '{path}' memiliki total {total} baris (tidak ada baris antara {start_line}..{end_line})."
+                out = [f"[Total lines: {total} | Showing {start_line}..{min(end_line, total)}]"]
+                for idx, ln in enumerate(sliced, start=start_line):
+                    out.append(f"{idx}: {ln[:300]}")
+                return "\n".join(out)
+            except Exception as e:
+                return f"Error mengekstrak teks dari '{path}': {e}"
 
         try:
             with open(target, "rb") as bf:
@@ -168,11 +303,6 @@ class LocalWorkspaceTools:
                     return f"Error: File '{path}' terdeteksi sebagai binary, tidak dapat dibaca sebagai teks."
         except Exception as e:
             return f"Error membaca header file: {e}"
-
-        start_line = max(1, int(start_line))
-        end_line = max(start_line, int(end_line))
-        if end_line - start_line > 150:
-            end_line = start_line + 150
 
         out = []
         try:
@@ -216,6 +346,9 @@ class LocalWorkspaceTools:
                     return "Dibatalkan oleh pengguna."
             try:
                 target_path.parent.mkdir(parents=True, exist_ok=True)
+                if target_path.suffix.lower() == ".docx":
+                    self._write_docx_file(target_path, content)
+                    return f"Sukses membuat dokumen Word (.docx) '{path}' ({len(content)} karakter konten)."
                 with open(target_path, "w", encoding="utf-8") as f:
                     f.write(content)
                 return f"Sukses menulis {len(content)} karakter ke '{path}'."
@@ -296,7 +429,7 @@ class LocalWorkspaceTools:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "path": {"type": "string", "description": "Path relatif atau absolut (contoh: '.' atau 'C:/Users/ACER')"}
+                            "path": {"type": "string", "description": "Relative or absolute directory path (default: '.')"}
                         }
                     }
                 }
@@ -305,12 +438,12 @@ class LocalWorkspaceTools:
                 "type": "function",
                 "function": {
                     "name": "search_files",
-                    "description": "Mencari file berdasarkan nama atau isi teks dengan cepat.",
+                    "description": "Search files by filename or text content inside the workspace.",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "query": {"type": "string", "description": "Kata kunci pencarian"},
-                            "root_path": {"type": "string", "description": "Direktori awal pencarian (default: '.')"}
+                            "query": {"type": "string", "description": "Search keyword"},
+                            "root_path": {"type": "string", "description": "Root directory (default: '.')"}
                         },
                         "required": ["query"]
                     }
@@ -320,13 +453,13 @@ class LocalWorkspaceTools:
                 "type": "function",
                 "function": {
                     "name": "read_file",
-                    "description": "Membaca potongan baris file teks dengan nomor baris (maksimal 150 baris per call).",
+                    "description": "Read lines from any text, source code, Markdown (.md), PDF (.pdf), or Word (.docx) file (max 150 lines per call).",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "path": {"type": "string", "description": "Path file relatif atau absolut"},
-                            "start_line": {"type": "integer", "description": "Nomor baris awal (default: 1)"},
-                            "end_line": {"type": "integer", "description": "Nomor baris akhir (default: 120)"}
+                            "path": {"type": "string", "description": "Relative or absolute file path"},
+                            "start_line": {"type": "integer", "description": "Start line number (default: 1)"},
+                            "end_line": {"type": "integer", "description": "End line number (default: 120)"}
                         },
                         "required": ["path"]
                     }
@@ -336,14 +469,14 @@ class LocalWorkspaceTools:
                 "type": "function",
                 "function": {
                     "name": "write_or_edit_file",
-                    "description": "Menulis file baru / menimpa (mode='write') atau mengubah teks spesifik di file yang sudah ada (mode='edit').",
+                    "description": "Create or overwrite a file on disk (mode='write') or replace exact text (mode='edit'). Directly creates source code, .txt, .md, and Microsoft Word (.docx) files.",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "path": {"type": "string", "description": "Path file relatif atau absolut"},
-                            "mode": {"type": "string", "enum": ["write", "edit"], "description": "'write' untuk timpa/buat, 'edit' untuk ganti target"},
-                            "content": {"type": "string", "description": "Konten baru atau teks pengganti"},
-                            "target": {"type": "string", "description": "Teks eksak yang akan diganti jika mode='edit'"}
+                            "path": {"type": "string", "description": "Output file path (e.g. 'app.py', 'report.md', 'buku.docx')"},
+                            "mode": {"type": "string", "enum": ["write", "edit"], "description": "'write' to create/overwrite file, 'edit' to replace target string"},
+                            "content": {"type": "string", "description": "Full file content (Markdown headings/paragraphs auto-convert when path ends with .docx)"},
+                            "target": {"type": "string", "description": "Exact string to replace when mode='edit'"}
                         },
                         "required": ["path", "mode", "content"]
                     }

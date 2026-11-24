@@ -100,8 +100,9 @@ if HAS_PROMPT_TOOLKIT:
                 for f in files:
                     fpath = f.get("path", "")
                     if not query or query in fpath.lower():
+                        ins_text = f'@"{fpath}"' if " " in fpath else f"@{fpath}"
                         yield Completion(
-                            f"@{fpath}",
+                            ins_text,
                             start_position=-len(token),
                             display=f"@{fpath}",
                             display_meta=f"FILE • {f.get('size', '')}",

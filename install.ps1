@@ -58,7 +58,11 @@ if (!(Test-Path $installDir)) {
         Rename-Item -Path "$HOME\local-agent-harness-main" -NewName ".lensetek-agent" -Force
     }
 } else {
-    Write-Host "[2/5] Directory $installDir is already available." -ForegroundColor Green
+    Write-Host "[2/5] Updating existing installation in $installDir..." -ForegroundColor Yellow
+    if ((Test-Path "$installDir\.git") -and (Get-Command git -ErrorAction SilentlyContinue)) {
+        git -C $installDir pull --quiet
+    }
+    Write-Host "[OK] Directory $installDir is up to date." -ForegroundColor Green
 }
 
 # 3. Install Lightweight Python Dependencies

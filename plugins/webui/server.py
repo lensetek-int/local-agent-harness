@@ -153,8 +153,12 @@ class WebUIBackendState:
                 effort_level=self.effort,
             )
             active_sess = self.session_mgr.get_active_session()
+            self.loaded_session_id = active_sess.get("id") if active_sess else None
             if active_sess:
                 self.agent.load_session(active_sess)
+        if not hasattr(self, "loaded_session_id"):
+            active_sess = self.session_mgr.get_active_session()
+            self.loaded_session_id = active_sess.get("id") if active_sess else None
 
     def _web_confirm(self, prompt_text: str) -> bool:
         """Pause tool execution and request approval in the active WebUI job."""
@@ -237,6 +241,7 @@ class WebUIBackendState:
         if cmd in ("/new", "/clear"):
             title = arg if arg else None
             sess = self.session_mgr.create_session(name=title)
+            self.loaded_session_id = sess.get("id")
             self.agent.reset_session()
             self._push_event(job_id, {"type": "state_updated", "reset_view": cmd == "/clear"})
             return f"✓ Started new session: **{sess['name']}** (`{sess['id']}`)"
@@ -347,12 +352,17 @@ class WebUIBackendState:
         skill_slug = cmd[1:]
         skill_prompt = self.skills_mgr.get_skill_prompt(skill_slug)
         if skill_prompt:
-            user_goal = arg if arg else "Analyze thoroughly and provide a structured report following this skill guide."
+            trimmed_skill = skill_prompt[:3200]
+            user_goal = arg if arg else "Execute this skill workflow and save requested output files directly in the workspace."
             combined = (
                 f"[SKILL GUIDE: /{skill_slug}]\n"
-                f"{skill_prompt}\n\n"
+                f"{trimmed_skill}\n\n"
+                f"[EXECUTION NOTE: Execute directly using workspace tools (`list_dir`, `read_file` for text/PDF/DOCX, and `write_or_edit_file` to create `.md`/`.docx`/code files on disk). Do not delegate to subagents or MCP.]\n"
                 f"USER TASK: {user_goal}"
             )
+            if not self.server_mgr.is_healthy() and self.model_name:
+                self._push_event(job_id, {"type": "status", "message": f"Starting llama-server ({Path(self.model_name).name})..."})
+                self.server_mgr.start(self.model_name)
             return self.agent.run_turn(combined, on_status=on_status, on_tool=on_tool)
 
         return f"Unknown command `{cmd}`. Type `/help` to see available commands."
@@ -369,6 +379,14 @@ class WebUIBackendState:
             with self.agent_lock:
                 self.active_job_id = job_id
                 try:
+                    # Auto-sync session if active_session_id changed externally
+                    cur_sid = self.session_mgr.get_active_session_id()
+                    if cur_sid and cur_sid != getattr(self, "loaded_session_id", None):
+                        cur_sess = self.session_mgr.get_active_session()
+                        if cur_sess is not None:
+                            self.agent.load_session(cur_sess)
+                            self.loaded_session_id = cur_sid
+
                     def on_status(msg: str):
                         self._push_event(job_id, {"type": "status", "message": msg})
 
@@ -663,6 +681,7 @@ def make_handler(state: WebUIBackendState):
                 if body.get("action") == "new_session":
                     title = str(body.get("title", "")).strip() or None
                     sess = state.session_mgr.create_session(name=title)
+                    state.loaded_session_id = sess.get("id")
                     state.agent.reset_session()
                     self._send_json({"ok": True, "session": sess, "state": state.get_state_payload()})
                     return
@@ -671,6 +690,7 @@ def make_handler(state: WebUIBackendState):
                     sid = str(body.get("session_id", "")).strip()
                     ok, msg, s_data = state.session_mgr.switch_session(sid)
                     if ok and s_data:
+                        state.loaded_session_id = sid
                         state.agent.load_session(s_data)
                         self._send_json({"ok": True, "session": s_data, "state": state.get_state_payload()})
                     else:
@@ -678,6 +698,14 @@ def make_handler(state: WebUIBackendState):
                     return
 
                 self._send_json({"ok": True, "state": state.get_state_payload()})
+                return
+
+            if path == "/api/shutdown":
+                if self.client_address[0] == "127.0.0.1":
+                    self._send_json({"ok": True})
+                    threading.Thread(target=self.server.shutdown, daemon=True).start()
+                    return
+                self._send_json({"error": "Forbidden"}, 403)
                 return
 
             self._send_json({"error": "Not found"}, 404)
@@ -709,6 +737,24 @@ def start_webui_server(
         agent=agent,
     )
     handler_cls = make_handler(state)
+
+    # If an older Lensetek WebUI instance is squatting on web_port, gracefully replace it
+    try:
+        import urllib.request
+        chk = urllib.request.urlopen(f"http://127.0.0.1:{web_port}/api/state", timeout=0.8)
+        st_json = json.loads(chk.read().decode("utf-8"))
+        if "workspace" in st_json and "safety_mode" in st_json:
+            req_sd = urllib.request.Request(
+                f"http://127.0.0.1:{web_port}/api/shutdown",
+                data=b"{}",
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(req_sd, timeout=0.8)
+            time.sleep(0.4)
+    except Exception:
+        pass
+
     httpd: Optional[ThreadingHTTPServer] = None
     last_err: Optional[OSError] = None
     for candidate_port in range(web_port, web_port + 21):
