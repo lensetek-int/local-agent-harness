@@ -43,7 +43,7 @@ def get_slash_items(skills_mgr: SkillManager) -> list[tuple[str, str, str]]:
         ("/help", "Panduan lengkap & daftar perintah slash", "SISTEM"),
         ("/language", "Ganti bahasa agen & sistem (en, id, cn)", "CONFIG"),
         ("/search", "Pencarian web headless instan (Bing/Google)", "WEB"),
-        ("/skills", "Lihat semua 230+ skills lokal & global", "SKILLS"),
+        ("/skills", "Lihat daftar skill lokal & kustom yang terpasang", "SKILLS"),
         ("/skill create", "Buat skill baru di cli-agent/skills/", "SKILLS"),
         ("/mcp", "Status & konfigurasi server MCP", "MCP"),
         ("/goal", "Mode otonom multi-langkah (hingga 20 langkah)", "AGENTIC"),
