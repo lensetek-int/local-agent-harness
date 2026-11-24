@@ -39,14 +39,20 @@ pipeline_tag: text-generation
 | Repository | Role & Description | Format & Target Hardware | Direct Link |
 | :--- | :--- | :--- | :---: |
 | **🧠 [`lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)** | **Edge Quantized Model (Ready-to-Run)**<br>Specialized 4-bit edge weights with 100% tool accuracy & zero-hallucination. | 4-Bit `Q4_K_M` GGUF (~1.93 GB)<br>Runs on Mini PC / SBC / CPU (RAM < 2.5 GB) | [**⬇️ Direct Download (~1.93 GB)**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF/resolve/main/lensetek-edge-loop-3b-q4_k_m.gguf?download=true) • [Model Repo](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) |
-| **🔬 [`lensetek-edge-loop-3b`](https://huggingface.co/lensetek/lensetek-edge-loop-3b)** *(Current Repo)* | **Base 16-Bit Model (Safetensors)**<br>Full-precision weights for GPU inference (vLLM/SGLang) and domain fine-tuning. | 16-Bit BF16 Safetensors (~6 GB)<br>Cloud & Enterprise GPUs | [**Inspect Weights**](https://huggingface.co/lensetek/lensetek-edge-loop-3b) |
+| **🔬 [`lensetek-edge-loop-3b`](https://huggingface.co/lensetek/lensetek-edge-loop-3b)** *(Current Repo)* | **Base 16-Bit Model (Safetensors)**<br>Full-precision weights for GPU inference (vLLM/SGLang) and domain fine-tuning. | 16-Bit BF16 Safetensors (~6 GB)<br>*(Status: Queued / Dalam Antrean Unggah)* | [**Inspect Repo**](https://huggingface.co/lensetek/lensetek-edge-loop-3b) |
 | **🛠️ [`lensetek-edge-ai-agent`](https://huggingface.co/lensetek/lensetek-edge-ai-agent)** | **Application Hub & Edge Studio**<br>Self-contained workspace with Web UI, air-gapped SQLite RAG, and agent harnesses. | Application Code & Multi-Project Suite<br>(`usecase/edge-ai-agent` & `survival-agent`) | [**Explore Code Hub**](https://huggingface.co/lensetek/lensetek-edge-ai-agent) |
 
 ---
 
+> [!IMPORTANT]
+> 🚧 **Model Weights Notice / Status Unggah Bobot**:
+> - **🇬🇧 English**: The full-precision 16-bit BF16 Safetensors weights (~6 GB) are currently queued for upload. For immediate edge deployment (< 2.5 GB RAM, CPU/Mini PC/SBC), please use our active and verified quantized model: [**`lensetek-edge-loop-3b-GGUF`**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF).
+> - **🇮🇩 Bahasa Indonesia**: Bobot penuh 16-bit BF16 Safetensors (~6 GB) sedang dalam antrean unggah. Untuk penerapan langsung di perangkat Edge (RAM < 2.5 GB, CPU / Mini PC / SBC), silakan gunakan model kuantisasi siap pakai: [**`lensetek-edge-loop-3b-GGUF`**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF).
+> - **🇨🇳 简体中文**: 16位 BF16 Safetensors 完整模型权重 (~6 GB) 正在排队上传中。如需在边缘设备（内存 < 2.5 GB，CPU/Mini PC/SBC）上开箱即用，请直接下载并使用已发布的量化版本：[**`lensetek-edge-loop-3b-GGUF`**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF).
+
 > [!TIP]
 > **Looking for the ready-to-run 4-bit Edge GGUF for Ollama or llama.cpp?**  
-> Visit our dedicated edge quantized repository: **[`lensetek/lensetek-edge-loop-3b-GGUF`](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF)** (Runs in < 2.5 GB RAM on cheap CPUs).
+> Visit our dedicated edge quantized repository: [**`lensetek/lensetek-edge-loop-3b-GGUF`**](https://huggingface.co/lensetek/lensetek-edge-loop-3b-GGUF) (Runs in < 2.5 GB RAM on cheap CPUs).
 
 </div>
 
