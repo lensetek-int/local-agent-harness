@@ -43,13 +43,41 @@ if (!(Test-Path $installDir)) {
 }
 
 # 3. Instal Dependensi Python Ringan
-Write-Host "[3/4] Memasang dependensi CLI (prompt_toolkit, wcwidth)..." -ForegroundColor Yellow
+Write-Host "[3/5] Memasang dependensi CLI (prompt_toolkit, wcwidth)..." -ForegroundColor Yellow
 & $pythonCmd -m pip install --quiet --upgrade pip
 & $pythonCmd -m pip install --quiet prompt_toolkit wcwidth
 
-# 4. Buat Shortcut Global 'lensetek' di PowerShell Profile atau PATH
-$binDir = "$HOME\.lensetek-agent\bin"
+# 4. Siapkan Runtime llama-server di direktori bin
+$binDir = "$installDir\bin"
 if (!(Test-Path $binDir)) { New-Item -ItemType Directory -Path $binDir -Force | Out-Null }
+$llamaExe = "$binDir\llama-server.exe"
+
+Write-Host "[4/5] Memeriksa runtime CPU llama-server..." -ForegroundColor Yellow
+if (!(Test-Path $llamaExe)) {
+    # Cek apakah repositori lokal memiliki bin/llama-server.exe
+    $siblingExe = "$PSScriptRoot\bin\llama-server.exe"
+    if (Test-Path $siblingExe) {
+        Write-Host "Menyalin binary lokal dari $PSScriptRoot\bin ke $binDir..." -ForegroundColor Green
+        Copy-Item "$PSScriptRoot\bin\*" "$binDir\" -Recurse -Force
+    } else {
+        Write-Host "Mengunduh prebuilt binary llama-server CPU dari ggml-org/llama.cpp (b12675)..." -ForegroundColor Yellow
+        $zipUrl = "https://github.com/ggml-org/llama.cpp/releases/download/b12675/llama-b12675-bin-win-cpu-x64.zip"
+        $tmpZip = "$HOME\llama-win-cpu.zip"
+        try {
+            Invoke-WebRequest -Uri $zipUrl -OutFile $tmpZip -UseBasicParsing
+            Expand-Archive -Path $tmpZip -DestinationPath $binDir -Force
+            Remove-Item $tmpZip -Force
+            Write-Host "✓ Runtime llama-server siap di $binDir." -ForegroundColor Green
+        } catch {
+            Write-Host "[!] Peringatan: Gagal mengunduh otomatis binary ($($_.Exception.Message)). Runtime akan diunduh saat pertama kali menjalankan model." -ForegroundColor Yellow
+        }
+    }
+} else {
+    Write-Host "✓ Runtime llama-server sudah tersedia di $llamaExe." -ForegroundColor Green
+}
+
+# 5. Buat Shortcut Global 'lensetek' di User PATH
+Write-Host "[5/5] Mengonfigurasi shortcut perintah global 'lensetek'..." -ForegroundColor Yellow
 $cmdFile = "$binDir\lensetek.cmd"
 "@echo off`r`n$pythonCmd `"$installDir\cli-agent\main.py`" %*" | Set-Content -Path $cmdFile -Encoding ASCII
 

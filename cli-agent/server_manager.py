@@ -9,6 +9,8 @@ from pathlib import Path
 from config import (
     REPO_ROOT,
     LLAMA_SERVER_EXE,
+    find_llama_server_binary,
+    download_llama_server_binary,
     DEFAULT_PORT,
     DEFAULT_CTX,
     DEFAULT_THREADS,
@@ -35,8 +37,15 @@ class LlamaServerManager:
 
     def start(self, model_name: str):
         """Menjalankan llama-server dengan profil hemat RAM Ryzen 3."""
-        if not LLAMA_SERVER_EXE.exists():
-            raise FileNotFoundError(f"Binary llama-server tidak ditemukan di: {LLAMA_SERVER_EXE}")
+        server_exe = find_llama_server_binary()
+        if not server_exe or not server_exe.exists():
+            print("\n[i] Binary llama-server tidak terdeteksi. Memulai unduhan otomatis runtime...")
+            ok, msg, downloaded = download_llama_server_binary()
+            if ok and downloaded and downloaded.exists():
+                server_exe = downloaded
+                print(f"[✓] {msg}\n")
+            else:
+                raise FileNotFoundError(f"Binary llama-server tidak ditemukan di: {LLAMA_SERVER_EXE}. {msg}")
 
         # Cari model di absolute path, REPO_ROOT, atau folder models/
         raw_path = Path(model_name)
@@ -60,7 +69,7 @@ class LlamaServerManager:
         self.stop()
 
         cmd = [
-            str(LLAMA_SERVER_EXE),
+            str(server_exe),
             "-m", str(model_path),
             "--host", "127.0.0.1",
             "--port", str(self.port),

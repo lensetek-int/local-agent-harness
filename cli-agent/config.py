@@ -15,6 +15,102 @@ CLI_DIR = Path(__file__).resolve().parent
 REPO_ROOT = CLI_DIR.parent
 LLAMA_SERVER_EXE = REPO_ROOT / "bin" / ("llama-server.exe" if sys.platform == "win32" else "llama-server")
 
+def find_llama_server_binary() -> Path | None:
+    """Mencari lokasi binary llama-server di berbagai path kandidat."""
+    exe_name = "llama-server.exe" if sys.platform == "win32" else "llama-server"
+
+    # 1. Cek di REPO_ROOT / "bin"
+    candidate = REPO_ROOT / "bin" / exe_name
+    if candidate.exists() and candidate.is_file():
+        return candidate
+
+    # 2. Cek di sistem PATH
+    import shutil
+    which_path = shutil.which(exe_name) or shutil.which("llama-server")
+    if which_path:
+        wp = Path(which_path)
+        if wp.exists():
+            return wp
+
+    # 3. Cek lokasi instalasi umum (~/.lensetek-agent/bin)
+    lensetek_home = Path.home() / ".lensetek-agent" / "bin" / exe_name
+    if lensetek_home.exists() and lensetek_home.is_file():
+        return lensetek_home
+
+    # 4. Cek folder lokal sibling (misal local-llm/bin)
+    for p in [REPO_ROOT.parent / "local-llm" / "bin" / exe_name, Path.cwd() / "bin" / exe_name]:
+        if p.exists() and p.is_file():
+            return p
+
+    return None
+
+def download_llama_server_binary(dest_bin_dir: Path | None = None, lang: str = "en") -> tuple[bool, str, Path | None]:
+    """
+    Mengunduh runtime prebuilt binary llama-server resmi dari GitHub Releases
+    ke folder bin/ sesuai sistem operasi pengguna.
+    """
+    import io
+    import tarfile
+    import zipfile
+    import urllib.request
+
+    if not dest_bin_dir:
+        dest_bin_dir = REPO_ROOT / "bin"
+    dest_bin_dir.mkdir(parents=True, exist_ok=True)
+
+    exe_name = "llama-server.exe" if sys.platform == "win32" else "llama-server"
+    target_exe = dest_bin_dir / exe_name
+
+    tag = "b12675"
+    if sys.platform == "win32":
+        archive_name = f"llama-{tag}-bin-win-cpu-x64.zip"
+    elif sys.platform == "darwin":
+        import platform
+        arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x64"
+        archive_name = f"llama-{tag}-bin-macos-{arch}.tar.gz"
+    else:
+        archive_name = f"llama-{tag}-bin-ubuntu-x64.tar.gz"
+
+    download_url = f"https://github.com/ggml-org/llama.cpp/releases/download/{tag}/{archive_name}"
+
+    try:
+        print(f"\n[DOWNLOAD] Mengunduh runtime CPU {exe_name} dari ggml-org/llama.cpp ({tag})...")
+        req = urllib.request.Request(download_url, headers={"User-Agent": "LensetekAgent/2.0"})
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = resp.read()
+
+        if archive_name.endswith(".zip"):
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
+                for member in z.infolist():
+                    if not member.is_dir():
+                        filename = Path(member.filename).name
+                        if filename:
+                            out_path = dest_bin_dir / filename
+                            with z.open(member) as sf, open(out_path, "wb") as df:
+                                df.write(sf.read())
+        else:
+            with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
+                for member in tar.getmembers():
+                    if member.isfile():
+                        filename = Path(member.name).name
+                        if filename:
+                            out_path = dest_bin_dir / filename
+                            f = tar.extractfile(member)
+                            if f:
+                                with open(out_path, "wb") as df:
+                                    df.write(f.read())
+                                if filename == exe_name:
+                                    out_path.chmod(0o755)
+
+        if target_exe.exists():
+            if sys.platform != "win32":
+                target_exe.chmod(0o755)
+            return True, f"Runtime llama-server ({tag}) berhasil diunduh ke {dest_bin_dir}", target_exe
+        else:
+            return False, f"File {exe_name} tidak ditemukan dalam paket arsip yang diunduh.", None
+    except Exception as e:
+        return False, f"Gagal mengunduh binary llama-server: {e}", None
+
 DEFAULT_PORT = 8081
 DEFAULT_CTX = 8192
 DEFAULT_THREADS = min(4, os.cpu_count() or 4)

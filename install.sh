@@ -41,14 +41,50 @@ else
 fi
 
 # 3. Instal Dependensi
-echo "📦 [3/4] Memasang dependensi python (prompt_toolkit, wcwidth)..."
+echo "📦 [3/5] Memasang dependensi python (prompt_toolkit, wcwidth)..."
 $PYTHON_BIN -m pip install --quiet --upgrade pip
 $PYTHON_BIN -m pip install --quiet prompt_toolkit wcwidth
 
-# 4. Buat Shortcut Launcher di /usr/local/bin atau ~/.local/bin
-BIN_DIR="$HOME/.local/bin"
+# 4. Unduh runtime llama-server jika belum ada
+BIN_DIR="$INSTALL_DIR/bin"
 mkdir -p "$BIN_DIR"
-LAUNCHER="$BIN_DIR/lensetek"
+LLAMA_EXE="$BIN_DIR/llama-server"
+
+if [ ! -f "$LLAMA_EXE" ]; then
+    echo "⬇️  [4/5] Mengunduh runtime CPU llama-server resmi (b12675)..."
+    TAG="b12675"
+    OS_TYPE="$(uname -s)"
+    ARCH_TYPE="$(uname -m)"
+
+    if [ "$OS_TYPE" = "Darwin" ]; then
+        if [ "$ARCH_TYPE" = "arm64" ]; then
+            TAR_NAME="llama-${TAG}-bin-macos-arm64.tar.gz"
+        else
+            TAR_NAME="llama-${TAG}-bin-macos-x64.tar.gz"
+        fi
+    else
+        TAR_NAME="llama-${TAG}-bin-ubuntu-x64.tar.gz"
+    fi
+
+    DOWNLOAD_URL="https://github.com/ggml-org/llama.cpp/releases/download/${TAG}/${TAR_NAME}"
+    TMP_TAR="/tmp/llama-server.tar.gz"
+    if curl -fsSL "$DOWNLOAD_URL" -o "$TMP_TAR"; then
+        tar -xzf "$TMP_TAR" -C "$BIN_DIR"
+        rm -f "$TMP_TAR"
+        chmod +x "$BIN_DIR"/* || true
+        echo "✓ Runtime llama-server siap di $BIN_DIR."
+    else
+        echo "⚠️ Peringatan: Gagal mengunduh binary otomatis. Runtime akan diunduh saat pertama kali menjalankan model."
+    fi
+else
+    echo "✓ [4/5] Runtime llama-server sudah tersedia di $LLAMA_EXE."
+fi
+
+# 5. Buat Shortcut Launcher di ~/.local/bin
+echo "🚀 [5/5] Mengonfigurasi shortcut launcher CLI..."
+LOCAL_BIN="$HOME/.local/bin"
+mkdir -p "$LOCAL_BIN"
+LAUNCHER="$LOCAL_BIN/lensetek"
 
 cat <<EOF > "$LAUNCHER"
 #!/usr/bin/env bash
