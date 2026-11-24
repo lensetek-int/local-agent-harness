@@ -376,3 +376,49 @@ class LocalWorkspaceTools:
                 return f"Error: Tool '{name}' tidak dikenal."
         except Exception as e:
             return f"Error eksekusi tool '{name}': {str(e)}"
+
+    def list_mentionable_files(self, max_files: int = 1000) -> list[dict]:
+        """Return safe workspace relative file paths & sizes (BFS order) for '@' autocomplete."""
+        from collections import deque
+
+        sensitive_exts = {".pem", ".key", ".p12", ".pfx", ".crt", ".jks", ".keystore"}
+        sensitive_kws = (".env", "secret", "credential", "password", "private_key", "id_rsa", "id_ed25519", "service_account", ".htpasswd", ".netrc", ".npmrc", ".pypirc")
+        results = []
+        root = self.workspace_root.resolve()
+        if not root.exists():
+            return results
+
+        queue = deque([root])
+        while queue and len(results) < max_files:
+            cur_dir = queue.popleft()
+            try:
+                entries = sorted(list(cur_dir.iterdir()), key=lambda e: (e.is_dir(), e.name.lower()))
+            except Exception:
+                continue
+
+            for entry in entries:
+                low = entry.name.lower()
+                if entry.is_dir():
+                    if entry.name in SKIP_DIRS or low.startswith(".env"):
+                        continue
+                    queue.append(entry)
+                else:
+                    if low.startswith(".env") or any(k in low for k in sensitive_kws):
+                        continue
+                    if entry.suffix.lower() in sensitive_exts:
+                        continue
+                    try:
+                        rel = str(entry.relative_to(root)).replace("\\", "/")
+                        sz = entry.stat().st_size
+                        if sz >= 1024 * 1024:
+                            sz_str = f"{sz / (1024 * 1024):.1f} MB"
+                        elif sz >= 1024:
+                            sz_str = f"{sz / 1024:.1f} KB"
+                        else:
+                            sz_str = f"{sz} B"
+                        results.append({"path": rel, "size": sz_str, "bytes": sz})
+                        if len(results) >= max_files:
+                            return results
+                    except Exception:
+                        continue
+        return results

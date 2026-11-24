@@ -10,16 +10,35 @@ Write-Host "       ⚡ LENSETEK LEAN AGENT HARNESS (Windows Installer)          
 Write-Host "====================================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Check Python
+# 1. Check Python (Auto-install via winget or official installer if missing)
 $pythonCmd = $null
 if (Get-Command py -ErrorAction SilentlyContinue) {
     $pythonCmd = "py"
 } elseif (Get-Command python -ErrorAction SilentlyContinue) {
     $pythonCmd = "python"
 } else {
-    Write-Host "[ERROR] Python 3.10+ was not found on this system!" -ForegroundColor Red
-    Write-Host "Please install Python first from https://www.python.org/downloads/ (Check 'Add to PATH')."
-    exit 1
+    Write-Host "[1/5] Python 3.10+ not found. Attempting automatic Python installation..." -ForegroundColor Yellow
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        winget install -e --id Python.Python.3.12 --scope user --accept-package-agreements --accept-source-agreements
+    } else {
+        Write-Host "Downloading official Python 3.12.8 installer for Windows..." -ForegroundColor Yellow
+        $pyInstaller = "$HOME\python-3.12.8-amd64.exe"
+        Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.12.8/python-3.12.8-amd64.exe" -OutFile $pyInstaller -UseBasicParsing
+        Start-Process -FilePath $pyInstaller -ArgumentList "/quiet InstallAllUsers=0 PrependPath=1 Include_test=0" -Wait
+        Remove-Item $pyInstaller -Force -ErrorAction SilentlyContinue
+    }
+
+    # Refresh PATH in current session
+    $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        $pythonCmd = "py"
+    } elseif (Get-Command python -ErrorAction SilentlyContinue) {
+        $pythonCmd = "python"
+    } else {
+        Write-Host "[ERROR] Automatic Python setup finished, but 'python' is not yet in this shell's PATH." -ForegroundColor Red
+        Write-Host "Please close and reopen PowerShell, then re-run this installer." -ForegroundColor Yellow
+        exit 1
+    }
 }
 
 Write-Host "[1/5] Using Python: $(& $pythonCmd --version)" -ForegroundColor Green

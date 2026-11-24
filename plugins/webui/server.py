@@ -34,6 +34,18 @@ from server_manager import LlamaServerManager
 from session_manager import SessionManager
 from skills_manager import SkillManager
 from tools_fs import LocalWorkspaceTools
+from web_search import format_search_results, headless_web_search
+
+try:
+    from i18n import get_localized_slash_items
+except ImportError:
+    def get_localized_slash_items(lang="en"):
+        return []
+
+try:
+    import plugin_manager
+except ImportError:
+    plugin_manager = None
 
 try:
     import version as app_version
@@ -191,6 +203,160 @@ class WebUIBackendState:
                 event["ts"] = time.time()
                 job["events"].append(event)
 
+    def get_slash_commands_payload(self) -> List[Dict[str, str]]:
+        """Return all slash commands and discovered skills for WebUI '/' autocomplete."""
+        items: List[Dict[str, str]] = []
+        for cmd, desc, cat in get_localized_slash_items(self.agent.language):
+            items.append({"cmd": cmd, "desc": desc, "cat": cat})
+
+        try:
+            all_skills = self.skills_mgr.scan_skills()
+            for slug, s_data in all_skills.items():
+                items.append({
+                    "cmd": f"/{slug}",
+                    "desc": s_data.get("description", "Activate skill"),
+                    "cat": s_data.get("source", "skill").upper(),
+                })
+        except Exception:
+            pass
+        return items
+
+    def _handle_slash_command(self, raw_text: str, job_id: str, on_status, on_tool) -> Optional[str]:
+        """Handle '/' slash commands directly, returning reply string or None if delegated to agent."""
+        parts = raw_text.strip().split(maxsplit=1)
+        cmd = parts[0].lower()
+        arg = parts[1].strip() if len(parts) > 1 else ""
+
+        if cmd == "/help":
+            lines = ["### Available Slash Commands\n"]
+            for c_name, c_desc, c_cat in get_localized_slash_items(self.agent.language):
+                lines.append(f"- `{c_name}` **[{c_cat}]** — {c_desc}")
+            lines.append("\n*Tip: Type `/` in the composer for live autocomplete, or `/<skill-name> [task]` to run any skill.*")
+            return "\n".join(lines)
+
+        if cmd in ("/new", "/clear"):
+            title = arg if arg else None
+            sess = self.session_mgr.create_session(name=title)
+            self.agent.reset_session()
+            self._push_event(job_id, {"type": "state_updated", "reset_view": cmd == "/clear"})
+            return f"✓ Started new session: **{sess['name']}** (`{sess['id']}`)"
+
+        if cmd == "/strict":
+            self.fs_tools.set_safety_mode("strict")
+            self.safety_mode = "strict"
+            self._push_event(job_id, {"type": "state_updated"})
+            return "✓ Safety mode set to **STRICT** (asks permission for file writes and commands)."
+
+        if cmd == "/auto-approve":
+            self.fs_tools.set_safety_mode("auto-approve")
+            self.safety_mode = "auto-approve"
+            self._push_event(job_id, {"type": "state_updated"})
+            return "✓ Safety mode set to **AUTO-APPROVE** (workspace changes approved automatically)."
+
+        if cmd == "/yolo":
+            self.fs_tools.set_safety_mode("yolo")
+            self.safety_mode = "yolo"
+            self._push_event(job_id, {"type": "state_updated"})
+            return "✓ Safety mode set to **YOLO** (unrestricted local execution)."
+
+        if cmd == "/effort":
+            if arg.lower() in ("off", "low", "medium", "high"):
+                lvl = arg.lower()
+                config.set_active_effort(lvl)
+                self.agent.set_effort(lvl)
+                self.effort = lvl
+                self._push_event(job_id, {"type": "state_updated"})
+                return f"✓ Thinking effort updated to **{lvl.upper()}**."
+            return f"Current thinking effort: **{self.agent.effort_level.upper()}**\nUsage: `/effort <off|low|medium|high>`"
+
+        if cmd == "/language":
+            if not arg:
+                return f"Active language: **{self.agent.language}**\nSupported: `/language en`, `/language id`, `/language cn`"
+            ok, msg = config.set_active_language(arg)
+            if ok:
+                new_lang = config.get_active_language()
+                self.agent.set_language(new_lang)
+                self.language = new_lang
+                self._push_event(job_id, {"type": "state_updated"})
+                return f"✓ {msg}"
+            return f"**Error:** {msg}"
+
+        if cmd == "/model":
+            if not arg:
+                models = config.list_gguf_models()
+                lines = [f"**Active Model:** `{Path(self.model_name).name if self.model_name else 'None'}`\n\n**Available Local Models:**"]
+                for m in models:
+                    lines.append(f"- `{Path(m).name}`")
+                lines.append("\nSwitch via `/model <filename>` or use the top model dropdown.")
+                return "\n".join(lines)
+            models = config.list_gguf_models()
+            matches = [m for m in models if arg.lower() in Path(m).name.lower()]
+            if not matches:
+                return f"No local model matching `{arg}` found."
+            chosen = matches[0]
+            self.model_name = chosen
+            self.agent.model_name = Path(chosen).name
+            self.server_mgr.start(chosen)
+            self.agent.reset_session()
+            self._push_event(job_id, {"type": "state_updated"})
+            return f"✓ Active model switched to **{Path(chosen).name}**."
+
+        if cmd == "/search":
+            if not arg:
+                return "Usage: `/search <query>`"
+            self._push_event(job_id, {"type": "status", "message": f"Searching web for '{arg}'..."})
+            res_list = headless_web_search(arg, max_results=5)
+            return format_search_results(res_list)
+
+        if cmd == "/skills":
+            skills = self.skills_mgr.scan_skills()
+            lines = [f"### Discovered Skills ({len(skills)})\n"]
+            count = 0
+            for slug, s_data in skills.items():
+                if arg and arg.lower() not in slug.lower() and arg.lower() not in s_data.get("description", "").lower():
+                    continue
+                lines.append(f"- `/{slug}` — {s_data.get('description', '')}")
+                count += 1
+                if count >= 25:
+                    lines.append("\n*...showing first 25 matches. Use `/skills <keyword>` to filter.*")
+                    break
+            return "\n".join(lines)
+
+        if cmd == "/plugins":
+            if not plugin_manager:
+                return "Plugin manager is not available."
+            p_parts = arg.split(maxsplit=1)
+            p_act = p_parts[0].lower() if p_parts else "list"
+            p_val = p_parts[1].strip() if len(p_parts) > 1 else ""
+            if p_act == "install" and p_val:
+                ok, msg = plugin_manager.install_plugin(p_val, lang=self.agent.language)
+                return msg
+            if p_act in ("remove", "uninstall") and p_val:
+                ok, msg = plugin_manager.uninstall_plugin(p_val, lang=self.agent.language)
+                return msg
+            items = plugin_manager.get_all_catalog_plugins()
+            lines = ["### Plugin Catalog\n"]
+            for itm in items:
+                st = "Installed" if itm.get("is_installed") else "Available"
+                desc = itm.get(f"description_{self.agent.language}", itm.get("description", ""))
+                lines.append(f"- `{itm.get('id')}` **[{st}]** — {desc}")
+            lines.append("\nUsage: `/plugins install <id>` or `/plugins remove <id>`")
+            return "\n".join(lines)
+
+        # Check if user invoked a skill directly via /<skill_slug>
+        skill_slug = cmd[1:]
+        skill_prompt = self.skills_mgr.get_skill_prompt(skill_slug)
+        if skill_prompt:
+            user_goal = arg if arg else "Analyze thoroughly and provide a structured report following this skill guide."
+            combined = (
+                f"[SKILL GUIDE: /{skill_slug}]\n"
+                f"{skill_prompt}\n\n"
+                f"USER TASK: {user_goal}"
+            )
+            return self.agent.run_turn(combined, on_status=on_status, on_tool=on_tool)
+
+        return f"Unknown command `{cmd}`. Type `/help` to see available commands."
+
     def start_chat_job(self, prompt_text: str) -> str:
         job_id = uuid.uuid4().hex[:12]
         with self.jobs_lock:
@@ -203,14 +369,6 @@ class WebUIBackendState:
             with self.agent_lock:
                 self.active_job_id = job_id
                 try:
-                    # Ensure llama-server is running if model exists
-                    if not self.server_mgr.is_healthy() and self.model_name:
-                        self._push_event(
-                            job_id,
-                            {"type": "status", "message": f"Starting llama-server ({Path(self.model_name).name})..."},
-                        )
-                        self.server_mgr.start(self.model_name)
-
                     def on_status(msg: str):
                         self._push_event(job_id, {"type": "status", "message": msg})
 
@@ -230,7 +388,18 @@ class WebUIBackendState:
                                 },
                             )
 
-                    reply = self.agent.run_turn(prompt_text, on_status=on_status, on_tool=on_tool)
+                    if prompt_text.lstrip().startswith("/"):
+                        reply = self._handle_slash_command(prompt_text.lstrip(), job_id, on_status, on_tool)
+                    else:
+                        # Ensure llama-server is running if model exists
+                        if not self.server_mgr.is_healthy() and self.model_name:
+                            self._push_event(
+                                job_id,
+                                {"type": "status", "message": f"Starting llama-server ({Path(self.model_name).name})..."},
+                            )
+                            self.server_mgr.start(self.model_name)
+                        reply = self.agent.run_turn(prompt_text, on_status=on_status, on_tool=on_tool)
+
                     self._push_event(
                         job_id,
                         {
@@ -326,6 +495,14 @@ def make_handler(state: WebUIBackendState):
 
             if path == "/api/state":
                 self._send_json(state.get_state_payload())
+                return
+
+            if path == "/api/commands":
+                self._send_json({"commands": state.get_slash_commands_payload()})
+                return
+
+            if path == "/api/workspace/files":
+                self._send_json({"files": state.fs_tools.list_mentionable_files()})
                 return
 
             if path == "/api/session/messages":

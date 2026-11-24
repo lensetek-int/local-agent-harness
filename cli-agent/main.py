@@ -81,12 +81,36 @@ def get_slash_items(skills_mgr: SkillManager, lang: str = "en") -> list[tuple[st
 
 if HAS_PROMPT_TOOLKIT:
     class SlashCommandCompleter(Completer):
-        def __init__(self, get_items_fn, get_lang_fn=None):
+        def __init__(self, get_items_fn, get_lang_fn=None, get_files_fn=None):
             self.get_items_fn = get_items_fn
             self.get_lang_fn = get_lang_fn or (lambda: "en")
+            self.get_files_fn = get_files_fn
 
         def get_completions(self, document, complete_event):
             text = document.text_before_cursor
+
+            # Handle '@' file mention anywhere in the input
+            import re as _re
+            at_match = _re.search(r'(?:^|\s)(@[^\s]*)$', text)
+            if at_match and self.get_files_fn:
+                token = at_match.group(1)
+                query = token[1:].lower()
+                files = self.get_files_fn()
+                count = 0
+                for f in files:
+                    fpath = f.get("path", "")
+                    if not query or query in fpath.lower():
+                        yield Completion(
+                            f"@{fpath}",
+                            start_position=-len(token),
+                            display=f"@{fpath}",
+                            display_meta=f"FILE • {f.get('size', '')}",
+                        )
+                        count += 1
+                        if count >= 20:
+                            break
+                return
+
             if not text.startswith("/"):
                 return
 
@@ -641,7 +665,11 @@ Examples / Contoh Penggunaan:
                 'scrollbar.background': 'bg:#1e2430',
                 'scrollbar.button': 'bg:#00ffff',
             })
-            completer = SlashCommandCompleter(lambda: get_slash_items(skills_mgr, active_language), lambda: active_language)
+            completer = SlashCommandCompleter(
+                lambda: get_slash_items(skills_mgr, active_language),
+                lambda: active_language,
+                lambda: fs_tools.list_mentionable_files(),
+            )
 
             kb = KeyBindings()
 
@@ -656,7 +684,7 @@ Examples / Contoh Penggunaan:
                         b.apply_completion(comp)
                     b.cancel_completion()
                 else:
-                    if b.text.startswith('/'):
+                    if b.text.startswith('/') or '@' in b.document.current_line_before_cursor:
                         b.start_completion(select_first=True)
                     else:
                         b.insert_text('    ')

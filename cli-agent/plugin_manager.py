@@ -67,25 +67,9 @@ def load_manifest() -> Dict[str, Any]:
     return {"version": "1.0.0", "plugins": []}
 
 def list_installed_plugin_ids() -> List[str]:
-    """Mengembalikan list ID plugin yang terpasang."""
+    """Mengembalikan list ID plugin yang terpasang secara eksplisit (on-demand)."""
     st = config.load_user_settings()
     recorded = set(st.get("installed_plugins", []))
-
-    # Cek juga keberadaan fisik folder dengan plugin.json
-    plugins_dir = get_plugins_dir()
-    if plugins_dir.exists():
-        for d in plugins_dir.iterdir():
-            if d.is_dir() and not d.name.startswith("_") and (d / "plugin.json").exists():
-                recorded.add(d.name)
-
-    # Cek di repo_root/plugins jika berbeda
-    if config.REPO_ROOT != plugins_dir.parent:
-        repo_p = config.REPO_ROOT / "plugins"
-        if repo_p.exists():
-            for d in repo_p.iterdir():
-                if d.is_dir() and not d.name.startswith("_") and (d / "plugin.json").exists():
-                    recorded.add(d.name)
-
     return sorted(list(recorded))
 
 def get_all_catalog_plugins() -> List[Dict[str, Any]]:
@@ -249,7 +233,8 @@ def uninstall_plugin(target: str, lang: str = "en") -> Tuple[bool, str]:
         config.save_user_settings(st)
 
     target_dir = get_plugins_dir() / p_id
-    if target_dir.exists() and target_dir.is_dir():
+    repo_plugins_dir = (config.REPO_ROOT / "plugins").resolve()
+    if target_dir.exists() and target_dir.is_dir() and target_dir.parent.resolve() != repo_plugins_dir:
         try:
             shutil.rmtree(target_dir)
         except Exception:

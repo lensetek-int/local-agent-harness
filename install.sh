@@ -12,15 +12,35 @@ echo "       ⚡ LENSETEK LEAN AGENT HARNESS (Linux & macOS Installer)      "
 echo "===================================================================="
 echo ""
 
-# 1. Check Python 3
+# 1. Check Python 3 (Auto-install if missing)
 PYTHON_BIN=""
 if command -v python3 &>/dev/null; then
     PYTHON_BIN="python3"
 elif command -v python &>/dev/null; then
     PYTHON_BIN="python"
 else
-    echo "❌ Error: Python 3 not found. Please install python3 first."
-    exit 1
+    echo "⬇️  [1/5] Python 3 not found. Attempting automatic installation..."
+    if command -v brew &>/dev/null; then
+        brew install python@3.12
+    elif command -v apt-get &>/dev/null; then
+        sudo apt-get update -qq && sudo apt-get install -y python3 python3-pip
+    elif command -v dnf &>/dev/null; then
+        sudo dnf install -y python3 python3-pip
+    elif command -v pacman &>/dev/null; then
+        sudo pacman -Sy --noconfirm python python-pip
+    else
+        echo "❌ Error: Python 3 not found and no supported package manager detected. Please install Python 3.10+ first."
+        exit 1
+    fi
+
+    if command -v python3 &>/dev/null; then
+        PYTHON_BIN="python3"
+    elif command -v python &>/dev/null; then
+        PYTHON_BIN="python"
+    else
+        echo "❌ Error: Python 3 installation failed."
+        exit 1
+    fi
 fi
 
 echo "✓ [1/5] Python detected: $($PYTHON_BIN --version)"

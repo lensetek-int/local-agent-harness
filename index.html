@@ -1464,6 +1464,58 @@
           </div>
         </div>
 
+        <!-- 2.5 Disk Footprint & RAM Simulation Table -->
+        <div style="margin-top: 16px; text-align: left;">
+          <div style="font-size: 13.5px; font-weight: 700; color: #38bdf8; margin-bottom: 10px;" data-i18n="footprint_title">📦 Disk Footprint &amp; RAM Usage (Zero Bloat)</div>
+          <div class="commands-table-wrapper" style="margin-bottom: 10px;">
+            <table style="font-size: 12.5px;">
+              <thead>
+                <tr>
+                  <th data-i18n="fp_th_comp">Component / Scenario</th>
+                  <th data-i18n="fp_th_disk">Disk Size</th>
+                  <th data-i18n="fp_th_ram">RAM Usage</th>
+                  <th data-i18n="fp_th_notes">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-i18n-html="fp_r1_name"><strong>CLI Core</strong> (<code>cli-agent</code> + Skills)</td>
+                  <td><strong>290.4 KB</strong> <span style="color:var(--text-muted);" data-i18n="fp_pip">(~2 MB w/ pip)</span></td>
+                  <td><strong>32.5 MB</strong></td>
+                  <td data-i18n="fp_r1_note">Agent loop, <code>@</code> mentions, <code>/</code> commands, MCP &amp; skills</td>
+                </tr>
+                <tr>
+                  <td data-i18n-html="fp_r2_name"><strong>CLI Core + WebUI Plugin</strong></td>
+                  <td><strong>415.6 KB</strong> <span style="color:var(--text-muted);" data-i18n="fp_pip2">(~2.2 MB w/ pip)</span></td>
+                  <td><strong>35.9 MB</strong></td>
+                  <td data-i18n="fp_r2_note">Adds Antigravity/Codex-style Web IDE (zero npm/Node)</td>
+                </tr>
+                <tr>
+                  <td data-i18n-html="fp_r3_name"><strong>Full App (No Model)</strong> + <code>llama-server</code></td>
+                  <td><strong>~127 MB</strong></td>
+                  <td><strong>~36 MB</strong> <span style="color:var(--text-muted);">(idle)</span></td>
+                  <td data-i18n="fp_r3_note">Ready to run; <code>llama-server</code> CPU auto-installed</td>
+                </tr>
+                <tr>
+                  <td data-i18n-html="fp_r4_name"><strong>+ 3B Model</strong> (<code>Q4_K_M</code>, 8K ctx)</td>
+                  <td><strong>~2.18 GB</strong></td>
+                  <td><strong>~2.5 – 2.7 GB</strong></td>
+                  <td data-i18n="fp_r4_note">Smooth on 4–8 GB+ RAM laptops (no GPU)</td>
+                </tr>
+                <tr>
+                  <td data-i18n-html="fp_r5_name"><strong>+ 7B Model</strong> (<code>Q4_K_M</code>, 8K ctx)</td>
+                  <td><strong>~4.78 GB</strong></td>
+                  <td><strong>~5.5 – 5.8 GB</strong></td>
+                  <td data-i18n="fp_r5_note">Smooth on 8–16 GB+ RAM laptops (no GPU)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;" data-i18n="footprint_note">
+            No Python yet? The installer automatically sets up Python (via winget/brew/apt) and downloads the official llama.cpp CPU runtime (~125 MB). Local GGUF models (~2 GB for 3B) are downloaded only when you choose one.
+          </p>
+        </div>
+
         <!-- 3. Uninstall / Clean Removal Accordion -->
         <div class="uninstall-box">
           <div class="uninstall-header" onclick="toggleUninstallGuide()">
@@ -1951,6 +2003,24 @@
         pill_privacy: "🛡️ <strong>Zero Data Leak</strong> (Air-Gapped &amp; Sovereign)",
         install_title: "Fast Installation & Launch",
         uninstall_title: "How to Uninstall & Clean Up",
+        footprint_title: "📦 Disk Footprint & RAM Usage (Zero Bloat)",
+        fp_th_comp: "Component / Scenario",
+        fp_th_disk: "Disk Size",
+        fp_th_ram: "RAM Usage",
+        fp_th_notes: "Notes",
+        fp_pip: "(~2 MB w/ pip)",
+        fp_pip2: "(~2.2 MB w/ pip)",
+        fp_r1_name: "<strong>CLI Core</strong> (<code>cli-agent</code> + Skills)",
+        fp_r1_note: "Agent loop, <code>@</code> mentions, <code>/</code> commands, MCP &amp; skills",
+        fp_r2_name: "<strong>CLI Core + WebUI Plugin</strong>",
+        fp_r2_note: "Adds Antigravity/Codex-style Web IDE (zero npm/Node)",
+        fp_r3_name: "<strong>Full App (No Model)</strong> + <code>llama-server</code>",
+        fp_r3_note: "Ready to run; <code>llama-server</code> CPU auto-installed",
+        fp_r4_name: "<strong>+ 3B Model</strong> (<code>Q4_K_M</code>, 8K ctx)",
+        fp_r4_note: "Smooth on 4–8 GB+ RAM laptops (no GPU)",
+        fp_r5_name: "<strong>+ 7B Model</strong> (<code>Q4_K_M</code>, 8K ctx)",
+        fp_r5_note: "Smooth on 8–16 GB+ RAM laptops (no GPU)",
+        footprint_note: "No Python yet? The installer automatically sets up Python (via winget/brew/apt) and downloads the official llama.cpp CPU runtime (~125 MB). Local GGUF models (~2 GB for 3B) are downloaded only when you choose one.",
         uninstall_note: "To delete only models or plugins without removing the harness, run <code>/model remove &lt;id&gt;</code> or <code>/plugins remove &lt;id&gt;</code> inside the CLI.",
         view_list: "List View",
         view_tabs: "Tab View",
@@ -2083,6 +2153,24 @@
         pill_privacy: "🛡️ <strong>Tanpa Kebocoran Data</strong> (Air-Gapped &amp; Berdaulat)",
         install_title: "Instalasi Cepat & Peluncuran",
         uninstall_title: "Cara Copot Pemasangan (Uninstall) & Pembersihan",
+        footprint_title: "📦 Ukuran Disk & Konsumsi RAM (Zero Bloat)",
+        fp_th_comp: "Komponen / Skenario",
+        fp_th_disk: "Ukuran Disk",
+        fp_th_ram: "Penggunaan RAM",
+        fp_th_notes: "Keterangan",
+        fp_pip: "(~2 MB dgn pip)",
+        fp_pip2: "(~2,2 MB dgn pip)",
+        fp_r1_name: "<strong>CLI Core</strong> (<code>cli-agent</code> + Skills)",
+        fp_r1_note: "Mesin agen, mention <code>@</code>, perintah <code>/</code>, MCP &amp; skills",
+        fp_r2_name: "<strong>CLI Core + Plugin WebUI</strong>",
+        fp_r2_note: "Tambah Web IDE gaya Antigravity/Codex (tanpa npm/Node)",
+        fp_r3_name: "<strong>Aplikasi Lengkap (Tanpa Model)</strong> + <code>llama-server</code>",
+        fp_r3_note: "Siap pakai; <code>llama-server</code> CPU otomatis terpasang",
+        fp_r4_name: "<strong>+ Model 3B</strong> (<code>Q4_K_M</code>, 8K ctx)",
+        fp_r4_note: "Nyaman di laptop RAM 4–8 GB+ tanpa GPU",
+        fp_r5_name: "<strong>+ Model 7B</strong> (<code>Q4_K_M</code>, 8K ctx)",
+        fp_r5_note: "Nyaman di laptop RAM 8–16 GB+ tanpa GPU",
+        footprint_note: "Belum ada Python di laptop? Installer otomatis memasang Python (via winget/brew/apt) dan mengunduh runtime CPU resmi llama.cpp (~125 MB). Model GGUF lokal (~2 GB untuk 3B) hanya diunduh saat Anda memilihnya.",
         uninstall_note: "Untuk hanya menghapus model atau plugin tertentu tanpa mencopot harness, gunakan <code>/model remove &lt;id&gt;</code> atau <code>/plugins remove &lt;id&gt;</code> di terminal CLI.",
         view_list: "Tampilan Daftar",
         view_tabs: "Tampilan Tab",
@@ -2215,6 +2303,24 @@
         pill_privacy: "🛡️ <strong>零数据泄露</strong> (物理隔离与完全数据主权)",
         install_title: "极速安装与启动",
         uninstall_title: "卸载与彻底清理指南",
+        footprint_title: "📦 磁盘占用与内存消耗（零冗余）",
+        fp_th_comp: "组件 / 运行场景",
+        fp_th_disk: "磁盘占用",
+        fp_th_ram: "内存占用 (RAM)",
+        fp_th_notes: "说明",
+        fp_pip: "（含 pip 约 2 MB）",
+        fp_pip2: "（含 pip 约 2.2 MB）",
+        fp_r1_name: "<strong>CLI 核心</strong> (<code>cli-agent</code> + 技能)",
+        fp_r1_note: "智能体循环、<code>@</code> 文件引用、<code>/</code> 指令、MCP 与技能",
+        fp_r2_name: "<strong>CLI 核心 + WebUI 插件</strong>",
+        fp_r2_note: "集成 Antigravity/Codex 风格 Web IDE（零 npm/Node 依赖）",
+        fp_r3_name: "<strong>完整应用（不含模型）</strong> + <code>llama-server</code>",
+        fp_r3_note: "开箱即用；自动安装官方 CPU 版 <code>llama-server</code>",
+        fp_r4_name: "<strong>+ 3B 模型</strong> (<code>Q4_K_M</code>, 8K 上下文)",
+        fp_r4_note: "在 4–8 GB+ 内存无独显笔记本上流畅运行",
+        fp_r5_name: "<strong>+ 7B 模型</strong> (<code>Q4_K_M</code>, 8K 上下文)",
+        fp_r5_note: "在 8–16 GB+ 内存无独显笔记本上流畅运行",
+        footprint_note: "电脑尚未安装 Python？安装脚本会自动安装 Python（通过 winget/brew/apt）并下载官方 llama.cpp CPU 运行时（约 125 MB）。本地 GGUF 模型（3B 约 2 GB）仅在您主动选择时下载。",
         uninstall_note: "若仅需删除指定模型或扩展插件而保留工具链，请在 CLI 中执行 <code>/model remove &lt;id&gt;</code> 或 <code>/plugins remove &lt;id&gt;</code>。",
         view_list: "列表视图",
         view_tabs: "标签视图",
