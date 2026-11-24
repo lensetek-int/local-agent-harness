@@ -1,12 +1,12 @@
-﻿# ====================================================================
-# ⚡ LENSETEK LEAN AGENT HARNESS - One-Liner Installer for Windows
+# ====================================================================
+# * LENSETEK LEAN AGENT HARNESS - One-Liner Installer for Windows
 # Usage: irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 | iex
 # ====================================================================
 
 $ErrorActionPreference = "Stop"
 Write-Host ""
 Write-Host "====================================================================" -ForegroundColor Cyan
-Write-Host "       ⚡ LENSETEK LEAN AGENT HARNESS (Windows Installer)           " -ForegroundColor Cyan
+Write-Host "       * LENSETEK LEAN AGENT HARNESS (Windows Installer)           " -ForegroundColor Cyan
 Write-Host "====================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -85,13 +85,13 @@ if (!(Test-Path $llamaExe)) {
             Invoke-WebRequest -Uri $zipUrl -OutFile $tmpZip -UseBasicParsing
             Expand-Archive -Path $tmpZip -DestinationPath $binDir -Force
             Remove-Item $tmpZip -Force
-            Write-Host "✓ llama-server runtime ready at $binDir." -ForegroundColor Green
+            Write-Host "[OK] llama-server runtime ready at $binDir." -ForegroundColor Green
         } catch {
             Write-Host "[!] Warning: Failed to auto-download binary ($($_.Exception.Message)). It will be downloaded on first model run." -ForegroundColor Yellow
         }
     }
 } else {
-    Write-Host "✓ llama-server runtime is already available at $llamaExe." -ForegroundColor Green
+    Write-Host "[OK] llama-server runtime is already available at $llamaExe." -ForegroundColor Green
 }
 
 # 5. Create Global 'lensetek' Shortcut in User PATH
@@ -109,7 +109,7 @@ if ($userPath -notlike "*$binDir*") {
 
 Write-Host ""
 Write-Host "====================================================================" -ForegroundColor Green
-Write-Host "✓ Installation Successful! You can now run:" -ForegroundColor Green
+Write-Host "[OK] Installation Successful! You can now run:" -ForegroundColor Green
 Write-Host "   lensetek                    (Launch agent from anywhere)" -ForegroundColor Cyan
 Write-Host "   lensetek --gui              (Open Lensetek Agent Web Workspace)" -ForegroundColor Cyan
 Write-Host "   lensetek --help             (Show all CLI options)" -ForegroundColor Cyan
