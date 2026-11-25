@@ -321,6 +321,25 @@ class WebUIBackendState:
                     lines.append(f"- `{Path(m).name}`")
                 lines.append("\nSwitch via `/model <filename>` or use the top model dropdown.")
                 return "\n".join(lines)
+            m_parts = arg.split(maxsplit=1)
+            m_sub = m_parts[0].lower()
+            m_rest = m_parts[1].strip() if len(m_parts) > 1 else ""
+            if m_sub == "search":
+                if not m_rest:
+                    return "Usage: `/model search <query>`"
+                try:
+                    from hf_hub import search_hf_gguf_models
+                    results = search_hf_gguf_models(m_rest, limit=8)
+                    if not results:
+                        return f"No GGUF models found on Hugging Face for `{m_rest}`."
+                    lines = [f"### Hugging Face GGUF Results for `{m_rest}`\n"]
+                    for r in results:
+                        lines.append(f"- `{r.get('id')}` (downloads: {r.get('downloads', 0)})")
+                    return "\n".join(lines)
+                except Exception as exc:
+                    return f"**Error searching models:** {exc}"
+            if m_sub in ("download", "add", "remove"):
+                return f"Interactive `/model {m_sub}` is available in the CLI terminal (`lensetek`). In WebUI, use `/model <filename>` or the top model dropdown to switch installed models."
             models = config.list_gguf_models()
             matches = [m for m in models if arg.lower() in Path(m).name.lower()]
             if not matches:
@@ -332,6 +351,93 @@ class WebUIBackendState:
             self.agent.reset_session()
             self._push_event(job_id, {"type": "state_updated"})
             return f"✓ Active model switched to **{Path(chosen).name}**."
+
+        if cmd == "/session":
+            sub_parts = arg.split(maxsplit=1) if arg else []
+            s_action = sub_parts[0].lower() if sub_parts else "list"
+            s_param = sub_parts[1].strip() if len(sub_parts) > 1 else ""
+
+            if s_action in ("list", "ls"):
+                sessions = self.session_mgr.list_sessions()
+                act_id = self.session_mgr.get_active_session_id()
+                lines = ["### Chat Sessions\n"]
+                for idx, s in enumerate(sessions, 1):
+                    mark = " **(active)**" if s.get("id") == act_id else ""
+                    lines.append(f"{idx}. **{s.get('name', 'Session')}** (`{s.get('id')}`){mark}")
+                return "\n".join(lines)
+
+            if s_action in ("new", "create"):
+                new_s = self.session_mgr.create_session(name=s_param or None, model_name=self.model_name or "")
+                self.loaded_session_id = new_s.get("id")
+                self.agent.load_session(new_s)
+                self._push_event(job_id, {"type": "state_updated", "reset_view": True})
+                return f"✓ Created new session: **{new_s['name']}** (`{new_s['id']}`)"
+
+            if s_action in ("switch", "use"):
+                if not s_param:
+                    return "Usage: `/session switch <id|number>`"
+                ok, msg, s_data = self.session_mgr.switch_session(s_param)
+                if ok and s_data:
+                    self.loaded_session_id = s_data.get("id")
+                    self.agent.load_session(s_data)
+                    self._push_event(job_id, {"type": "state_updated", "reset_view": True})
+                    return f"✓ Switched to session: **{s_data['name']}** (`{s_data['id']}`)"
+                return f"**Error:** {msg}"
+
+            if s_action in ("rename", "mv"):
+                if not s_param:
+                    return "Usage: `/session rename <new_name>` or `/session rename <id|number> <new_name>`"
+                r_parts = s_param.split(maxsplit=1)
+                all_s = self.session_mgr.list_sessions()
+                if len(r_parts) > 1 and ((r_parts[0].isdigit() and int(r_parts[0]) <= len(all_s)) or any(s["id"] == r_parts[0] for s in all_s)):
+                    target_id, new_name = r_parts[0], r_parts[1].strip()
+                else:
+                    target_id, new_name = None, s_param
+                ok, msg = self.session_mgr.rename_session(target_id, new_name)
+                if ok:
+                    self._push_event(job_id, {"type": "state_updated"})
+                    return f"✓ {msg}"
+                return f"**Error:** {msg}"
+
+            if s_action in ("delete", "rm", "remove"):
+                if not s_param:
+                    return "Usage: `/session delete <id|number>`"
+                ok, msg = self.session_mgr.delete_session(s_param)
+                if ok:
+                    act_s = self.session_mgr.get_active_session()
+                    if act_s:
+                        self.loaded_session_id = act_s.get("id")
+                        self.agent.load_session(act_s)
+                    self._push_event(job_id, {"type": "state_updated", "reset_view": True})
+                    return f"✓ {msg}"
+                return f"**Error:** {msg}"
+
+            return "Usage: `/session <list|new|switch|rename|delete> [args]`"
+
+        if cmd == "/workspace":
+            if not arg:
+                return f"**Current workspace:** `{self.workspace_root}`"
+            new_p = Path(arg).expanduser().resolve()
+            if new_p.exists() and new_p.is_dir():
+                self.workspace_root = new_p
+                self.fs_tools.set_workspace(str(new_p))
+                self.skills_mgr.workspace_root = new_p
+                self._push_event(job_id, {"type": "state_updated"})
+                return f"✓ Workspace changed to `{new_p}`"
+            return f"**Error:** Directory not found: `{arg}`"
+
+        if cmd == "/ctx":
+            if arg in ("4096", "8192", "16384", "32768"):
+                new_ctx = int(arg)
+                self.ctx_size = new_ctx
+                self.agent.ctx_size = new_ctx
+                self.server_mgr.ctx_size = new_ctx
+                if self.model_name and self.server_mgr.is_healthy():
+                    self._push_event(job_id, {"type": "status", "message": f"Restarting llama-server (ctx={new_ctx})..."})
+                    self.server_mgr.start(self.model_name)
+                self._push_event(job_id, {"type": "state_updated"})
+                return f"✓ Context window updated to **{new_ctx}**."
+            return f"Current context window: **{self.agent.ctx_size}**\nUsage: `/ctx <4096|8192|16384|32768>`"
 
         if cmd == "/search":
             if not arg:
@@ -354,6 +460,96 @@ class WebUIBackendState:
                     break
             return "\n".join(lines)
 
+        if cmd == "/skill":
+            if arg.lower().startswith("create"):
+                body = arg[len("create"):].strip()
+                s_parts = [p.strip() for p in body.split("|")]
+                if len(s_parts) >= 2:
+                    s_name = s_parts[0]
+                    s_desc = s_parts[1]
+                    s_inst = s_parts[2] if len(s_parts) > 2 else f"Instructions for skill {s_name}."
+                    return self.skills_mgr.create_skill(s_name, s_desc, s_inst)
+            return "Usage: `/skill create <name> | <description> | <instructions>`"
+
+        if cmd == "/mcp":
+            if not arg:
+                lines = ["### Registered MCP Servers\n"]
+                for k, v in self.mcp_mgr.config.items():
+                    st = "ENABLED" if v.get("enabled", True) else "DISABLED"
+                    lines.append(f"- `{k}` **[{st}]** — {v.get('description', '')}")
+                lines.append(f"\nPresets: `{', '.join(config.MCP_PRESETS.keys())}`")
+                lines.append("Usage: `/mcp <install|test|enable|disable|remove> <name>`")
+                return "\n".join(lines)
+            m_parts = arg.split(maxsplit=2)
+            sub_cmd = m_parts[0].lower()
+            s_target = m_parts[1] if len(m_parts) > 1 else ""
+            s_rest = m_parts[2] if len(m_parts) > 2 else ""
+            if sub_cmd == "install" and s_target:
+                if s_rest:
+                    cmd_tokens = s_rest.split()
+                    return self.mcp_mgr.install_server(s_target, command=cmd_tokens[0], args=cmd_tokens[1:])
+                return self.mcp_mgr.install_server(s_target)
+            if sub_cmd == "test" and s_target:
+                return self.mcp_mgr.test_server(s_target)
+            if sub_cmd == "remove" and s_target:
+                return self.mcp_mgr.remove_server(s_target)
+            if sub_cmd == "enable" and s_target:
+                return self.mcp_mgr.toggle_server(s_target, True)
+            if sub_cmd == "disable" and s_target:
+                return self.mcp_mgr.toggle_server(s_target, False)
+            return "Usage: `/mcp <install|test|enable|disable|remove> <name>`"
+
+        if cmd == "/schedule":
+            try:
+                from scheduler import SchedulerManager
+                sched = SchedulerManager()
+            except Exception as exc:
+                return f"**Error:** Scheduler unavailable ({exc})."
+            sch_parts = arg.split(maxsplit=4)
+            sch_action = sch_parts[0].lower() if sch_parts else "list"
+            if sch_action == "list":
+                lines = ["### In-App Schedules\n"]
+                in_app = sched.list_in_app()
+                if in_app:
+                    for item in in_app:
+                        lines.append(f"- `{item['name']}` ({item['spec']}): {item['prompt'][:60]}")
+                else:
+                    lines.append("- *(none)*")
+                lines.append("\n### OS Schedules\n```\n" + str(sched.list_os_tasks()) + "\n```")
+                return "\n".join(lines)
+            if sch_action == "add" and len(sch_parts) >= 5:
+                sch_type, sch_name, sch_spec, sch_prompt = sch_parts[1].lower(), sch_parts[2], sch_parts[3], sch_parts[4]
+                if sch_type == "os":
+                    s_flag = "--auto-approve" if self.safety_mode == "auto-approve" else ("--yolo" if self.safety_mode == "yolo" else "")
+                    return sched.register_os_task(sch_name, sch_spec, sch_prompt, str(self.workspace_root), safety_flag=s_flag)
+                return "In WebUI, `/schedule add os <name> <5m|1h|daily 08:00> <prompt>` is supported. For `in-app` schedules, use the CLI (`lensetek`)."
+            if sch_action == "remove" and len(sch_parts) >= 2:
+                rem_name = sch_parts[1]
+                sched.remove_in_app(rem_name)
+                return sched.remove_os_task(rem_name)
+            return "Usage: `/schedule list` | `/schedule add os <name> <5m|1h|daily 08:00> <prompt>` | `/schedule remove <name>`"
+
+        if cmd == "/update":
+            if not app_version:
+                return "Version manager is not available."
+            info = app_version.check_for_updates(force=True)
+            if info.get("error"):
+                return f"**Update check error:** {info['error']}"
+            if info.get("update_available"):
+                latest = info.get("latest_version")
+                if arg.lower() in ("apply", "now", "yes"):
+                    ok, msg = app_version.perform_update()
+                    return f"✓ {msg} (Restart `lensetek --gui` to load the new version.)" if ok else f"**Update failed:** {msg}"
+                notes = "\n".join(f"- {w}" for w in info.get("whats_new", [])[:6])
+                return f"**Update available:** `v{latest}` (current: `v{app_version.get_current_version()}`)\n\n{notes}\n\nRun `/update apply` to install the update."
+            return f"✓ You are already on the latest version (`v{app_version.get_current_version()}`)."
+
+        if cmd in ("/gui", "/webui"):
+            return "✓ Lensetek WebUI is already active."
+
+        if cmd in ("/exit", "/quit"):
+            return "In WebUI, you can close this browser tab or press `Ctrl+C` in the terminal running `lensetek --gui` to stop the server."
+
         if cmd == "/plugins":
             if not plugin_manager:
                 return "Plugin manager is not available."
@@ -366,14 +562,45 @@ class WebUIBackendState:
             if p_act in ("remove", "uninstall") and p_val:
                 ok, msg = plugin_manager.uninstall_plugin(p_val, lang=self.agent.language)
                 return msg
+            if p_act == "create" and p_val:
+                ok, msg = plugin_manager.create_plugin_scaffold(p_val, lang=self.agent.language)
+                return msg
             items = plugin_manager.get_all_catalog_plugins()
+            if p_act == "search" and p_val:
+                q_low = p_val.lower()
+                items = [
+                    i for i in items
+                    if q_low in i.get("id", "").lower()
+                    or q_low in i.get("name", "").lower()
+                    or q_low in i.get("description", "").lower()
+                ]
             lines = ["### Plugin Catalog\n"]
             for itm in items:
                 st = "Installed" if itm.get("is_installed") else "Available"
                 desc = itm.get(f"description_{self.agent.language}", itm.get("description", ""))
                 lines.append(f"- `{itm.get('id')}` **[{st}]** — {desc}")
-            lines.append("\nUsage: `/plugins install <id>` or `/plugins remove <id>`")
+            lines.append("\nUsage: `/plugins list`, `/plugins search <q>`, `/plugins install <id>`, `/plugins remove <id>`, `/plugins create <name>`")
             return "\n".join(lines)
+
+        if cmd == "/goal":
+            if not arg:
+                return "Usage: `/goal <autonomous goal description>`"
+            if not self.server_mgr.is_healthy() and self.model_name:
+                self._push_event(job_id, {"type": "status", "message": f"Starting llama-server ({Path(self.model_name).name})..."})
+                self.server_mgr.start(self.model_name)
+            return self.agent.run_goal(arg, max_steps=20, on_status=on_status, on_tool=on_tool)
+
+        if cmd == "/loop":
+            l_parts = arg.split(maxsplit=1)
+            if len(l_parts) < 2:
+                return "Usage: `/loop <3x|30s|5m> <task to repeat>`"
+            if not self.server_mgr.is_healthy() and self.model_name:
+                self._push_event(job_id, {"type": "status", "message": f"Starting llama-server ({Path(self.model_name).name})..."})
+                self.server_mgr.start(self.model_name)
+            def _on_iter(i, total):
+                lbl = f"Loop iteration {i}/{total}..." if total else f"Loop iteration {i}..."
+                self._push_event(job_id, {"type": "status", "message": lbl})
+            return self.agent.run_loop(l_parts[0], l_parts[1], on_status=on_status, on_tool=on_tool, on_iteration=_on_iter)
 
         # Check if user invoked a skill directly via /<skill_slug>
         skill_slug = cmd[1:]

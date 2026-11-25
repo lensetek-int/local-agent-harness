@@ -599,6 +599,7 @@ class LeanAgent:
         """Mode /loop berulang (misal '3x' atau '5m') dengan reset context otomatis antar-iterasi."""
         spec = count_or_interval.strip().lower()
         last_summary = ""
+        self.cancel_requested = False
 
         try:
             if spec.endswith("x"):
@@ -608,6 +609,9 @@ class LeanAgent:
                     times = 3
 
                 for i in range(1, times + 1):
+                    if getattr(self, "cancel_requested", False):
+                        self.cancel_requested = False
+                        return self._cancelled_message()
                     if on_iteration:
                         on_iteration(i, times)
                     iter_prompt = prompt_text
@@ -616,6 +620,9 @@ class LeanAgent:
 
                     self.reset_session()
                     res = self.run_turn(iter_prompt, on_status=on_status, on_tool=on_tool, max_steps=8)
+                    if getattr(self, "cancel_requested", False) or res == self._cancelled_message():
+                        self.cancel_requested = False
+                        return self._cancelled_message()
                     last_summary = res[:300]
                 return f"Loop completed {times} times."
 
@@ -632,6 +639,9 @@ class LeanAgent:
 
                 iter_count = 0
                 while True:
+                    if getattr(self, "cancel_requested", False):
+                        self.cancel_requested = False
+                        return self._cancelled_message()
                     iter_count += 1
                     if on_iteration:
                         on_iteration(iter_count, None)
@@ -641,10 +651,20 @@ class LeanAgent:
 
                     self.reset_session()
                     res = self.run_turn(iter_prompt, on_status=on_status, on_tool=on_tool, max_steps=8)
+                    if getattr(self, "cancel_requested", False) or res == self._cancelled_message():
+                        self.cancel_requested = False
+                        return self._cancelled_message()
                     last_summary = res[:300]
 
                     if on_status:
-                        on_status(f"Waiting {interval_sec}s for next iteration... (Press Ctrl+C to stop loop)")
-                    time.sleep(interval_sec)
+                        on_status(f"Waiting {interval_sec}s for next iteration... (Click Cancel to stop loop)")
+                    waited = 0.0
+                    while waited < interval_sec:
+                        if getattr(self, "cancel_requested", False):
+                            self.cancel_requested = False
+                            return self._cancelled_message()
+                        step_sleep = min(0.5, interval_sec - waited)
+                        time.sleep(step_sleep)
+                        waited += step_sleep
         except KeyboardInterrupt:
             return "⚠️ [Interrupted: /loop mode stopped by user via Ctrl+C]"
