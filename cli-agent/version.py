@@ -15,14 +15,21 @@ import threading
 import urllib.request
 from pathlib import Path
 
-APP_VERSION = "0.3.0"
+APP_VERSION = "0.3.1"
 APP_NAME = "Lensetek Local LLM Agent Harness"
-RELEASE_DATE = "2026-11-24"
+RELEASE_DATE = "2026-11-25"
 GITHUB_RAW_VERSION_URL = "https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/cli-agent/version.json"
 GITHUB_API_COMMIT_URL = "https://api.github.com/repos/lensetek-int/local-agent-harness/commits/main"
 GITHUB_ARCHIVE_ZIP_URL = "https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.zip"
 
 CHANGELOG: dict[str, list[str]] = {
+    "0.3.1": [
+        "WebUI Cancel & Slash Commands: Tombol Cancel real-time (/api/cancel) serta dukungan /goal, /loop, /session, /mcp, /schedule, /ctx, /workspace, dan /update di WebUI",
+        "Multi-Part & Resume Downloader: Unduh model GGUF hingga 6 koneksi paralel (HTTP Range) dengan dukungan resume otomatis",
+        "Installer Self-Healing & --uninstall: Otomatis hentikan proses llama-server/WebUI yang mengunci file saat update/uninstall",
+        "Update Fallback Non-Git: Dukungan lensetek --update via HTTP/ZIP tanpa ketergantungan git CLI",
+        "Stabilitas Port WebUI: Perbaikan socket CloseWait HTTP/1.1 dan auto-reclaim port 3001 jika instance lama hung"
+    ],
     "0.3.0": [
         "Sistem Plugin On-Demand: Arsitektur modular via /plugins dengan paginasi, pencarian, dan penomoran",
         "Plugin Resmi WebUI: Dashboard lokal & editor file proyek responsif (mobile-first)",
@@ -30,8 +37,7 @@ CHANGELOG: dict[str, list[str]] = {
         "Skill Plugin Maker & Template: Blueprint kontributor plugins/_template/ & perintah /plugins create",
         "Registrasi Model Eksternal: Daftarkan model dari folder/drive lain via /model add <path>",
         "Penghapusan Model Aman: Hapus file GGUF lokal untuk hemat disk via /model remove <id>",
-        "Installer Otomatis: Unduh runtime resmi llama-server CPU saat instalasi dan startup",
-        "Navigasi Responsif: Submenu dropdown tablet & mobile pada landing page"
+        "Installer Otomatis: Unduh runtime resmi llama-server CPU saat instalasi dan startup"
     ],
     "0.2.0": [
         "Model Search: Cari dan unduh model GGUF langsung dari Hugging Face Hub (/model search)",
