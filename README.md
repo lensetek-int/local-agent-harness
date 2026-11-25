@@ -67,6 +67,8 @@ The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous age
 | **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Standard developer repository workflow |
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Direct Python launch with `prompt_toolkit` |
 
+> **Upgrading from v0.3.0 (Windows ZIP install)?** Re-run the PowerShell one-liner above once to upgrade to **v0.3.1**. Starting from v0.3.1+, `lensetek --update` and `/update` work automatically even without `git`.
+
 #### 🛠️ Key Agentic Features:
 - **Multi-Model Auto-Downloader (list.json)**: Fresh installs automatically download the flagship Lensetek Edge-Loop 3B (~1.93 GB) from Hugging Face if no local model is found. Use `/model download` to browse or `/model add <path>` to register models.
 - **Universal MCP Orchestrator**: Manage and connect Stdio MCP servers dynamically via `/mcp` (`fetch`, `playwright-headless`, etc.).
@@ -329,6 +331,8 @@ Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (visi
 | **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh \| bash` | Pemasangan headless ke `~/.lensetek-agent` |
 | **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Alur kerja lokal pengembang |
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Jalankan langsung via Python & prompt_toolkit |
+
+> **Upgrade dari v0.3.0 (instalasi ZIP Windows)?** Jalankan ulang *one-liner* PowerShell di atas satu kali untuk naik ke **v0.3.1**. Mulai v0.3.1+, perintah `lensetek --update` dan `/update` otomatis mendukung pembaruan tanpa memerlukan `git`.
 
 #### 🛠️ Fitur-Fitur Utama Agen:
 - **Pengunduh Model Otomatis (list.json)**: Instalasi baru otomatis mengunduh model unggulan Lensetek Edge-Loop 3B (~1.93 GB) dari Hugging Face jika belum ada model lokal. Gunakan `/model download` atau `/model add <path>` untuk mengelola model.
