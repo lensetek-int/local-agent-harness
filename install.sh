@@ -47,19 +47,27 @@ echo "✓ [1/5] Python detected: $($PYTHON_BIN --version)"
 
 # 2. Installation Directory
 INSTALL_DIR="$HOME/.lensetek-agent"
-if [ ! -d "$INSTALL_DIR" ]; then
-    echo "⬇️  [2/5] Cloning repository to $INSTALL_DIR..."
-    if command -v git &>/dev/null; then
+pkill -f "$INSTALL_DIR/bin/llama-server" 2>/dev/null || true
+
+if [ ! -f "$INSTALL_DIR/cli-agent/main.py" ]; then
+    echo "⬇️  [2/5] Downloading repository to $INSTALL_DIR..."
+    if [ ! -d "$INSTALL_DIR" ] && command -v git &>/dev/null; then
         git clone --depth 1 https://github.com/lensetek-int/local-agent-harness.git "$INSTALL_DIR"
     else
-        echo "Git not found, downloading archive..."
+        echo "Downloading archive..."
+        rm -rf "$HOME/local-agent-harness-main"
         curl -fsSL https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.tar.gz | tar -xz -C "$HOME"
-        mv "$HOME/local-agent-harness-main" "$INSTALL_DIR"
+        mkdir -p "$INSTALL_DIR"
+        cp -rf "$HOME/local-agent-harness-main/"* "$INSTALL_DIR/"
+        rm -rf "$HOME/local-agent-harness-main"
     fi
 else
     echo "⬇️  [2/5] Updating existing installation in $INSTALL_DIR..."
     if [ -d "$INSTALL_DIR/.git" ] && command -v git &>/dev/null; then
-        git -C "$INSTALL_DIR" pull --quiet || true
+        if [ -n "$(git -C "$INSTALL_DIR" status --porcelain 2>/dev/null)" ]; then
+            git -C "$INSTALL_DIR" stash push -m "lensetek-installer-autostash" --quiet || true
+        fi
+        git -C "$INSTALL_DIR" pull --ff-only --quiet || true
     fi
     echo "✓ [2/5] Directory $INSTALL_DIR is up to date."
 fi

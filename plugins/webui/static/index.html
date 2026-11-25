@@ -1176,6 +1176,8 @@
       btn.onclick = () => sendQuickPrompt(btn.dataset.prompt);
     });
 
+    let activeJobId = null;
+
     async function sendPrompt() {
       const input = $('promptInput');
       const prompt = input.value.trim();
@@ -1211,6 +1213,7 @@
         });
         const { job_id, error } = await res.json();
         if (error || !job_id) throw new Error(error || 'Failed to start job');
+        activeJobId = job_id;
 
         let nextIdx = 0;
         const toolCards = [];
@@ -1297,6 +1300,7 @@
         statusLine.remove();
         appendAssistantMessage(`**Error:** ${err.message}`);
       } finally {
+        activeJobId = null;
         state.isBusy = false;
         const btnSend = $('btnSend');
         btnSend.textContent = 'Send ↑';
@@ -1312,10 +1316,10 @@
         const btnSend = $('btnSend');
         btnSend.disabled = true;
         btnSend.textContent = 'Stopping...';
-        await fetch('/api/chat/cancel', {
+        await fetch('/api/cancel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: '{}',
+          body: JSON.stringify({ job_id: activeJobId }),
         });
       } catch (err) {
         console.error('Cancel request failed:', err);

@@ -43,25 +43,49 @@ if (Get-Command py -ErrorAction SilentlyContinue) {
 
 Write-Host "[1/5] Using Python: $(& $pythonCmd --version)" -ForegroundColor Green
 
-# 2. Check Installation Directory / Git Clone
+# 2. Check Installation Directory / Git Update / Self-Healing Repair
 $installDir = "$HOME\.lensetek-agent"
-# Stop any running llama-server process so binary/DLL files are not locked
-Get-Process -Name "llama-server" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+# Stop any running llama-server process inside $installDir so binary/DLL files are not locked
+Get-Process -Name "llama-server" -ErrorAction SilentlyContinue | Where-Object {
+    $_.Path -like "$installDir*" -or -not $_.Path
+} | Stop-Process -Force -ErrorAction SilentlyContinue
+
+function Install-FromArchive {
+    param([string]$TargetDir)
+    $zipPath = "$HOME\lensetek-agent.zip"
+    $extractRoot = "$HOME\local-agent-harness-main"
+    if (Test-Path $extractRoot) { Remove-Item -Path $extractRoot -Recurse -Force -ErrorAction SilentlyContinue }
+    Invoke-WebRequest -Uri "https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.zip" -OutFile $zipPath -UseBasicParsing
+    Expand-Archive -Path $zipPath -DestinationPath "$HOME" -Force
+    Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+    if (!(Test-Path $TargetDir)) { New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null }
+    Get-ChildItem -Path $extractRoot -Force | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $TargetDir -Recurse -Force
+    }
+    Remove-Item -Path $extractRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
 
 if (!(Test-Path "$installDir\cli-agent\main.py")) {
     Write-Host "[2/5] Downloading repository files to $installDir..." -ForegroundColor Yellow
-    $zipPath = "$HOME\lensetek-agent.zip"
-    Invoke-WebRequest -Uri "https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.zip" -OutFile $zipPath
-    Expand-Archive -Path $zipPath -DestinationPath "$HOME" -Force
-    Remove-Item $zipPath -Force
-    if (!(Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir -Force | Out-Null }
-    Copy-Item -Path "$HOME\local-agent-harness-main\*" -Destination $installDir -Recurse -Force
-    Remove-Item -Path "$HOME\local-agent-harness-main" -Recurse -Force
+    Install-FromArchive -TargetDir $installDir
 } else {
     Write-Host "[2/5] Updating existing installation in $installDir..." -ForegroundColor Yellow
     if ((Test-Path "$installDir\.git") -and (Get-Command git -ErrorAction SilentlyContinue)) {
-        git -C $installDir reset --hard HEAD --quiet 2>$null
-        git -C $installDir pull --quiet 2>$null
+        $prevEAP = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        $dirty = git -C $installDir status --porcelain 2>$null
+        if ($dirty) {
+            git -C $installDir stash push -m "lensetek-installer-autostash" --quiet 2>$null | Out-Null
+        }
+        git -C $installDir pull --ff-only --quiet 2>$null
+        $pullOk = ($LASTEXITCODE -eq 0)
+        $ErrorActionPreference = $prevEAP
+        if (-not $pullOk) {
+            Write-Host "[!] Git pull failed, refreshing files from latest archive..." -ForegroundColor Yellow
+            Install-FromArchive -TargetDir $installDir
+        }
+    } else {
+        Install-FromArchive -TargetDir $installDir
     }
     Write-Host "[OK] Directory $installDir is up to date." -ForegroundColor Green
 }

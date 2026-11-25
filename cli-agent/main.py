@@ -303,6 +303,65 @@ def handle_update_cli(active_language: str, started_by_us: bool = False, server_
             print(f"  • {item}")
         print()
 
+def handle_uninstall_cli():
+    """Hentikan proses llama-server/WebUI yang berjalan lalu hapus ~/.lensetek-agent dengan aman."""
+    import shutil
+    import subprocess
+    import urllib.request
+
+    install_dir = Path.home() / ".lensetek-agent"
+    if not install_dir.exists():
+        print(f"{C_YELLOW}[i] Direktori instalasi tidak ditemukan: {install_dir}{C_RESET}")
+        return
+
+    ans = input(f"{C_YELLOW}Hapus instalasi Lensetek di {install_dir}? [y/N]: {C_RESET}").strip().lower()
+    if ans not in ("y", "yes"):
+        print(f"{C_DIM}Uninstall dibatalkan.{C_RESET}")
+        return
+
+    # 1. Gracefully shutdown WebUI if running
+    for port in range(3001, 3006):
+        try:
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{port}/api/shutdown",
+                data=b"{}",
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=0.6)
+        except Exception:
+            pass
+
+    # 2. Stop any llama-server processes before removing bin/
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/F", "/IM", "llama-server.exe"],
+            capture_output=True,
+            text=True,
+        )
+    else:
+        subprocess.run(
+            ["pkill", "-f", str(install_dir / "bin" / "llama-server")],
+            capture_output=True,
+            text=True,
+        )
+
+    # 3. Remove installation directory
+    try:
+        shutil.rmtree(install_dir)
+        print(f"{C_GREEN}✓ Lensetek berhasil dihapus dari {install_dir}.{C_RESET}")
+    except Exception as exc:
+        if sys.platform == "win32":
+            # Deferred cleanup after Python/cmd exits
+            ps_cmd = f"Start-Sleep -Seconds 1; Remove-Item -LiteralPath '{install_dir}' -Recurse -Force -ErrorAction SilentlyContinue"
+            subprocess.Popen(
+                ["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps_cmd],
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
+            )
+            print(f"{C_GREEN}✓ Proses dihentikan. Pembersihan sisa file di {install_dir} akan selesai otomatis.{C_RESET}")
+        else:
+            print(f"{C_RED}[ERROR] Gagal menghapus {install_dir}: {exc}{C_RESET}")
+
 def handle_plugins_cli(plugins_args: list[str], active_language: str):
     """Mengelola plugin langsung dari baris perintah (CLI flags)."""
     if not plugin_manager:
@@ -479,7 +538,16 @@ def start_webui_cli(workspace_path: Path, port: int, model_name: str | None = No
     print(f"{C_GREEN}{'='*64}{C_RESET}\n")
 
     try:
+        import signal
         import time
+
+        def _sig_stop(_signum, _frame):
+            raise KeyboardInterrupt()
+
+        signal.signal(signal.SIGTERM, _sig_stop)
+        if hasattr(signal, "SIGBREAK"):
+            signal.signal(signal.SIGBREAK, _sig_stop)
+
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
@@ -514,6 +582,7 @@ Examples / Contoh Penggunaan:
     parser.add_argument("--update", "-u", action="store_true", help="Periksa dan terapkan pembaruan aplikasi langsung dari CLI")
     parser.add_argument("--plugins", nargs="*", default=None, help="Kelola plugin: list, install <id>, remove <id>, search <q>, create <name>")
     parser.add_argument("--gui", "--webui", action="store_true", help="Jalankan server WebUI dan buka di browser")
+    parser.add_argument("--uninstall", action="store_true", help="Hentikan server dan hapus instalasi ~/.lensetek-agent dengan aman")
     parser.add_argument("--version", "-v", action="store_true", help="Tampilkan versi saat ini dan catatan rilis (What's New)")
     parser.add_argument("--workspace", "-w", default=".", help="Folder kerja awal (default: '.')")
     parser.add_argument("--ctx", "-c", type=int, default=config.DEFAULT_CTX, help="Ukuran context window (default: 8192)")
@@ -545,6 +614,11 @@ Examples / Contoh Penggunaan:
     # --- CLI ACTION 2: --update ---
     if args.update:
         handle_update_cli(active_language)
+        sys.exit(0)
+
+    # --- CLI ACTION 2b: --uninstall ---
+    if args.uninstall:
+        handle_uninstall_cli()
         sys.exit(0)
 
     # --- CLI ACTION 3: --plugins ---

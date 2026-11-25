@@ -162,6 +162,8 @@ class WebUIBackendState:
 
     def _web_confirm(self, prompt_text: str) -> bool:
         """Pause tool execution and request approval in the active WebUI job."""
+        if getattr(self.agent, "cancel_requested", False):
+            return False
         job_id = self.active_job_id
         if not job_id:
             return False
@@ -199,6 +201,21 @@ class WebUIBackendState:
             rec["approved"] = bool(approved)
             rec["event"].set()
             return True
+
+    def cancel_active_job(self, job_id: Optional[str] = None) -> bool:
+        """Cancel the currently running agent job and unblock any pending approvals."""
+        target_job_id = self.active_job_id or job_id
+        self.agent.cancel()
+
+        with self.approvals_lock:
+            for rec in self.pending_approvals.values():
+                rec["approved"] = False
+                rec["event"].set()
+
+        if target_job_id:
+            self._push_event(target_job_id, {"type": "status", "message": "Cancelling..."})
+            return True
+        return False
 
     def cancel_active_job(self) -> bool:
         """Cancel current ongoing turn and unblock any pending approval prompts."""
@@ -629,6 +646,12 @@ def make_handler(state: WebUIBackendState):
                     return
                 job_id = state.start_chat_job(prompt)
                 self._send_json({"job_id": job_id})
+                return
+
+            if path in ("/api/cancel", "/api/chat/cancel"):
+                jid = body.get("job_id")
+                ok = state.cancel_active_job(str(jid) if jid else None)
+                self._send_json({"ok": ok})
                 return
 
             if path == "/api/chat/cancel":

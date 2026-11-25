@@ -1,6 +1,9 @@
 import re
 import json
 import time
+import http.client
+import threading
+import urllib.parse
 import urllib.request
 import urllib.error
 
@@ -66,11 +69,27 @@ class LeanAgent:
         self.last_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         self.active_goal = None
         self.cancel_requested = False
+        self._active_http_conn = None
+        self._conn_lock = threading.Lock()
         self.reset_session()
 
+    def _cancelled_message(self) -> str:
+        if self.language == "id":
+            return "⏹ Proses dibatalkan oleh pengguna."
+        if self.language == "cn":
+            return "⏹ 用户已取消操作。"
+        return "⏹ Process cancelled by user."
+
     def cancel(self):
-        """Request immediate cancellation of the active run_turn loop."""
+        """Request immediate cancellation of the active run_turn loop and abort in-flight LLM HTTP call."""
         self.cancel_requested = True
+        with self._conn_lock:
+            conn = self._active_http_conn
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
     def load_session(self, session_data: dict):
         """Memuat riwayat percakapan dari session tersimpan ke dalam messages aktif."""
@@ -401,8 +420,7 @@ class LeanAgent:
             for step in range(max_steps):
                 if getattr(self, "cancel_requested", False):
                     self.cancel_requested = False
-                    msg = "⏹ Proses dibatalkan oleh pengguna." if self.language == "id" else ("⏹ Process cancelled by user." if self.language == "en" else "⏹ 用户已取消操作。")
-                    return msg
+                    return self._cancelled_message()
 
                 self._trim_history_if_needed()
 
@@ -428,20 +446,46 @@ class LeanAgent:
                 if self.effort_level != "medium":
                     payload["reasoning_effort"] = self.effort_level
 
-                req = urllib.request.Request(
-                    f"{self.base_url}/v1/chat/completions",
-                    data=json.dumps(payload).encode("utf-8"),
-                    headers={"Content-Type": "application/json"}
-                )
+                parsed_url = urllib.parse.urlparse(self.base_url)
+                host = parsed_url.hostname or "127.0.0.1"
+                port = parsed_url.port or (443 if parsed_url.scheme == "https" else 80)
+                base_path = parsed_url.path.rstrip("/")
+                conn = http.client.HTTPConnection(host, port, timeout=300)
+                with self._conn_lock:
+                    self._active_http_conn = conn
 
                 try:
-                    with urllib.request.urlopen(req, timeout=300) as resp:
-                        res_data = json.loads(resp.read().decode("utf-8"))
-                except urllib.error.HTTPError as he:
-                    err_text = he.read().decode("utf-8", errors="ignore")
-                    return f"HTTP Error {he.code} dari llama-server: {err_text}"
+                    conn.request(
+                        "POST",
+                        f"{base_path}/v1/chat/completions",
+                        body=json.dumps(payload).encode("utf-8"),
+                        headers={"Content-Type": "application/json"},
+                    )
+                    resp = conn.getresponse()
+                    raw_body = resp.read().decode("utf-8", errors="ignore")
+                    if resp.status >= 400:
+                        if getattr(self, "cancel_requested", False):
+                            self.cancel_requested = False
+                            return self._cancelled_message()
+                        return f"HTTP Error {resp.status} dari llama-server: {raw_body}"
+                    res_data = json.loads(raw_body)
                 except Exception as e:
+                    if getattr(self, "cancel_requested", False):
+                        self.cancel_requested = False
+                        return self._cancelled_message()
                     return f"Error koneksi ke llama-server: {str(e)}"
+                finally:
+                    with self._conn_lock:
+                        if self._active_http_conn is conn:
+                            self._active_http_conn = None
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+
+                if getattr(self, "cancel_requested", False):
+                    self.cancel_requested = False
+                    return self._cancelled_message()
 
                 choice = res_data.get("choices", [{}])[0]
                 message = choice.get("message", {})
@@ -469,6 +513,9 @@ class LeanAgent:
                 self.messages.append(message)
 
                 for tc in raw_tool_calls:
+                    if getattr(self, "cancel_requested", False):
+                        self.cancel_requested = False
+                        return self._cancelled_message()
                     func = tc.get("function", {})
                     call_id = tc.get("id", "call_1")
                     t_name = func.get("name", "")

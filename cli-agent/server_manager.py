@@ -1,6 +1,8 @@
 import os
 import sys
 import time
+import atexit
+import weakref
 import subprocess
 import urllib.request
 import urllib.error
@@ -25,6 +27,8 @@ class LlamaServerManager:
         self.process = None
         self.model_name = None
         self.base_url = f"http://127.0.0.1:{self.port}"
+        self_ref = weakref.ref(self)
+        atexit.register(lambda: self_ref() and self_ref().stop())
 
     def is_healthy(self) -> bool:
         """Memeriksa apakah llama-server sedang aktif dan merespons /health."""
