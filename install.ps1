@@ -45,10 +45,18 @@ Write-Host "[1/5] Using Python: $(& $pythonCmd --version)" -ForegroundColor Gree
 
 # 2. Check Installation Directory / Git Update / Self-Healing Repair
 $installDir = "$HOME\.lensetek-agent"
-# Stop any running llama-server process inside $installDir so binary/DLL files are not locked
+# Stop any running llama-server or hung WebUI process so files/ports are not locked
 Get-Process -Name "llama-server" -ErrorAction SilentlyContinue | Where-Object {
     $_.Path -like "$installDir*" -or -not $_.Path
 } | Stop-Process -Force -ErrorAction SilentlyContinue
+$webuiPidFile = Join-Path $env:TEMP "lensetek-webui.pid"
+if (Test-Path $webuiPidFile) {
+    $oldPid = (Get-Content $webuiPidFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if ($oldPid -match '^\d+$') {
+        Stop-Process -Id ([int]$oldPid) -Force -ErrorAction SilentlyContinue
+    }
+    Remove-Item $webuiPidFile -Force -ErrorAction SilentlyContinue
+}
 
 function Install-FromArchive {
     param([string]$TargetDir)

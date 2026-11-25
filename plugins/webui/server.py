@@ -499,6 +499,7 @@ def make_handler(state: WebUIBackendState):
 
     class WebUIRequestHandler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
+        timeout = 15
 
         def log_message(self, format: str, *args: Any) -> None:
             # Suppress noisy HTTP request logging in CLI console
@@ -751,7 +752,40 @@ def make_handler(state: WebUIBackendState):
     return WebUIRequestHandler
 
 
+class _LeanWebUIHTTPServer(ThreadingHTTPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+
+
 _ACTIVE_SERVER: Optional[ThreadingHTTPServer] = None
+
+
+def _get_webui_pid_file() -> Path:
+    import tempfile
+    return Path(tempfile.gettempdir()) / "lensetek-webui.pid"
+
+
+def _cleanup_hung_webui_pid():
+    """If an older Lensetek WebUI process is hung on the port, terminate it via its recorded PID."""
+    pid_file = _get_webui_pid_file()
+    if not pid_file.exists():
+        return
+    try:
+        old_pid = int(pid_file.read_text(encoding="utf-8").strip())
+    except Exception:
+        return
+    if old_pid <= 0 or old_pid == os.getpid():
+        return
+    try:
+        if sys.platform == "win32":
+            import subprocess
+            subprocess.run(["taskkill", "/F", "/PID", str(old_pid)], capture_output=True)
+        else:
+            import signal
+            os.kill(old_pid, signal.SIGTERM)
+        time.sleep(0.3)
+    except Exception:
+        pass
 
 
 def start_webui_server(
@@ -777,6 +811,7 @@ def start_webui_server(
     handler_cls = make_handler(state)
 
     # If an older Lensetek WebUI instance is squatting on web_port, gracefully replace it
+    replaced = False
     try:
         import urllib.request
         chk = urllib.request.urlopen(f"http://127.0.0.1:{web_port}/api/state", timeout=0.8)
@@ -790,20 +825,38 @@ def start_webui_server(
             )
             urllib.request.urlopen(req_sd, timeout=0.8)
             time.sleep(0.4)
+            replaced = True
     except Exception:
         pass
+
+    if not replaced:
+        _cleanup_hung_webui_pid()
 
     httpd: Optional[ThreadingHTTPServer] = None
     last_err: Optional[OSError] = None
     for candidate_port in range(web_port, web_port + 21):
         try:
-            httpd = ThreadingHTTPServer(("127.0.0.1", candidate_port), handler_cls)
+            httpd = _LeanWebUIHTTPServer(("127.0.0.1", candidate_port), handler_cls)
             break
         except OSError as exc:
             last_err = exc
     if httpd is None:
         raise last_err or OSError(f"Unable to bind WebUI server on ports {web_port}-{web_port + 20}")
     _ACTIVE_SERVER = httpd
+
+    pid_file = _get_webui_pid_file()
+    try:
+        pid_file.write_text(str(os.getpid()), encoding="utf-8")
+        import atexit
+        def _remove_pid():
+            try:
+                if pid_file.exists() and pid_file.read_text(encoding="utf-8").strip() == str(os.getpid()):
+                    pid_file.unlink()
+            except Exception:
+                pass
+        atexit.register(_remove_pid)
+    except Exception:
+        pass
 
     t = threading.Thread(target=httpd.serve_forever, daemon=True)
     t.start()
