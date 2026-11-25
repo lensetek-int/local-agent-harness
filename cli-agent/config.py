@@ -357,7 +357,6 @@ def download_model_from_catalog(target_id: str = None, dest_dir: Path = None, la
 
     dest_dir.mkdir(parents=True, exist_ok=True)
     target_path = dest_dir / filename
-    part_path = dest_dir / f"{filename}.part"
 
     if target_path.exists() and target_path.stat().st_size > 1024 * 1024:
         return True, f"Model '{display_name}' already exists at: {target_path}", str(target_path)
@@ -367,67 +366,19 @@ def download_model_from_catalog(target_id: str = None, dest_dir: Path = None, la
     print(f"\033[2mSource: {url}\033[0m")
     print(f"\033[2mDestination: {target_path}\033[0m\n")
 
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) LensetekHarness/2.0"})
-        start_time = time.time()
-        with urllib.request.urlopen(req, timeout=30) as resp, open(part_path, "wb") as f_out:
-            total_size = int(resp.headers.get("Content-Length", 0))
-            downloaded = 0
-            block_size = 1024 * 512 # 512 KB
-            last_print = 0
-
-            while True:
-                chunk = resp.read(block_size)
-                if not chunk:
-                    break
-                f_out.write(chunk)
-                downloaded += len(chunk)
-                
-                now = time.time()
-                if now - last_print > 0.3 or downloaded == total_size:
-                    last_print = now
-                    elapsed = max(0.1, now - start_time)
-                    speed_mb = (downloaded / (1024 * 1024)) / elapsed
-                    if total_size > 0:
-                        pct = (downloaded / total_size) * 100
-                        mb_down = downloaded / (1024 * 1024)
-                        mb_total = total_size / (1024 * 1024)
-                        bar_len = 28
-                        filled = int(bar_len * downloaded / total_size)
-                        bar = "=" * filled + (">" if filled < bar_len else "") + " " * (bar_len - filled - (1 if filled < bar_len else 0))
-                        sys.stdout.write(f"\r  [\033[32m{bar}\033[0m] {pct:5.1f}% ({mb_down:6.1f} / {mb_total:6.1f} MB) @ {speed_mb:5.1f} MB/s ")
-                    else:
-                        mb_down = downloaded / (1024 * 1024)
-                        sys.stdout.write(f"\r  {d_start_lbl}: {mb_down:6.1f} MB @ {speed_mb:5.1f} MB/s ")
-                    sys.stdout.flush()
-
-        # Rename part to final target
-        if part_path.exists():
-            if target_path.exists():
-                target_path.unlink()
-            part_path.rename(target_path)
-
-        d_done_lbl = t("download_complete", lang)
-        print(f"\n\033[32m{d_done_lbl}\033[0m {target_path}\n")
-        return True, f"{d_done_lbl} {display_name}", str(target_path)
-    except KeyboardInterrupt:
-        cancel_lbl = t("download_cancelled", lang)
-        print(f"\n\033[31m{cancel_lbl}\033[0m")
-        if part_path.exists():
-            try:
-                part_path.unlink()
-            except Exception:
-                pass
-        return False, cancel_lbl, ""
-    except Exception as e:
-        err_lbl = t("download_failed", lang)
-        print(f"\n\033[31m{err_lbl} {e}\033[0m")
-        if part_path.exists():
-            try:
-                part_path.unlink()
-            except Exception:
-                pass
-        return False, str(e), ""
+    from hf_hub import download_file_parallel
+    ok, msg, out_path = download_file_parallel(
+        url=url,
+        out_file=target_path,
+        lbl_cancelled=t("download_cancelled", lang),
+        lbl_failed=t("download_failed", lang),
+        lbl_done=t("download_complete", lang),
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) LensetekHarness/2.0",
+    )
+    if ok and out_path:
+        print(f"\n\033[32m{t('download_complete', lang)}\033[0m {out_path}\n")
+        return True, f"{t('download_complete', lang)} {display_name}", str(out_path)
+    return False, msg, ""
 
 def pick_default_model() -> str | None:
     """Prioritaskan lensetek-edge-loop-3b-q4_k_m.gguf jika ada, jika tidak ambil model pertama."""
