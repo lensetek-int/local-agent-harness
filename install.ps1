@@ -45,22 +45,23 @@ Write-Host "[1/5] Using Python: $(& $pythonCmd --version)" -ForegroundColor Gree
 
 # 2. Check Installation Directory / Git Clone
 $installDir = "$HOME\.lensetek-agent"
-if (!(Test-Path $installDir)) {
-    Write-Host "[2/5] Downloading repository to $installDir..." -ForegroundColor Yellow
-    if (Get-Command git -ErrorAction SilentlyContinue) {
-        git clone https://github.com/lensetek-int/local-agent-harness.git $installDir
-    } else {
-        Write-Host "Git not found, downloading ZIP archive..." -ForegroundColor Yellow
-        $zipPath = "$HOME\lensetek-agent.zip"
-        Invoke-WebRequest -Uri "https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.zip" -OutFile $zipPath
-        Expand-Archive -Path $zipPath -DestinationPath "$HOME" -Force
-        Remove-Item $zipPath -Force
-        Rename-Item -Path "$HOME\local-agent-harness-main" -NewName ".lensetek-agent" -Force
-    }
+# Stop any running llama-server process so binary/DLL files are not locked
+Get-Process -Name "llama-server" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+
+if (!(Test-Path "$installDir\cli-agent\main.py")) {
+    Write-Host "[2/5] Downloading repository files to $installDir..." -ForegroundColor Yellow
+    $zipPath = "$HOME\lensetek-agent.zip"
+    Invoke-WebRequest -Uri "https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.zip" -OutFile $zipPath
+    Expand-Archive -Path $zipPath -DestinationPath "$HOME" -Force
+    Remove-Item $zipPath -Force
+    if (!(Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir -Force | Out-Null }
+    Copy-Item -Path "$HOME\local-agent-harness-main\*" -Destination $installDir -Recurse -Force
+    Remove-Item -Path "$HOME\local-agent-harness-main" -Recurse -Force
 } else {
     Write-Host "[2/5] Updating existing installation in $installDir..." -ForegroundColor Yellow
     if ((Test-Path "$installDir\.git") -and (Get-Command git -ErrorAction SilentlyContinue)) {
-        git -C $installDir pull --quiet
+        git -C $installDir reset --hard HEAD --quiet 2>$null
+        git -C $installDir pull --quiet 2>$null
     }
     Write-Host "[OK] Directory $installDir is up to date." -ForegroundColor Green
 }

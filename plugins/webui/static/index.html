@@ -1184,7 +1184,11 @@
       input.value = '';
       input.style.height = 'auto';
       state.isBusy = true;
-      $('btnSend').disabled = true;
+      const btnSend = $('btnSend');
+      btnSend.textContent = 'Stop ■';
+      btnSend.classList.remove('btn-primary');
+      btnSend.classList.add('btn-danger');
+      btnSend.disabled = false;
       loadState();
 
       appendUserMessage(prompt);
@@ -1294,12 +1298,37 @@
         appendAssistantMessage(`**Error:** ${err.message}`);
       } finally {
         state.isBusy = false;
-        $('btnSend').disabled = false;
+        const btnSend = $('btnSend');
+        btnSend.textContent = 'Send ↑';
+        btnSend.classList.remove('btn-danger');
+        btnSend.classList.add('btn-primary');
+        btnSend.disabled = false;
         loadState();
       }
     }
 
-    $('btnSend').onclick = sendPrompt;
+    async function cancelPrompt() {
+      try {
+        const btnSend = $('btnSend');
+        btnSend.disabled = true;
+        btnSend.textContent = 'Stopping...';
+        await fetch('/api/chat/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+        });
+      } catch (err) {
+        console.error('Cancel request failed:', err);
+      }
+    }
+
+    $('btnSend').onclick = () => {
+      if (state.isBusy) {
+        cancelPrompt();
+      } else {
+        sendPrompt();
+      }
+    };
 
     // Slash Command & '@' File Mention Autocomplete Palette
     let slashCommands = [];

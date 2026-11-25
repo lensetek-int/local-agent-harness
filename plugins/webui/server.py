@@ -200,6 +200,16 @@ class WebUIBackendState:
             rec["event"].set()
             return True
 
+    def cancel_active_job(self) -> bool:
+        """Cancel current ongoing turn and unblock any pending approval prompts."""
+        if hasattr(self, "agent") and self.agent:
+            self.agent.cancel()
+        with self.approvals_lock:
+            for app_id, rec in list(self.pending_approvals.items()):
+                rec["approved"] = False
+                rec["event"].set()
+        return True
+
     def _push_event(self, job_id: str, event: Dict[str, Any]):
         with self.jobs_lock:
             job = self.jobs.get(job_id)
@@ -619,6 +629,11 @@ def make_handler(state: WebUIBackendState):
                     return
                 job_id = state.start_chat_job(prompt)
                 self._send_json({"job_id": job_id})
+                return
+
+            if path == "/api/chat/cancel":
+                state.cancel_active_job()
+                self._send_json({"ok": True})
                 return
 
             if path == "/api/approve":

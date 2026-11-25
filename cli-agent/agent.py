@@ -65,7 +65,12 @@ class LeanAgent:
         self.messages = []
         self.last_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         self.active_goal = None
+        self.cancel_requested = False
         self.reset_session()
+
+    def cancel(self):
+        """Request immediate cancellation of the active run_turn loop."""
+        self.cancel_requested = True
 
     def load_session(self, session_data: dict):
         """Memuat riwayat percakapan dari session tersimpan ke dalam messages aktif."""
@@ -387,21 +392,27 @@ class LeanAgent:
         return user_text + "\n\n" + "\n\n".join(blocks)
 
     def run_turn(self, user_text: str, on_status=None, on_tool=None, max_steps: int = 8) -> str:
+        self.cancel_requested = False
         enriched_text = self._expand_at_mentions(user_text)
         self.messages.append({"role": "user", "content": enriched_text})
         failed_calls = {}
 
         try:
             for step in range(max_steps):
+                if getattr(self, "cancel_requested", False):
+                    self.cancel_requested = False
+                    msg = "⏹ Proses dibatalkan oleh pengguna." if self.language == "id" else ("⏹ Process cancelled by user." if self.language == "en" else "⏹ 用户已取消操作。")
+                    return msg
+
                 self._trim_history_if_needed()
 
                 if on_status:
                     if self.language == "en":
-                        status_msg = f"Thinking... (Step {step + 1}/{max_steps}) [Press Ctrl+C to cancel]"
+                        status_msg = f"Thinking... (Step {step + 1}/{max_steps}) [Click Cancel to stop]"
                     elif self.language == "cn":
-                        status_msg = f"思考中... (步骤 {step + 1}/{max_steps}) [按 Ctrl+C 取消]"
+                        status_msg = f"思考中... (步骤 {step + 1}/{max_steps}) [点击取消终止]"
                     else:
-                        status_msg = f"Sedang berpikir... (Langkah {step + 1}/{max_steps}) [Tekan Ctrl+C untuk membatalkan]"
+                        status_msg = f"Sedang berpikir... (Langkah {step + 1}/{max_steps}) [Klik Batalkan untuk berhenti]"
                     on_status(status_msg)
 
                 temp_map = {"off": 0.1, "low": 0.2, "medium": 0.4, "high": 0.7}
