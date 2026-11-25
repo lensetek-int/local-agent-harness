@@ -24,33 +24,33 @@ GITHUB_ARCHIVE_ZIP_URL = "https://github.com/lensetek-int/local-agent-harness/ar
 
 CHANGELOG: dict[str, list[str]] = {
     "0.3.1": [
-        "WebUI Cancel & Slash Commands: Tombol Cancel real-time (/api/cancel) serta dukungan /goal, /loop, /session, /mcp, /schedule, /ctx, /workspace, dan /update di WebUI",
-        "Multi-Part & Resume Downloader: Unduh model GGUF hingga 6 koneksi paralel (HTTP Range) dengan dukungan resume otomatis",
-        "Installer Self-Healing & --uninstall: Otomatis hentikan proses llama-server/WebUI yang mengunci file saat update/uninstall",
-        "Update Fallback Non-Git: Dukungan lensetek --update via HTTP/ZIP tanpa ketergantungan git CLI",
-        "Stabilitas Port WebUI: Perbaikan socket CloseWait HTTP/1.1 dan auto-reclaim port 3001 jika instance lama hung"
+        "WebUI Cancel & Full Slash Commands: Real-time Cancel button (/api/cancel) plus /goal, /loop, /session, /mcp, /schedule, /ctx, /workspace, and /update in WebUI",
+        "Multi-Part & Resume GGUF Downloader: 6x parallel HTTP Range downloads with automatic resume from .part state",
+        "Self-Healing Installer & Safe Uninstall: Auto-stop locked llama-server/WebUI processes in install.ps1/install.sh and added lensetek --uninstall",
+        "Non-Git Update Fallback: HTTP/ZIP fallback for lensetek --update when .git or git CLI is absent",
+        "WebUI Socket & Port Stability: Prevented hung CloseWait HTTP/1.1 sockets and auto-reclaimed port 3001"
     ],
     "0.3.0": [
-        "Sistem Plugin On-Demand: Arsitektur modular via /plugins dengan paginasi, pencarian, dan penomoran",
-        "Plugin Resmi WebUI: Dashboard lokal & editor file proyek responsif (mobile-first)",
-        "Plugin Playwright Research: Scraper web dinamis dengan pembersih Markdown optimal untuk model 3B",
-        "Skill Plugin Maker & Template: Blueprint kontributor plugins/_template/ & perintah /plugins create",
-        "Registrasi Model Eksternal: Daftarkan model dari folder/drive lain via /model add <path>",
-        "Penghapusan Model Aman: Hapus file GGUF lokal untuk hemat disk via /model remove <id>",
-        "Installer Otomatis: Unduh runtime resmi llama-server CPU saat instalasi dan startup"
+        "On-Demand Plugin System: Extensible modular architecture via /plugins with pagination & search",
+        "Official WebUI Plugin: Local responsive dashboard & workspace file editor (mobile-first)",
+        "Playwright Dynamic Research: Headless Chromium web scraper optimized for 3B SLM context windows",
+        "Plugin Contributor Blueprint & Maker Skill: Template scaffolding & /plugins create command",
+        "External Model Registration: Register models from any directory/drive via /model add <path>",
+        "Safe Model Deletion: Delete local GGUF models and reclaim disk space via /model remove <id>",
+        "Installer Runtime Auto-Download: Automated official llama-server CPU binary fetch on install"
     ],
     "0.2.0": [
-        "Model Search: Cari dan unduh model GGUF langsung dari Hugging Face Hub (/model search)",
-        "Thinking Effort: Atur kedalaman berpikir model (off, low, medium, high) secara interaktif (/effort)",
-        "Update Manager: Otomatisasi cek update saat startup, perintah /update, dan restart mandiri",
-        "Trilingual Support: Pilihan bahasa dinamis (English, Bahasa Indonesia, 简体中文) via /language",
-        "Web Search: Integrasi pencarian web headless terpadu (/search)"
+        "Hugging Face Hub model search & direct download (/model search)",
+        "Reasoning & thinking effort depth adjustment (/effort off|low|medium|high)",
+        "Automated startup update check, /update command, and auto-restart",
+        "Full multilingual interface (English, Bahasa Indonesia, 简体中文) via /language",
+        "Headless web search integration with multi-engine fallback (/search)"
     ],
     "0.1.0": [
-        "Rilis perdana Lensetek Local LLM Agent Harness",
-        "Mode agen otonom multi-langkah (/goal, /loop, /schedule)",
-        "Manajemen siklus hidup server llama.cpp lokal otomatis",
-        "Integrasi client Model Context Protocol (MCP) dan skill kustom"
+        "Initial release of Lensetek Local LLM Agent Harness",
+        "Autonomous multi-turn agent with /goal, /loop, and /schedule modes",
+        "Built-in llama.cpp server lifecycle management",
+        "Local workspace file tools with safety sandbox modes"
     ]
 }
 
