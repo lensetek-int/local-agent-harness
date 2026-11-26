@@ -78,15 +78,15 @@ The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous age
 - **Multilingual System**: Persistent `/language <en|id|cn>` setting (English, Bahasa Indonesia, Chinese).
 - **Safety Modes**: `/strict` [y/N], `/auto-approve`, and `/yolo` (unattended).
 
-#### 🎯 Why Lean Agent Harness? (Conventional Frameworks vs. Lensetek)
+#### 🎯 Why Lean Agent Harness? (Frontier Agent Harnesses vs. Lensetek)
 
-| Factor | Conventional Frameworks (LangChain / CrewAI / AutoGPT) | Lensetek Lean Agent Harness |
+| Factor | Frontier Harnesses (Claude Code / OpenAI Codex / Antigravity / OpenCode) | Lensetek Lean Agent Harness |
 | :--- | :--- | :--- |
-| **Target Architecture** | Built for 100B+ Cloud LLMs with 128k context windows | Built for Edge SLMs (3B) & Local LLMs (7B/14B) on commodity CPUs |
-| **Initial Token Overhead** | **4,000 – 8,000+ tokens** (dumps massive JSON schemas & few-shots) | **< 350 tokens** (leaves >90% context open for actual user reasoning) |
-| **SLM (3B) Execution** | **Fails / Degrades** (attention dilution, syntax crashes, infinite loops) | **Native & Stable** (deterministic ReAct with loop circuit-breakers) |
-| **Hardware & RAM** | Heavy dependencies (Docker daemon, Redis, complex vector DBs) | Runs on everyday CPU, **RAM < 2.5 GB**, zero GPU required |
-| **Privacy & Sovereignty** | Streams user code, files & prompts to third-party cloud APIs | **100% Air-Gapped & Offline**, zero data egress, zero cloud bills |
+| **Target Architecture** | Built for 100B+ Cloud LLMs (128k+ ctx) or 14B–30B+ GPU setups | Built for Edge SLMs (3B) & Local LLMs (7B/14B) on commodity CPUs |
+| **Initial Token Overhead** | **4,000 – 15,000+ tokens** (verbose system rules & strict JSON/diff schemas) | **< 600 tokens** (leaves >90% of 8K context open for actual user reasoning) |
+| **SLM (3B) Execution** | **Fails / Unusable** (schema drift, JSON/diff errors, attention dilution) | **Native & Stable** (dual JSON/XML parser + anti-loop circuit-breakers) |
+| **Hardware & Runtime** | Cloud-first APIs or high-VRAM GPUs; no bundled CPU GGUF runtime | Bundled `llama-server` CPU engine, **RAM < 2.5 GB**, zero GPU required |
+| **Privacy & Sovereignty** | Streams code & prompts to cloud APIs (Claude / OpenAI / Gemini) | **100% Air-Gapped & Offline**, zero data egress, zero cloud bills |
 
 ---
 
@@ -343,15 +343,15 @@ Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (visi
 - **Multi-Bahasa**: Pilihan bahasa aktif yang tersimpan permanen via `/language <en|id|cn>`.
 - **Mode Keamanan**: `/strict` [y/N], `/auto-approve`, dan `/yolo` (unattended).
 
-#### 🎯 Mengapa Lean Agent Harness? (Harness Konvensional vs. Lensetek)
+#### 🎯 Mengapa Lean Agent Harness? (Agent Harness Frontier vs. Lensetek)
 
-| Faktor | Harness Konvensional (LangChain / CrewAI / AutoGPT) | Lensetek Lean Agent Harness |
+| Faktor | Agent Harness Frontier (Claude Code / OpenAI Codex / Antigravity / OpenCode) | Lensetek Lean Agent Harness |
 | :--- | :--- | :--- |
-| **Target Arsitektur** | Dibuat untuk Cloud LLM 100B+ dengan context window 128k | Dikhususkan untuk Edge SLM (3B) & Local LLM (7B/14B) di CPU biasa |
-| **Beban Token Awal** | **4.000 – 8.000+ token** (skema JSON masif & few-shot memadati prompt) | **< 350 token** (menyisakan >90% ruang konteks untuk penalaran tugas) |
-| **Eksekusi SLM (3B)** | **Sering Gagal / Rusak** (saturasi atensi, halusinasi argumen, loop macet) | **Stabil & Terkendali** (ReAct terkalibrasi dengan pencegah loop bawaan) |
-| **Kebutuhan Hardware** | Beban dependensi berat (Docker daemon, Redis, vector DB rumit) | Ringan di CPU biasa, **RAM < 2.5 GB**, tidak butuh GPU diskrit |
-| **Privasi & Kedaulatan** | Bergantung cloud API berbayar, kode & data dikirim ke pihak ketiga | **100% Offline & Mandiri**, data tidak keluar dari laptop/PC |
+| **Target Arsitektur** | Dibuat untuk Cloud LLM 100B+ (128k+ ctx) atau GPU lokal 14B–30B+ | Dikhususkan untuk Edge SLM (3B) & Local LLM (7B/14B) di CPU biasa |
+| **Beban Token Awal** | **4.000 – 15.000+ token** (aturan panjang & skema JSON/diff ketat) | **< 600 token** (menyisakan >90% konteks 8K untuk penalaran tugas) |
+| **Eksekusi SLM (3B)** | **Gagal / Tidak Layak** (*schema drift*, JSON/diff error, *attention dilution*) | **Stabil & Terkendali** (*dual parser* JSON/XML + *circuit breaker* anti-loop) |
+| **Hardware & Runtime** | Mengandalkan API cloud atau GPU VRAM besar; tanpa runtime CPU GGUF | Bundel runtime CPU `llama-server`, **RAM < 2,5 GB**, tanpa GPU diskrit |
+| **Privasi & Kedaulatan** | Mengirim kode & prompt ke API cloud (Claude / OpenAI / Gemini) | **100% Offline & Mandiri**, data tidak keluar dari laptop/PC |
 
 ---
 

@@ -105,10 +105,10 @@
           },
           {
             "@type": "Question",
-            "name": "Why does Lensetek use a lean harness instead of LangChain or CrewAI for 3B models?",
+            "name": "Why can't frontier AI agent harnesses (Claude Code, OpenAI Codex, Antigravity, OpenCode) run 3B SLMs reliably?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Cloud-oriented frameworks like LangChain or AutoGPT inject 3,000 to 8,000+ tokens of boilerplate schema overhead, causing small 3B-7B models to lose focus or overflow 8K context windows. Lensetek keeps prompt overhead minimal (< 600 tokens) and grounds the active workspace directly so small local models execute tools accurately."
+              "text": "Frontier agent harnesses are engineered for 100B+ cloud models (or 14B–30B+ GPU models) and inject 4,000 to 15,000+ tokens of system rules and strict JSON/diff tool schemas. On 3B GGUF models, that causes attention dilution, schema drift, and infinite loops—and cloud-first harnesses lack a bundled CPU GGUF runtime. Lensetek keeps prompt overhead minimal (< 600 tokens) with a dual JSON/XML parser and loop circuit-breakers so 3B SLMs run reliably on standard CPUs."
             }
           },
           {
@@ -1560,40 +1560,40 @@
       </p>
 
       <div class="comparison-grid">
-        <!-- Card 1: Conventional Harnesses -->
+        <!-- Card 1: Frontier Agent Harnesses -->
         <div class="comparison-card conventional">
           <div class="comp-header">
-            <span class="comp-badge bad" data-i18n="conv_badge">Conventional Frameworks</span>
-            <span class="comp-tag" data-i18n="conv_tag">Cloud-First / API-Centric</span>
+            <span class="comp-badge bad" data-i18n="conv_badge">Frontier Agent Harnesses</span>
+            <span class="comp-tag" data-i18n="conv_tag">Cloud-First / Large-Model Centric</span>
           </div>
-          <h3 class="comp-title" data-i18n="conv_title">LangChain, CrewAI, AutoGPT, OpenHands</h3>
+          <h3 class="comp-title" data-i18n="conv_title">Claude Code, OpenAI Codex, Antigravity, OpenCode</h3>
           <ul class="comp-list">
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong data-i18n="conv_1_title">Massive Initial Token Bloat (4,000 – 8,000+ tokens)</strong>
-                <p data-i18n="conv_1_desc">Injects verbose JSON schemas, dozens of tool definitions, and dense few-shot examples into the system prompt before the user even types a single word.</p>
+                <strong data-i18n="conv_1_title">Massive System &amp; Tool Schema Overhead (4,000 – 15,000+ tokens)</strong>
+                <p data-i18n="conv_1_desc">Built for 100B+ frontier models with 128K+ context windows. Injects dozens of strict tool schemas and long instruction prompts before the user even types a word.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong data-i18n="conv_2_title">Context Collapse &amp; Hallucination on SLMs (3B Models)</strong>
-                <p data-i18n="conv_2_desc">Small language models suffer from attention dilution and context saturation. They hallucinate non-existent tool arguments, emit malformed JSON, or freeze in infinite loops.</p>
+                <strong data-i18n="conv_2_title">Cannot Run 3B SLMs Reliably (Schema Drift &amp; Context Collapse)</strong>
+                <p data-i18n="conv_2_desc">Even when pointed at a local endpoint, 3B GGUF models fail strict JSON/diff tool schemas, hallucinate arguments, and overflow 8K context—practically requiring 14B–30B+ GPU models.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong data-i18n="conv_3_title">Heavy Infrastructure &amp; Tool Dependencies</strong>
-                <p data-i18n="conv_3_desc">Often requires Docker daemon, Redis message queues, external vector databases, and massive Node.js/Python dependency trees just to boot.</p>
+                <strong data-i18n="conv_3_title">No Bundled CPU SLM Runtime</strong>
+                <p data-i18n="conv_3_desc">Cloud-first harnesses (Claude Code, Antigravity) target hosted APIs and do not ship a self-contained llama.cpp CPU engine with 8-bit KV-cache tuning for 2.5 GB RAM laptops.</p>
               </div>
             </li>
             <li>
               <div class="comp-icon red">❌</div>
               <div>
-                <strong data-i18n="conv_4_title">Cloud Cost &amp; Privacy Leakage</strong>
-                <p data-i18n="conv_4_desc">Requires ongoing paid cloud API tokens (OpenAI / Anthropic). Private code, proprietary data, and prompts are continuously streamed to third-party cloud servers.</p>
+                <strong data-i18n="conv_4_title">Cloud API Cost, Telemetry &amp; High-VRAM Barrier</strong>
+                <p data-i18n="conv_4_desc">Requires paid cloud subscriptions/APIs (sending code and prompts off-device) or expensive high-VRAM GPUs to run large local coding models.</p>
               </div>
             </li>
           </ul>
@@ -1942,7 +1942,7 @@
         </details>
 
         <details class="uninstall-accordion">
-          <summary><span data-i18n="faq_q3">Why use a lean harness instead of LangChain or CrewAI for 3B models?</span></summary>
+          <summary><span data-i18n="faq_q3">Why can't Claude Code, Codex, Antigravity, or OpenCode run 3B SLMs reliably?</span></summary>
           <p class="uninstall-note" style="margin-top: 10px;" data-i18n="faq_a3">Cloud-oriented frameworks inject 3,000–8,000+ tokens of boilerplate overhead, causing small 3B–7B models to lose focus or overflow 8K context windows. Lensetek keeps prompt overhead minimal (&lt; 600 tokens) and grounds the active workspace directly so small local models execute tools accurately.</p>
         </details>
 
@@ -2027,19 +2027,19 @@
         btn_copy: "Copy",
         btn_copied: "✓ Copied",
         why_badge: "THE ARCHITECTURAL DIFFERENCE",
-        why_title: "Why Conventional Harnesses Fail on SLMs — And Why Lean Works",
-        why_desc: "Most agent frameworks were built for massive 100B+ cloud API models with 128k context windows. On small edge models (SLMs), their heavy token overhead causes instant failure. Here is the realistic engineering behind our lean edge-first approach.",
-        conv_badge: "Conventional Frameworks",
-        conv_tag: "Cloud-First / API-Centric",
-        conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
-        conv_1_title: "Massive Initial Token Bloat (4,000 – 8,000+ tokens)",
-        conv_1_desc: "Injects verbose JSON schemas, dozens of tool definitions, and dense few-shot examples into the system prompt before the user even types a single word.",
-        conv_2_title: "Context Collapse & Hallucination on SLMs (3B Models)",
-        conv_2_desc: "Small language models suffer from attention dilution and context saturation. They hallucinate non-existent tool arguments, emit malformed JSON, or freeze in infinite loops.",
-        conv_3_title: "Heavy Infrastructure & Tool Dependencies",
-        conv_3_desc: "Often requires Docker daemon, Redis message queues, external vector databases, and massive Node.js/Python dependency trees just to boot.",
-        conv_4_title: "Cloud Cost & Privacy Leakage",
-        conv_4_desc: "Requires ongoing paid cloud API tokens (OpenAI / Anthropic). Private code, proprietary data, and prompts are continuously streamed to third-party cloud servers.",
+        why_title: "Why Frontier Agent Harnesses Fail on SLMs — And Why Lean Works",
+        why_desc: "Frontier harnesses (Claude Code, OpenAI Codex, Antigravity, OpenCode) were built for 100B+ cloud models or 14B–30B+ GPU setups. On 3B edge SLMs, their heavy prompt overhead and strict schemas cause instant failure.",
+        conv_badge: "Frontier Agent Harnesses",
+        conv_tag: "Cloud-First / Large-Model Centric",
+        conv_title: "Claude Code, OpenAI Codex, Antigravity, OpenCode",
+        conv_1_title: "Massive System & Tool Schema Overhead (4,000 – 15,000+ tokens)",
+        conv_1_desc: "Built for 100B+ frontier models with 128K+ context windows. Injects dozens of strict tool schemas and long instruction prompts before the user even types a word.",
+        conv_2_title: "Cannot Run 3B SLMs Reliably (Schema Drift & Context Collapse)",
+        conv_2_desc: "Even when pointed at a local endpoint, 3B GGUF models fail strict JSON/diff tool schemas, hallucinate arguments, and overflow 8K context—practically requiring 14B–30B+ GPU models.",
+        conv_3_title: "No Bundled CPU SLM Runtime",
+        conv_3_desc: "Cloud-first harnesses (Claude Code, Antigravity) target hosted APIs and do not ship a self-contained llama.cpp CPU engine with 8-bit KV-cache tuning for 2.5 GB RAM laptops.",
+        conv_4_title: "Cloud API Cost, Telemetry & High-VRAM Barrier",
+        conv_4_desc: "Requires paid cloud subscriptions/APIs (sending code and prompts off-device) or expensive high-VRAM GPUs to run large local coding models.",
         lean_badge: "Lensetek Lean Harness",
         lean_tag: "Edge-First / Autonomous",
         lean_title: "Purpose-Built for Local SLMs & Local LLMs",
@@ -2124,8 +2124,8 @@
         faq_a1: "Lensetek Lean Agent Harness is an open-source, ultra-lean (< 5 MB) local AI agent runtime designed for 3B to 7B GGUF models. It runs 100% locally on standard laptop CPUs without a GPU or cloud API keys, enabling autonomous coding, file editing, MCP tool calling, headless web search, and an optional Web Workspace.",
         faq_q2: "Can it run on a standard laptop CPU without a GPU?",
         faq_a2: "Yes. Lensetek Agent automatically downloads and manages the official llama.cpp CPU runtime (llama-server) with KV-cache quantization and Flash Attention, allowing 3B GGUF models to run smoothly on standard laptops with less than 2.5 GB of RAM.",
-        faq_q3: "Why use a lean harness instead of LangChain or CrewAI for 3B models?",
-        faq_a3: "Cloud-oriented frameworks inject 3,000–8,000+ tokens of boilerplate overhead, causing small 3B–7B models to lose focus or overflow 8K context windows. Lensetek keeps prompt overhead minimal (< 600 tokens) and grounds the active workspace directly so small local models execute tools accurately.",
+        faq_q3: "Why can't Claude Code, Codex, Antigravity, or OpenCode run 3B SLMs reliably?",
+        faq_a3: "Frontier harnesses inject 4,000–15,000+ tokens of system rules and strict JSON/diff schemas designed for 100B+ cloud models (or 14B–30B+ GPU models), causing 3B SLMs to fail tool calls or overflow 8K context. Lensetek keeps prompt overhead minimal (< 600 tokens) with a dual JSON/XML parser and loop circuit-breakers built specifically for 3B–7B local models.",
         faq_q4: "How do on-demand plugins like Web Workspace (webui) work?",
         faq_a4: "Core Lensetek stays ultra-lightweight, while optional capabilities are installed on demand via /plugins or lensetek --plugins install <id>. The official webui plugin launches a responsive light-first Web IDE at http://127.0.0.1:3001 with real project file read/write/edit, live tool cards, and interactive permission approvals.",
         faq_q5: "Is my source code or credential data sent to the cloud?",
@@ -2177,19 +2177,19 @@
         btn_copy: "Salin",
         btn_copied: "✓ Tersalin",
         why_badge: "PERBEDAAN ARSITEKTUR",
-        why_title: "Mengapa Framework Konvensional Gagal pada SLM — Dan Mengapa Lean Berhasil",
-        why_desc: "Sebagian besar framework agen dirancang untuk model cloud raksasa 100B+ dengan context window 128k. Pada model edge kecil (SLM), pemborosan token menyebabkan kegagalan instan. Berikut prinsip rekayasa di balik pendekatan lean edge-first kami.",
-        conv_badge: "Framework Konvensional",
-        conv_tag: "Cloud-First / Berbasis API",
-        conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
-        conv_1_title: "Pemborosan Token Awal yang Masif (4.000 – 8.000+ token)",
-        conv_1_desc: "Menyuntikkan skema JSON berbelit-belit, puluhan definisi tool, dan contoh few-shot padat ke dalam system prompt sebelum pengguna mengetik satu kata pun.",
-        conv_2_title: "Kolaps Konteks & Halusinasi pada SLM (Model 3B)",
-        conv_2_desc: "Model bahasa kecil mengalami penurunan atensi dan saturasi konteks. Model sering menghalunisasikan argumen tool, menghasilkan JSON rusak, atau macet dalam loop tak terbatas.",
-        conv_3_title: "Ketergantungan Infrastruktur & Dependensi Berat",
-        conv_3_desc: "Seringkali membutuhkan daemon Docker, message queue Redis, database vektor eksternal, dan instalasi dependensi Node.js/Python yang sangat besar hanya untuk booting.",
-        conv_4_title: "Biaya Cloud & Kebocoran Privasi",
-        conv_4_desc: "Memerlukan biaya token API cloud berbayar (OpenAI / Anthropic). Kode rahasia, data kepemilikan, dan prompt terus-menerus dikirim ke server cloud pihak ketiga.",
+        why_title: "Mengapa Agent Harness Frontier Gagal di SLM — Dan Mengapa Lean Berhasil",
+        why_desc: "Harness frontier (Claude Code, OpenAI Codex, Antigravity, OpenCode) dirancang untuk model cloud 100B+ atau model lokal 14B–30B+ ber-GPU. Pada SLM 3B di CPU, beban prompt dan skema ketatnya langsung memicu kegagalan.",
+        conv_badge: "Agent Harness Frontier",
+        conv_tag: "Cloud-First / Berbasis Model Besar",
+        conv_title: "Claude Code, OpenAI Codex, Antigravity, OpenCode",
+        conv_1_title: "Overhead System Prompt & Skema Tool Masif (4.000 – 15.000+ token)",
+        conv_1_desc: "Dirancang untuk model frontier 100B+ dengan context 128K+. Menyuntikkan puluhan skema tool ketat dan instruksi panjang sebelum pengguna mengetik satu kata pun.",
+        conv_2_title: "Tidak Bisa Menjalankan SLM 3B Secara Andal (Schema Drift & Kolaps Konteks)",
+        conv_2_desc: "Meski diarahkan ke endpoint lokal, model GGUF 3B gagal mematuhi skema JSON/diff ketat, menghalunisasikan argumen, dan memenuhi context 8K—secara praktis butuh model GPU 14B–30B+.",
+        conv_3_title: "Tidak Membundel Runtime CPU SLM",
+        conv_3_desc: "Harness cloud-first (Claude Code, Antigravity) menargetkan API cloud dan tidak menyertakan mesin CPU llama.cpp dengan KV-cache 8-bit untuk laptop RAM < 2,5 GB.",
+        conv_4_title: "Biaya Langganan Cloud, Telemetri & Hambatan VRAM Tinggi",
+        conv_4_desc: "Membutuhkan langganan/API cloud berbayar (mengirim kode & prompt keluar perangkat) atau GPU ber-VRAM besar untuk menjalankan model coding lokal berukuran besar.",
         lean_badge: "Lensetek Lean Harness",
         lean_tag: "Edge-First / Otonom",
         lean_title: "Dirancang Khusus untuk SLM & LLM Lokal",
@@ -2274,8 +2274,8 @@
         faq_a1: "Lensetek Lean Agent Harness adalah runtime agen AI lokal open-source super ringan (< 5 MB) yang dirancang khusus untuk model GGUF 3B hingga 7B. Berjalan 100% lokal di CPU laptop standar tanpa GPU atau biaya API cloud, mendukung coding otonom, edit file proyek, MCP, pencarian web headless, dan Web Workspace opsional.",
         faq_q2: "Apakah bisa dijalankan di laptop CPU standar tanpa GPU?",
         faq_a2: "Ya. Lensetek otomatis mengunduh dan mengelola runtime CPU resmi llama.cpp (llama-server) dengan kuantisasi KV-cache dan Flash Attention, sehingga model GGUF 3B berjalan lancar di laptop standar dengan konsumsi RAM di bawah 2,5 GB.",
-        faq_q3: "Mengapa memakai lean harness dibanding LangChain atau CrewAI untuk model 3B?",
-        faq_a3: "Framework berbasis cloud menyuntikkan 3.000–8.000+ token overhead skema sehingga model 3B–7B kehilangan fokus atau kepenuhan context 8K. Lensetek menjaga overhead prompt tetap minimal (< 600 token) dan langsung memetakan workspace aktif agar model kecil mengeksekusi tool secara akurat.",
+        faq_q3: "Mengapa Claude Code, Codex, Antigravity, atau OpenCode tidak bisa menjalankan SLM 3B?",
+        faq_a3: "Harness frontier menyuntikkan 4.000–15.000+ token aturan dan skema JSON/diff ketat yang ditujukan untuk model cloud 100B+ (atau GPU 14B–30B+), sehingga model 3B gagal memanggil tool atau kehabisan context 8K. Lensetek menjaga overhead tetap minimal (< 600 token) dengan dual parser JSON/XML dan anti-loop circuit breaker khusus SLM 3B–7B.",
         faq_q4: "Bagaimana cara kerja plugin on-demand seperti Web Workspace (webui)?",
         faq_a4: "Inti Lensetek tetap super ringan, sedangkan fitur tambahan dipasang sesuai kebutuhan via /plugins atau lensetek --plugins install <id>. Plugin resmi webui membuka Web IDE modern responsif (light-mode) di http://127.0.0.1:3001 dengan akses baca/tulis/edit file nyata, kartu tool, dan persetujuan aman.",
         faq_q5: "Apakah kode proyek atau file kredensial dikirim ke cloud?",
@@ -2327,19 +2327,19 @@
         btn_copy: "复制",
         btn_copied: "✓ 已复制",
         why_badge: "核心架构差异",
-        why_title: "为什么传统框架在小模型(SLM)上表现糟糕 — 以及轻量框架的优势",
-        why_desc: "大多数智能体框架专为拥有128k上下文窗口的100B+庞大云端模型设计。在小型端侧模型(SLM)上，沉重的Token开销会导致即刻崩溃。以下是我们端侧轻量化设计背后的真实工程原理。",
-        conv_badge: "传统框架",
-        conv_tag: "云端优先 / 基于API",
-        conv_title: "LangChain, CrewAI, AutoGPT, OpenHands",
-        conv_1_title: "庞大的初始Token开销 (4,000 – 8,000+ Token)",
-        conv_1_desc: "在用户输入第一个词之前，就将冗长的JSON Schema、数十个工具定义和密集的Few-shot示例注入到系统提示词中。",
-        conv_2_title: "小模型(SLM)上的上下文崩溃与严重幻觉",
-        conv_2_desc: "小型模型注意力机制较弱，容易出现上下文饱和，进而伪造不存在的工具参数、输出畸形JSON或陷入死循环。",
-        conv_3_title: "沉重的基础设施与工具依赖",
-        conv_3_desc: "通常仅为了启动就需要Docker守护程序、Redis消息队列、外部向量数据库以及庞大的依赖树。",
-        conv_4_title: "高昂的云端成本与隐私泄露隐患",
-        conv_4_desc: "需要持续支付云端API费用。私有代码、专有业务数据和思考过程被持续上传至第三方云端服务器。",
+        why_title: "为什么前沿智能体框架无法稳定运行小模型(SLM) — 以及轻量化的优势",
+        why_desc: "前沿智能体框架（Claude Code、OpenAI Codex、Antigravity、OpenCode）专为 100B+ 云端模型或 14B–30B+ GPU 环境设计。在 3B 端侧小模型上，庞大的提示词和严格模式会导致即刻失败。",
+        conv_badge: "前沿智能体框架",
+        conv_tag: "云端优先 / 面向大模型",
+        conv_title: "Claude Code, OpenAI Codex, Antigravity, OpenCode",
+        conv_1_title: "庞大的系统提示词与工具模式开销 (4,000 – 15,000+ Token)",
+        conv_1_desc: "面向 128K+ 上下文的 100B+ 前沿模型设计，在用户输入前即注入数十个严格的工具 JSON Schema 与冗长规则。",
+        conv_2_title: "无法可靠运行 3B 小模型 (模式漂移与上下文崩溃)",
+        conv_2_desc: "即使指向本地接口，3B GGUF 模型也难以满足严格的 JSON/Diff 模式，易出现参数幻觉并撑爆 8K 上下文，实际运行通常需要 14B–30B+ GPU 模型。",
+        conv_3_title: "未内置 CPU 端侧小模型运行时",
+        conv_3_desc: "云端优先框架（如 Claude Code、Antigravity）依赖托管 API，不提供针对 2.5 GB 内存普通笔记本优化的 llama.cpp CPU 引擎与 8-bit KV Cache 调优。",
+        conv_4_title: "云端 API 费用、遥测与高显存门槛",
+        conv_4_desc: "需要持续支付云端订阅/API 费用（代码与提示词上传至云端），或配备高显存独立显卡运行大型本地代码模型。",
         lean_badge: "Lensetek 轻量框架",
         lean_tag: "端侧优先 / 自主运行",
         lean_title: "专为本地小模型(SLM)与大模型(LLM)定制",
@@ -2424,8 +2424,8 @@
         faq_a1: "Lensetek 是一款开源、极致轻量（< 5 MB）的本地 AI 智能体运行框架，专为 3B–7B GGUF 模型打造。无需 GPU 或云端 API，即可在普通笔记本 CPU 上 100% 本地完成自主编程、项目文件读写编辑、MCP 工具调用、无头搜索与 Web 工作区操作。",
         faq_q2: "没有独立显卡（GPU）的普通笔记本 CPU 能运行吗？",
         faq_a2: "可以。Lensetek 会自动下载并管理官方 llama.cpp CPU 运行时（llama-server），结合 KV-Cache 量化与 Flash Attention，3B GGUF 模型可在内存占用低于 2.5 GB 的普通笔记本上流畅运行。",
-        faq_q3: "为什么在 3B 模型上选择轻量框架而不是 LangChain 或 CrewAI？",
-        faq_a3: "云端框架往往注入 3,000–8,000+ Token 的冗余模板，极易导致 3B–7B 小模型在 8K 上下文中失焦。Lensetek 将系统提示开销压缩至 600 Token 以内，并直接注入当前工作区上下文，显著提升小模型工具调用准确率。",
+        faq_q3: "为什么 Claude Code、Codex、Antigravity 或 OpenCode 无法稳定运行 3B 小模型？",
+        faq_a3: "前沿框架注入 4,000–15,000+ Token 的规则与严格 JSON/Diff 模式，专为 100B+ 云端模型（或 14B–30B+ GPU 模型）设计，极易导致 3B 模型工具调用失败或撑爆 8K 上下文。Lensetek 将提示开销压低至 600 Token 以内，并配备 JSON/XML 双解析器与防死循环断路器，专为 3B–7B 本地模型打造。",
         faq_q4: "按需插件（例如 Web 工作区 webui）如何使用？",
         faq_a4: "核心 CLI 始终保持极致轻量化，用户可通过 /plugins 或 lensetek --plugins install <id> 按需安装插件。官方 webui 插件会在 http://127.0.0.1:3001 启动浅色优先的现代 Web IDE，支持真实文件编辑、工具卡片与权限审批。",
         faq_q5: "我的代码或密钥凭据会上传到云端吗？",
