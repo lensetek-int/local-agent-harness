@@ -22,6 +22,14 @@ MODEL_CATALOG = {
         "size_mb": 1930,
         "desc": "🔥 Flagship Edge Agent: Looped Reasoning, Error Recovery & Anti-Hallucination (RAM < 2.5 GB)."
     },
+    "lensetek-iot-coder-3b": {
+        "name": "Lensetek IoT Coder 3B (Q4_K_M GGUF)",
+        "repo_id": "lensetek/lensetek-iot-coder-3b-GGUF",
+        "filename": "lensetek-iot-coder-3b-q4_k_m.gguf",
+        "dest": os.path.join(BASE_DIR, "lensetek-iot-coder-3b-q4_k_m.gguf"),
+        "size_mb": 1841,
+        "desc": "⚡ Specialized IoT Coder 3B: Arduino/ESP32/MicroPython, pyserial/MQTT, Mobile-First Dashboards & Circuit Diagrams (Wokwi/WireViz/KiCad/Mermaid)."
+    },
     "qwen2.5-0.5b": {
         "name": "Qwen 2.5 0.5B Instruct (Q4_K_M)",
         "repo_id": "Qwen/Qwen2.5-0.5B-Instruct-GGUF",

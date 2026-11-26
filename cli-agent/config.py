@@ -513,6 +513,8 @@ def check_model_thinking_support(model_name: str | None) -> tuple[bool, str]:
     if not model_name:
         return False, "No active model loaded"
     m_lower = Path(model_name).name.lower()
+    if "iot-coder" in m_lower:
+        return False, "Specialized IoT coding & diagram model (direct structured output)"
     reasoning_keywords = ["lensetek", "loop", "r1", "reasoning", "think", "qwq", "deepseek"]
     for kw in reasoning_keywords:
         if kw in m_lower:
