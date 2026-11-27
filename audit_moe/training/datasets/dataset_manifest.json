@@ -1,0 +1,26 @@
+{
+  "experts": {
+    "expert_1_accounting": {
+      "train_count": 1500,
+      "eval_count": 50,
+      "file": "expert_1_accounting.jsonl"
+    },
+    "expert_2_audit": {
+      "train_count": 1500,
+      "eval_count": 50,
+      "file": "expert_2_audit.jsonl"
+    },
+    "expert_3_tax_id": {
+      "train_count": 1500,
+      "eval_count": 50,
+      "file": "expert_3_tax_id.jsonl"
+    },
+    "expert_4_agentic": {
+      "train_count": 1500,
+      "eval_count": 50,
+      "file": "expert_4_agentic.jsonl"
+    }
+  },
+  "eval_heldout_total": 200,
+  "eval_file": "eval_heldout_200.jsonl"
+}

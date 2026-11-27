@@ -1,0 +1,47 @@
+base_model: Qwen/Qwen3-1.7B
+gate_mode: cheap_embed
+lazy_unpickle: true
+dtype: float16
+experts_per_token: 2
+
+experts:
+  - source_model: ./experts/expert_1_accounting
+    positive_prompts:
+      - "Buat jurnal umum dan jurnal penyesuaian sesuai SAK, SAK-EP, atau PSAP BUMD."
+      - "Petakan setoran LPP loket dan rekap DRD tagihan air ke Chart of Accounts (CoA)."
+      - "Buat jurnal majemuk pembayaran jasa konsultan termasuk PPN Masukan dan potongan PPh 23."
+      - "Catat jurnal pembelian persediaan bahan kimia secara kredit beserta PPN."
+      - "Susun jurnal penyusutan aset tetap, penyisihan piutang tak tertagih, dan beban akrual."
+      - "Buat jurnal koreksi reklasifikasi belanja modal CapEx dari beban pemeliharaan."
+      - "Catat penerimaan uang muka sambungan baru sebagai pendapatan diterima dimuka."
+      - "Susun Neraca Lajur, Buku Besar, Laba Rugi, Neraca, dan Arus Kas."
+  - source_model: ./experts/expert_2_audit
+    positive_prompts:
+      - "Hitung EBITDA, EBITDA Margin, dan prosedur audit substantif aset tetap."
+      - "Susun analisis varians RKAP pendapatan dan beban operasional."
+      - "Buat proyeksi keuangan proforma tahun depan berdasarkan asumsi pertumbuhan."
+      - "Lakukan rekonsiliasi bank antara saldo rekening koran, DIT, dan cek beredar."
+      - "Hitung Current Ratio, Debt to Equity Ratio (DER), dan DSCR."
+      - "Evaluasi rasio efisiensi penagihan piutang air BUMD berdasarkan DRD."
+      - "Tetapkan Overall Materiality, Performance Materiality, dan Clearly Trivial sesuai SA 320."
+      - "Buat Kertas Kerja Audit (KKA), sampling uji substantif, dan audit trail."
+  - source_model: ./experts/expert_3_tax_id
+    positive_prompts:
+      - "Hitung PPN non-mewah tarif 12% atas DPP Nilai Lain 11/12 sesuai PMK 131/2024."
+      - "Hitung PPN 12% penuh untuk penyerahan barang tergolong mewah."
+      - "Tentukan tarif dan pemotongan PPh Pasal 23 jasa/royalti ber-NPWP maupun tanpa NPWP."
+      - "Hitung PPh Pasal 4 ayat 2 Final sewa tanah/bangunan 10% dan UMKM 0,5%."
+      - "Hitung pemungutan PPh Pasal 22 pengadaan barang 1,5%."
+      - "Hitung PPh Pasal 21 bulanan skema TER kategori A, B, dan C sesuai PP 58/2023."
+      - "Susun rekonsiliasi koreksi fiskal positif dan negatif untuk PPh Badan 22%."
+      - "Lakukan ekualisasi omzet SPT PPh Badan terhadap DPP SPT Masa PPN."
+  - source_model: ./experts/expert_4_agentic
+    positive_prompts:
+      - "Scan daftar file keuangan klien (.xls, .xlsx, .docx, .pdf) dalam workspace."
+      - "Inspeksi struktur sheet, header, dan sel berformula pada file template Excel klien."
+      - "Tulis jurnal ke file Excel output baru tanpa menimpa file asli dan tanpa merusak rumus."
+      - "Baca kontrak DOCX dan jalankan OCR lokal pada hasil scan PDF faktur pajak."
+      - "Jalankan query SQLite3 read-only SELECT untuk analitik saldo dan sampling audit."
+      - "Verifikasi balance gate Debit == Kredit dan Aset == Kewajiban + Ekuitas."
+      - "Bangun dashboard interaktif non-HTML pada Excel Native Chart atau aplikasi desktop GUI."
+      - "Lakukan operasi RWED file aman termasuk patch edit dan blokir delete tanpa konfirmasi."
