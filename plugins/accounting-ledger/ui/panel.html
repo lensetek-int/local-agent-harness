@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accounting & General Ledger</title>
+  <style>
+    :root {
+      --bg: #F8FAFC; --surface: #FFFFFF; --subtle: #F1F5F9; --border: #E2E8F0;
+      --text: #0F172A; --muted: #64748B; --accent: #2563EB; --accent-soft: #EFF6FF;
+      --success: #059669; --success-soft: #ECFDF5; --danger: #DC2626; --danger-soft: #FEF2F2;
+    }
+    html[data-theme="dark"] {
+      --bg: #0F1117; --surface: #161922; --subtle: #1E222E; --border: #262B38;
+      --text: #F1F5F9; --muted: #94A3B8; --accent: #3B82F6; --accent-soft: rgba(59,130,246,0.16);
+      --success: #10B981; --success-soft: rgba(16,185,129,0.16); --danger: #EF4444; --danger-soft: rgba(239,68,68,0.16);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .tabs { display: flex; gap: 6px; padding: 8px 14px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; align-items: center; justify-content: space-between; }
+    .tab-group { display: flex; gap: 4px; }
+    .tab-btn { padding: 6px 12px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .tab-btn.active { background: var(--accent-soft); color: var(--accent); }
+    .panel { flex: 1; overflow-y: auto; padding: 14px; display: none; }
+    .panel.active { display: block; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .btn { padding: 6px 11px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer; }
+    .btn:hover { background: var(--subtle); }
+    .btn-primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
+    .btn-primary:hover { background: #1D4ED8; color: #FFF; border-color: #1D4ED8; }
+    .btn-danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+    .btn-danger:hover { background: var(--danger); color: #FFF; }
+    .input, select { padding: 6px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 12px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
+    th { font-size: 11px; text-transform: uppercase; color: var(--muted); }
+    .num { text-align: right; font-family: ui-monospace, monospace; }
+    .pill { font-size: 11px; padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+    .pill.ok { background: var(--success-soft); color: var(--success); }
+    .pill.bad { background: var(--danger-soft); color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <div class="tab-group">
+      <button class="tab-btn active" data-t="journals">📒 Journals</button>
+      <button class="tab-btn" data-t="ledger">📖 General Ledger</button>
+      <button class="tab-btn" data-t="reports">📊 Financial Reports</button>
+      <button class="tab-btn" data-t="coa">🗂 Chart of Accounts</button>
+    </div>
+    <button class="btn btn-primary" id="btnAskAI">🤖 Ask AI Accountant</button>
+  </div>
+
+  <!-- Journals Tab -->
+  <div class="panel active" id="p-journals">
+    <div class="card">
+      <div style="font-weight:700;font-size:13.5px;margin-bottom:10px;">New Double-Entry Journal</div>
+      <div class="grid-2" style="margin-bottom:10px;">
+        <input type="date" class="input" id="jDate" />
+        <select id="jType">
+          <option value="general">Jurnal Umum (General)</option>
+          <option value="sales">Jurnal Penjualan (Sales)</option>
+          <option value="purchase">Jurnal Pembelian (Purchase)</option>
+          <option value="cash_in">Penerimaan Kas (Cash In)</option>
+          <option value="cash_out">Pengeluaran Kas (Cash Out)</option>
+          <option value="adjusting">Penyesuaian (Adjusting)</option>
+        </select>
+        <input type="text" class="input" id="jRef" placeholder="Ref No (e.g. INV-001)" />
+        <input type="text" class="input" id="jDesc" placeholder="Description / Keterangan transaksi..." />
+      </div>
+      <div id="jLines" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn" id="btnAddLine">+ Add Line</button>
+          <span class="pill bad" id="jBalStatus">Debit: 0 | Credit: 0</span>
+        </div>
+        <button class="btn btn-primary" id="btnPostJournal">Post Journal Entry</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+        <span style="font-weight:700;font-size:13.5px;">Journal History</span>
+        <select id="jFilterType" style="width:auto;">
+          <option value="all">All Journals</option>
+          <option value="general">General</option>
+          <option value="sales">Sales</option>
+          <option value="purchase">Purchase</option>
+          <option value="cash_in">Cash In</option>
+          <option value="cash_out">Cash Out</option>
+        </select>
+      </div>
+      <div id="journalsList"></div>
+    </div>
+  </div>
+
+  <!-- General Ledger Tab -->
+  <div class="panel" id="p-ledger">
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+        <span style="font-weight:700;font-size:13px;">Select Account:</span>
+        <select id="selLedgerAcc" style="min-width:240px;"></select>
+        <span id="ledgerEndBal" style="font-weight:700;color:var(--accent);"></span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Date</th><th>Ref</th><th>Description</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Financial Reports Tab -->
+  <div class="panel" id="p-reports">
+    <div class="card">
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px;">Trial Balance (Neraca Saldo)</div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Code</th><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead>
+          <tbody id="tbBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-weight:700;font-size:14px;margin-bottom:8px;">Income Statement (Laba Rugi)</div>
+        <div id="isBox" style="font-size:12.5px;"></div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700;font-size:14px;margin-bottom:8px;">Balance Sheet (Neraca)</div>
+        <div id="bsBox" style="font-size:12.5px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CoA Tab -->
+  <div class="panel" id="p-coa">
+    <div class="card">
+      <div style="font-weight:700;font-size:13.5px;margin-bottom:8px;">Add Account</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" class="input" id="cCode" placeholder="Code (e.g. 5-104)" style="width:120px;" />
+        <input type="text" class="input" id="cName" placeholder="Account Name" style="flex:1;min-width:160px;" />
+        <select id="cType">
+          <option value="asset">Asset</option>
+          <option value="liability">Liability</option>
+          <option value="equity">Equity</option>
+          <option value="revenue">Revenue</option>
+          <option value="expense">Expense</option>
+        </select>
+        <button class="btn btn-primary" id="btnAddAcc">+ Add</button>
+      </div>
+    </div>
+    <div class="card" style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Normal</th></tr></thead>
+        <tbody id="coaBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.documentElement.setAttribute('data-theme', params.get('theme') || 'light');
+    const $ = (id) => document.getElementById(id);
+    const API = '/api/plugin/accounting-ledger';
+    let accountsCache = [], lastReports = null;
+
+    function notify(msg) { window.parent.postMessage({ type: 'toast', message: msg }, '*'); }
+    function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fmt(n) { return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    $('jDate').value = new Date().toISOString().slice(0, 10);
+
+    document.querySelectorAll('.tab-btn').forEach((b) => {
+      b.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach((x) => x.classList.toggle('active', x === b));
+        document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'p-' + b.dataset.t));
+        if (b.dataset.t === 'ledger') loadLedger();
+        if (b.dataset.t === 'reports') loadAll();
+      };
+    });
+
+    function addJournalLine(code = '', d = '', c = '') {
+      const wrap = $('jLines');
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;align-items:center;';
+      const opts = accountsCache.map((a) => `<option value="${esc(a.code)}" ${a.code === code ? 'selected' : ''}>${esc(a.code)} - ${esc(a.name)}</option>`).join('');
+      row.innerHTML = `
+        <select class="jl-acc" style="flex:2;min-width:170px;">${opts}</select>
+        <input type="number" class="input jl-d" placeholder="Debit" value="${d}" min="0" step="0.01" style="flex:1;min-width:95px;" />
+        <input type="number" class="input jl-c" placeholder="Credit" value="${c}" min="0" step="0.01" style="flex:1;min-width:95px;" />
+        <button class="btn btn-danger" type="button" style="padding:4px 8px;">✕</button>
+      `;
+      row.querySelector('.jl-d').oninput = updateBalPill;
+      row.querySelector('.jl-c').oninput = updateBalPill;
+      row.querySelector('button').onclick = () => { row.remove(); updateBalPill(); };
+      wrap.appendChild(row);
+      updateBalPill();
+    }
+
+    function updateBalPill() {
+      let d = 0, c = 0;
+      document.querySelectorAll('#jLines > div').forEach((r) => {
+        d += parseFloat(r.querySelector('.jl-d').value || 0);
+        c += parseFloat(r.querySelector('.jl-c').value || 0);
+      });
+      const ok = d > 0 && Math.abs(d - c) < 0.01;
+      const el = $('jBalStatus');
+      el.className = 'pill ' + (ok ? 'ok' : 'bad');
+      el.textContent = `Debit: ${fmt(d)} | Credit: ${fmt(c)} ${ok ? '✓ Balanced' : '✕'}`;
+    }
+
+    $('btnAddLine').onclick = () => addJournalLine();
+
+    $('btnPostJournal').onclick = async () => {
+      const lines = [];
+      document.querySelectorAll('#jLines > div').forEach((r) => {
+        lines.push({
+          account_code: r.querySelector('.jl-acc').value,
+          debit: parseFloat(r.querySelector('.jl-d').value || 0),
+          credit: parseFloat(r.querySelector('.jl-c').value || 0),
+        });
+      });
+      const r = await fetch(API + '/journals/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entry_date: $('jDate').value,
+          journal_type: $('jType').value,
+          ref_no: $('jRef').value,
+          description: $('jDesc').value,
+          lines,
+        }),
+      });
+      const d = await r.json();
+      if (!d.ok) return notify(d.error || 'Failed to post');
+      $('jDesc').value = ''; $('jRef').value = '';
+      $('jLines').innerHTML = '';
+      addJournalLine('1-101'); addJournalLine('4-101');
+      notify('Journal posted!');
+      loadAll();
+    };
+
+    async function loadAll() {
+      const r = await fetch(API + '/summary');
+      const d = await r.json();
+      accountsCache = d.accounts || [];
+      lastReports = d.reports;
+
+      if ($('jLines').children.length === 0 && accountsCache.length >= 2) {
+        addJournalLine(accountsCache[0].code);
+        addJournalLine(accountsCache[1].code);
+      }
+
+      // CoA & Ledger Select
+      const prevLed = $('selLedgerAcc').value;
+      $('selLedgerAcc').innerHTML = accountsCache.map((a) => `<option value="${esc(a.code)}">${esc(a.code)} - ${esc(a.name)}</option>`).join('');
+      if (prevLed) $('selLedgerAcc').value = prevLed;
+
+      $('coaBody').innerHTML = accountsCache.map((a) => `<tr><td><code>${esc(a.code)}</code></td><td>${esc(a.name)}</td><td>${esc(a.type)}</td><td>${esc(a.normal_balance)}</td></tr>`).join('');
+
+      renderJournals(d.journals || []);
+      renderReports(d.reports);
+    }
+
+    function renderJournals(journals) {
+      const ft = $('jFilterType').value;
+      const list = ft === 'all' ? journals : journals.filter((j) => j.journal_type === ft);
+      const box = $('journalsList');
+      if (!list.length) { box.innerHTML = '<div style="font-size:12.5px;color:var(--muted);">No journal entries recorded yet.</div>'; return; }
+      box.innerHTML = '';
+      list.forEach((j) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;';
+        const linesHtml = (j.lines || []).map((l) => `<tr><td>${esc(l.account_code)} ${esc(l.account_name)}</td><td class="num">${l.debit ? fmt(l.debit) : ''}</td><td class="num">${l.credit ? fmt(l.credit) : ''}</td></tr>`).join('');
+        div.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span><strong>#${j.id}</strong> [${esc(j.journal_type)}] ${esc(j.entry_date)} ${j.ref_no ? '· ' + esc(j.ref_no) : ''} — ${esc(j.description)}</span>
+            <button class="btn btn-danger" style="padding:2px 7px;font-size:11px;">Delete</button>
+          </div>
+          <table><tbody>${linesHtml}</tbody></table>
+        `;
+        div.querySelector('button').onclick = async () => {
+          if (!confirm(`Delete journal #${j.id}?`)) return;
+          await fetch(API + '/journals/delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ entry_id: j.id }) });
+          loadAll();
+        };
+        box.appendChild(div);
+      });
+    }
+    $('jFilterType').onchange = loadAll;
+
+    async function loadLedger() {
+      const code = $('selLedgerAcc').value;
+      if (!code) return;
+      const r = await fetch(API + '/ledger?code=' + encodeURIComponent(code));
+      const d = await r.json();
+      $('ledgerEndBal').textContent = `Ending Balance: ${fmt(d.ending_balance)}`;
+      const rows = d.movements || [];
+      $('ledgerBody').innerHTML = rows.length
+        ? rows.map((m) => `<tr><td>${esc(m.entry_date)}</td><td>${esc(m.ref_no)}</td><td>${esc(m.description)}</td><td class="num">${fmt(m.debit)}</td><td class="num">${fmt(m.credit)}</td><td class="num"><strong>${fmt(m.balance)}</strong></td></tr>`).join('')
+        : '<tr><td colspan="6" style="color:var(--muted);">No movements for this account.</td></tr>';
+    }
+    $('selLedgerAcc').onchange = loadLedger;
+
+    function renderReports(rep) {
+      if (!rep) return;
+      const tb = rep.trial_balance;
+      $('tbBody').innerHTML = (tb.rows || []).map((r) => `<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td class="num">${fmt(r.debit)}</td><td class="num">${fmt(r.credit)}</td></tr>`).join('')
+        + `<tr style="font-weight:700;background:var(--subtle);"><td colspan="2">Total</td><td class="num">${fmt(tb.total_debit)}</td><td class="num">${fmt(tb.total_credit)}</td></tr>`;
+
+      const is = rep.income_statement;
+      $('isBox').innerHTML = `
+        <div><strong>Total Revenue:</strong> ${fmt(is.total_revenue)}</div>
+        <div><strong>Total Expense:</strong> ${fmt(is.total_expense)}</div>
+        <div style="margin-top:8px;font-size:14px;"><strong>Net Income:</strong> <span style="color:${is.net_income >= 0 ? 'var(--success)' : 'var(--danger)'};">${fmt(is.net_income)}</span></div>
+      `;
+      const bs = rep.balance_sheet;
+      $('bsBox').innerHTML = `
+        <div><strong>Total Assets:</strong> ${fmt(bs.total_assets)}</div>
+        <div><strong>Total Liabilities:</strong> ${fmt(bs.total_liabilities)}</div>
+        <div><strong>Total Equity + Net Income:</strong> ${fmt(bs.total_equity + bs.current_net_income)}</div>
+        <div style="margin-top:8px;font-size:13px;"><strong>Liab + Equity:</strong> ${fmt(bs.total_liab_and_equity)}</div>
+      `;
+    }
+
+    $('btnAddAcc').onclick = async () => {
+      const r = await fetch(API + '/accounts/add', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ code: $('cCode').value, name: $('cName').value, type: $('cType').value }),
+      });
+      const d = await r.json();
+      if (!d.ok) return notify(d.error || 'Failed');
+      $('cCode').value = ''; $('cName').value = '';
+      notify('Account added');
+      loadAll();
+    };
+
+    $('btnAskAI').onclick = () => {
+      window.parent.postMessage({
+        type: 'send_prompt',
+        prompt: `Analyze my current SQLite accounting financial statements and suggest any insights or closing checks:\n${JSON.stringify(lastReports || {}, null, 2)}`
+      }, '*');
+    };
+
+    loadAll();
+  </script>
+</body>
+</html>

@@ -22,15 +22,40 @@ class SessionManager:
             self.sessions_dir = config.CLI_DIR / "sessions"
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
 
+    @staticmethod
+    def _norm_ws(workspace: str | Path | None) -> str:
+        if not workspace:
+            return ""
+        try:
+            res = str(Path(workspace).resolve())
+            return res.lower() if os.name == "nt" else res
+        except Exception:
+            return str(workspace).strip()
+
     def _get_settings(self) -> dict:
         return config.load_user_settings()
 
     def _save_settings(self, st: dict):
         config.save_user_settings(st)
 
-    def get_active_session_id(self) -> str:
-        """Mengambil ID session yang sedang aktif."""
+    def get_active_session_id(self, workspace: str | Path | None = None) -> str:
+        """Mengambil ID session yang sedang aktif (per-workspace jika ditentukan)."""
         st = self._get_settings()
+        norm_ws = self._norm_ws(workspace)
+
+        if norm_ws:
+            proj_map = st.get("project_active_sessions", {})
+            sess_id = proj_map.get(norm_ws)
+            if sess_id and (self.sessions_dir / f"{sess_id}.json").exists():
+                return sess_id
+            sessions = self.list_sessions(workspace=workspace)
+            if sessions:
+                new_id = sessions[0]["id"]
+                self.set_active_session_id(new_id, workspace=workspace)
+                return new_id
+            new_sess = self.create_session("Default Session", workspace=workspace)
+            return new_sess["id"]
+
         sess_id = st.get("active_session_id")
         if sess_id:
             sess_file = self.sessions_dir / f"{sess_id}.json"
@@ -47,33 +72,50 @@ class SessionManager:
         new_sess = self.create_session("Default Session")
         return new_sess["id"]
 
-    def set_active_session_id(self, session_id: str):
+    def set_active_session_id(self, session_id: str, workspace: str | Path | None = None):
         """Menyimpan ID session aktif ke user_settings.json."""
         st = self._get_settings()
         st["active_session_id"] = session_id
+        norm_ws = self._norm_ws(workspace)
+        if norm_ws:
+            proj_map = st.get("project_active_sessions", {})
+            proj_map[norm_ws] = session_id
+            st["project_active_sessions"] = proj_map
         self._save_settings(st)
 
-    def list_sessions(self) -> list[dict]:
+    def list_sessions(self, workspace: str | Path | None = None) -> list[dict]:
         """
         Mengembalikan daftar semua session yang tersimpan,
         diurutkan dari yang paling baru diperbarui.
+        Jika workspace ditentukan, filter hanya session milik workspace tersebut.
         """
         results = []
         if not self.sessions_dir.exists():
             return results
 
+        norm_target = self._norm_ws(workspace)
+        norm_repo_root = self._norm_ws(config.REPO_ROOT)
+
         for p in self.sessions_dir.glob("*.json"):
             try:
                 with open(p, "r", encoding="utf-8") as f:
                     data = json.load(f)
+                    sess_ws = self._norm_ws(data.get("workspace"))
+                    if norm_target:
+                        # Legacy sessions without workspace field belong to REPO_ROOT
+                        effective_ws = sess_ws or norm_repo_root
+                        if effective_ws != norm_target:
+                            continue
                     messages = data.get("messages", [])
                     user_msgs = [m for m in messages if m.get("role") == "user"]
                     results.append({
                         "id": data.get("id", p.stem),
                         "name": data.get("name", "Untitled Session"),
+                        "workspace": data.get("workspace", ""),
                         "created_at": data.get("created_at", ""),
                         "updated_at": data.get("updated_at", ""),
                         "total_messages": len(messages),
+                        "msg_count": len(messages),
                         "user_turns": len(user_msgs),
                         "model_name": data.get("model_name", "local-model"),
                         "file_path": str(p)
@@ -84,20 +126,26 @@ class SessionManager:
         results.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
         return results
 
-    def create_session(self, name: str = "", model_name: str = "") -> dict:
+    def create_session(self, name: str = "", model_name: str = "", workspace: str | Path | None = None) -> dict:
         """Membuat session baru dan menjadikannya sebagai session aktif."""
         now_dt = datetime.now()
         timestamp_str = now_dt.strftime("%Y%m%d_%H%M%S")
         sess_id = f"sess_{timestamp_str}"
-        
-        all_sess = self.list_sessions()
+        counter = 1
+        while (self.sessions_dir / f"{sess_id}.json").exists():
+            sess_id = f"sess_{timestamp_str}_{counter}"
+            counter += 1
+
+        all_sess = self.list_sessions(workspace=workspace)
         if not name:
-            name = f"Session #{len(all_sess) + 1}"
+            name = f"Chat #{len(all_sess) + 1}"
 
         iso_now = now_dt.isoformat()
+        ws_str = str(Path(workspace).resolve()) if workspace else ""
         session_data = {
             "id": sess_id,
             "name": name,
+            "workspace": ws_str,
             "created_at": iso_now,
             "updated_at": iso_now,
             "model_name": model_name or "local-model",
@@ -108,7 +156,7 @@ class SessionManager:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(session_data, f, indent=2, ensure_ascii=False)
 
-        self.set_active_session_id(sess_id)
+        self.set_active_session_id(sess_id, workspace=workspace)
         return session_data
 
     def load_session(self, session_id: str) -> dict | None:
@@ -122,12 +170,12 @@ class SessionManager:
         except Exception:
             return None
 
-    def get_active_session(self) -> dict:
+    def get_active_session(self, workspace: str | Path | None = None) -> dict:
         """Mengambil data lengkap session aktif saat ini."""
-        sess_id = self.get_active_session_id()
+        sess_id = self.get_active_session_id(workspace=workspace)
         data = self.load_session(sess_id)
         if not data:
-            data = self.create_session("Default Session")
+            data = self.create_session("Default Session", workspace=workspace)
         return data
 
     def save_turn(self, session_id: str, user_text: str, assistant_text: str, model_name: str = ""):
@@ -181,12 +229,12 @@ class SessionManager:
         except Exception as e:
             print(f"[WARN] Gagal menyimpan session turn: {e}")
 
-    def switch_session(self, identifier: str) -> tuple[bool, str, dict | None]:
+    def switch_session(self, identifier: str, workspace: str | Path | None = None) -> tuple[bool, str, dict | None]:
         """
         Beralih ke session yang dituju.
         Identifier bisa berupa ID session lengkap (sess_...) atau nomor indeks (1, 2, ...).
         """
-        sessions = self.list_sessions()
+        sessions = self.list_sessions(workspace=workspace)
         target_id = None
 
         if identifier.isdigit():
@@ -206,7 +254,7 @@ class SessionManager:
         if not sess_data:
             return False, f"Gagal membaca berkas session '{target_id}'.", None
 
-        self.set_active_session_id(target_id)
+        self.set_active_session_id(target_id, workspace=workspace)
         return True, f"Beralih ke session: '{sess_data.get('name')}' ({target_id})", sess_data
 
     def delete_session(self, identifier: str) -> tuple[bool, str]:

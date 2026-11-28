@@ -1,0 +1,23 @@
+{
+  "id": "trading-desk",
+  "name": "Trading Desk & Market Analytics",
+  "version": "1.0.0",
+  "category": "finance",
+  "author": "Lensetek",
+  "description": "Real-time market data (IDX/Global stocks, Crypto, Forex, Commodities), candlestick chart, EMA/RSI/MACD/Bollinger indicators, crypto orderbook, and SQLite trade journal.",
+  "description_id": "Dasbor trading dengan data pasar nyata (Saham IDX/Global, Crypto, Forex, Komoditas), grafik candlestick, indikator EMA/RSI/MACD/Bollinger, orderbook, dan jurnal trading SQLite.",
+  "description_cn": "交易分析仪表盘：支持真实行情数据（股票/加密货币/外汇/大宗商品）、K线图、EMA/RSI/MACD/布林带指标、盘口深度与 SQLite 交易日志。",
+  "entry_point": "main.py",
+  "folder": "plugins/trading-desk",
+  "dependencies": [],
+  "permissions": [
+    "network_outbound",
+    "workspace_read",
+    "workspace_write"
+  ],
+  "ui": {
+    "entry": "ui/panel.html",
+    "title": "Trading Desk",
+    "icon": "📈"
+  }
+}

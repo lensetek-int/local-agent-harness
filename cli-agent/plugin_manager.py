@@ -35,36 +35,51 @@ def get_plugins_dir() -> Path:
     home_plugins.mkdir(parents=True, exist_ok=True)
     return home_plugins
 
-def load_manifest() -> Dict[str, Any]:
-    """Membaca katalog manifest.json lokal atau fallback ke remote GitHub."""
-    local_manifest = config.REPO_ROOT / MANIFEST_REL_PATH
-    if local_manifest.exists():
-        try:
-            with open(local_manifest, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-
-    # Cek di folder home plugins
-    home_manifest = get_plugins_dir() / "manifest.json"
-    if home_manifest.exists():
-        try:
-            with open(home_manifest, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-
-    # Remote fetch fallback
+def _fetch_remote_manifest() -> Optional[Dict[str, Any]]:
     remote_url = "https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/plugins/manifest.json"
     try:
         req = urllib.request.Request(remote_url, headers={"User-Agent": "LensetekAgent/2.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return data
+            if isinstance(data, dict) and isinstance(data.get("plugins"), list):
+                return data
     except Exception:
         pass
+    return None
 
-    return {"version": "1.0.0", "plugins": []}
+
+def load_manifest(force_remote: bool = False) -> Dict[str, Any]:
+    """Membaca katalog manifest.json lokal atau menyinkronkan dari remote GitHub."""
+    local_data = None
+    for cand in (config.REPO_ROOT / MANIFEST_REL_PATH, get_plugins_dir() / "manifest.json"):
+        if cand.exists():
+            try:
+                with open(cand, "r", encoding="utf-8") as f:
+                    local_data = json.load(f)
+                    break
+            except Exception:
+                pass
+
+    if force_remote or local_data is None:
+        remote_data = _fetch_remote_manifest()
+        if remote_data:
+            if local_data:
+                # Gabungkan agar plugin lokal yang belum di-push tetap tampil
+                by_id = {p.get("id"): p for p in remote_data.get("plugins", []) if p.get("id")}
+                for lp in local_data.get("plugins", []):
+                    lid = lp.get("id")
+                    if lid and lid not in by_id:
+                        by_id[lid] = lp
+                remote_data["plugins"] = list(by_id.values())
+            elif not (config.REPO_ROOT / ".git").exists():
+                try:
+                    home_m = get_plugins_dir() / "manifest.json"
+                    home_m.write_text(json.dumps(remote_data, indent=2, ensure_ascii=False), encoding="utf-8")
+                except Exception:
+                    pass
+            return remote_data
+
+    return local_data or {"version": "1.0.0", "plugins": []}
 
 def list_installed_plugin_ids() -> List[str]:
     """Mengembalikan list ID plugin yang terpasang secara eksplisit (on-demand)."""
@@ -72,9 +87,9 @@ def list_installed_plugin_ids() -> List[str]:
     recorded = set(st.get("installed_plugins", []))
     return sorted(list(recorded))
 
-def get_all_catalog_plugins() -> List[Dict[str, Any]]:
+def get_all_catalog_plugins(force_remote: bool = False) -> List[Dict[str, Any]]:
     """Mengambil daftar seluruh plugin dari manifest dan mendeteksi status terpasangnya."""
-    manifest = load_manifest()
+    manifest = load_manifest(force_remote=force_remote)
     plugins = manifest.get("plugins", [])
     installed_ids = set(list_installed_plugin_ids())
 
@@ -157,10 +172,36 @@ def resolve_plugin_target(target: str, page_items: Optional[List[Dict[str, Any]]
 
     return None
 
+def _download_github_dir(repo_rel_path: str, dest_dir: Path) -> bool:
+    """Mengunduh folder plugin secara rekursif dari GitHub secara on-demand."""
+    clean_rel = repo_rel_path.strip("/").replace("\\", "/")
+    api_url = f"https://api.github.com/repos/lensetek-int/local-agent-harness/contents/{clean_rel}?ref=main"
+    req = urllib.request.Request(api_url, headers={"User-Agent": "LensetekAgent/2.0"})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        items = json.loads(resp.read().decode("utf-8"))
+    if not isinstance(items, list):
+        return False
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    for item in items:
+        item_type = item.get("type")
+        name = item.get("name", "")
+        if not name:
+            continue
+        if item_type == "dir":
+            _download_github_dir(item.get("path", f"{clean_rel}/{name}"), dest_dir / name)
+        elif item_type == "file" and item.get("download_url"):
+            f_req = urllib.request.Request(item["download_url"], headers={"User-Agent": "LensetekAgent/2.0"})
+            with urllib.request.urlopen(f_req, timeout=20) as f_resp:
+                (dest_dir / name).write_bytes(f_resp.read())
+    return True
+
+
 def install_plugin(target: str, lang: str = "en") -> Tuple[bool, str]:
     """
     Memasang plugin berdasarkan nomor urut atau ID/nama.
-    Menyalin dari folder template/repo atau mengunduh dan memasang dependensi python.
+    Menyalin dari folder lokal (jika di repo dev) atau mengunduh on-demand dari GitHub,
+    lalu memasang dependensi python jika ada.
     """
     plugin = resolve_plugin_target(target)
     if not plugin:
@@ -174,21 +215,27 @@ def install_plugin(target: str, lang: str = "en") -> Tuple[bool, str]:
     src_dir = config.REPO_ROOT / folder_rel
 
     try:
-        # Jika folder lokal sudah ada di REPO_ROOT (misal di clone repo)
+        # 1. Jika folder lokal sudah ada di REPO_ROOT (dev mode)
         if src_dir.exists() and src_dir != target_dir:
             shutil.copytree(src_dir, target_dir, dirs_exist_ok=True)
-        elif not target_dir.exists():
-            target_dir.mkdir(parents=True, exist_ok=True)
-            # Salin manifest / plugin.json minimal jika baru
-            meta = {
-                "id": plugin_id,
-                "name": plugin_name,
-                "version": plugin.get("version", "1.0.0"),
-                "category": plugin.get("category", "tools"),
-                "entry_point": plugin.get("entry_point", "main.py")
-            }
-            with open(target_dir / "plugin.json", "w", encoding="utf-8") as f:
-                json.dump(meta, f, indent=2)
+        elif not target_dir.exists() or not (target_dir / "plugin.json").exists():
+            # 2. Unduh on-demand langsung dari GitHub
+            downloaded = False
+            try:
+                downloaded = _download_github_dir(folder_rel, target_dir)
+            except Exception:
+                downloaded = False
+            if not downloaded and not target_dir.exists():
+                target_dir.mkdir(parents=True, exist_ok=True)
+                meta = {
+                    "id": plugin_id,
+                    "name": plugin_name,
+                    "version": plugin.get("version", "1.0.0"),
+                    "category": plugin.get("category", "tools"),
+                    "entry_point": plugin.get("entry_point", "main.py")
+                }
+                with open(target_dir / "plugin.json", "w", encoding="utf-8") as f:
+                    json.dump(meta, f, indent=2)
 
         # Pasang dependensi python jika ada requirements.txt
         req_file = target_dir / "requirements.txt"
@@ -233,8 +280,8 @@ def uninstall_plugin(target: str, lang: str = "en") -> Tuple[bool, str]:
         config.save_user_settings(st)
 
     target_dir = get_plugins_dir() / p_id
-    repo_plugins_dir = (config.REPO_ROOT / "plugins").resolve()
-    if target_dir.exists() and target_dir.is_dir() and target_dir.parent.resolve() != repo_plugins_dir:
+    is_dev_git_repo = (config.REPO_ROOT / ".git").exists()
+    if target_dir.exists() and target_dir.is_dir() and not is_dev_git_repo:
         try:
             shutil.rmtree(target_dir)
         except Exception:

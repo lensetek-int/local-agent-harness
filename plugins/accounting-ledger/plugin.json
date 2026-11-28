@@ -1,0 +1,22 @@
+{
+  "id": "accounting-ledger",
+  "name": "Double-Entry Accounting & Ledger",
+  "version": "1.0.0",
+  "category": "finance",
+  "author": "Lensetek",
+  "description": "Local SQLite double-entry bookkeeping with Chart of Accounts, General & Special Journals, General Ledger, Trial Balance, Income Statement, and Balance Sheet.",
+  "description_id": "Pembukuan akuntansi double-entry berbasis SQLite lokal dengan Bagan Akun (CoA), Jurnal Umum & Khusus, Buku Besar, Neraca Saldo, Laba Rugi, dan Neraca.",
+  "description_cn": "基于本地 SQLite 的复式记账会计插件：支持会计科目表、通用/特种日记账、总分类账、试算平衡表、损益表与资产负债表。",
+  "entry_point": "main.py",
+  "folder": "plugins/accounting-ledger",
+  "dependencies": [],
+  "permissions": [
+    "workspace_read",
+    "workspace_write"
+  ],
+  "ui": {
+    "entry": "ui/panel.html",
+    "title": "Accounting",
+    "icon": "📒"
+  }
+}

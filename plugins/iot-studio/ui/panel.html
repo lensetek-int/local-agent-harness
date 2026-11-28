@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Studio</title>
+  <style>
+    :root {
+      --bg: #F8FAFC; --surface: #FFFFFF; --subtle: #F1F5F9; --border: #E2E8F0;
+      --text: #0F172A; --muted: #64748B; --accent: #2563EB; --accent-soft: #EFF6FF;
+      --success: #059669; --danger: #DC2626; --warn: #D97706;
+    }
+    html[data-theme="dark"] {
+      --bg: #0F1117; --surface: #161922; --subtle: #1E222E; --border: #262B38;
+      --text: #F1F5F9; --muted: #94A3B8; --accent: #3B82F6; --accent-soft: rgba(59,130,246,0.16);
+      --success: #10B981; --danger: #EF4444; --warn: #F59E0B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .toolbar { display: flex; gap: 6px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .btn { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer; }
+    .btn:hover { background: var(--subtle); }
+    .btn-primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
+    .btn-primary:hover { background: #1D4ED8; color: #FFF; border-color: #1D4ED8; }
+    .btn-success { background: var(--success); color: #FFF; border-color: var(--success); }
+    .btn-success:hover { opacity: 0.9; color: #FFF; }
+    .btn-danger { background: var(--danger); color: #FFF; border-color: var(--danger); }
+    .btn-danger:hover { opacity: 0.9; color: #FFF; }
+    select, .input { padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 12px; }
+    .workspace { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .top-split { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    @media (min-width: 800px) { .top-split { flex-direction: row; } }
+    .editor-pane { flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid var(--border); min-height: 200px; }
+    @media (min-width: 800px) { .editor-pane { border-bottom: none; border-right: 1px solid var(--border); } }
+    .code-area { flex: 1; width: 100%; border: none; outline: none; resize: none; padding: 12px; background: var(--surface); color: var(--text); font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; line-height: 1.5; }
+    .wiring-pane { flex: 1; display: flex; flex-direction: column; background: var(--bg); min-height: 220px; overflow: hidden; }
+    .wiring-canvas { flex: 1; overflow: auto; padding: 10px; }
+    .bottom-term { height: 190px; background: var(--surface); border-top: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .term-tabs { display: flex; justify-content: space-between; align-items: center; padding: 4px 10px; border-bottom: 1px solid var(--border); background: var(--subtle); gap: 8px; }
+    .term-out { flex: 1; overflow-y: auto; padding: 8px 12px; font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; white-space: pre-wrap; color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <select id="selSketch" style="max-width:170px;"><option value="">New Sketch...</option></select>
+      <input type="text" class="input" id="txtSketchPath" placeholder="sketch/blink.ino" style="width:140px;" />
+      <button class="btn" id="btnSaveSketch">💾 Save</button>
+      <select id="selBoard">
+        <option value="esp32">ESP32 DevKit</option>
+        <option value="uno">Arduino Uno</option>
+        <option value="nano">Arduino Nano</option>
+      </select>
+      <select id="selPort" style="max-width:150px;"><option value="">No COM Port</option></select>
+      <button class="btn" id="btnRefreshPorts" title="Scan COM Ports">↻</button>
+      <select id="selBaud">
+        <option value="115200">115200</option>
+        <option value="9600">9600</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="btn" id="btnCompile">✓ Verify</button>
+      <button class="btn btn-primary" id="btnUpload">⚡ Upload</button>
+      <button class="btn" id="btnAskIoTAI">🤖 AI Debug</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <div class="top-split">
+      <div class="editor-pane">
+        <textarea class="code-area" id="codeEditor" spellcheck="false" placeholder="// Write or select an Arduino/ESP32 .ino sketch..."></textarea>
+      </div>
+      <div class="wiring-pane">
+        <div style="padding:6px 12px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+          <strong>🔌 Interactive SVG Wiring & Pinout</strong>
+          <span id="conflictBadge" style="font-size:11px;font-weight:600;"></span>
+        </div>
+        <div class="wiring-canvas">
+          <svg id="wiringSvg" width="520" height="420"></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-term">
+      <div class="term-tabs">
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary" id="tCompile" style="padding:3px 9px;font-size:11px;">Compiler Output</button>
+          <button class="btn" id="tSerial" style="padding:3px 9px;font-size:11px;">Serial Monitor</button>
+        </div>
+        <div id="serialCtrl" style="display:none;gap:6px;align-items:center;">
+          <button class="btn btn-success" id="btnSerialToggle" style="padding:3px 9px;font-size:11px;">Connect</button>
+          <input type="text" class="input" id="txtSerialSend" placeholder="Send to serial..." style="padding:3px 7px;font-size:11px;width:140px;" />
+          <button class="btn" id="btnSerialSend" style="padding:3px 8px;font-size:11px;">Send</button>
+        </div>
+      </div>
+      <div class="term-out" id="compileOut">Ready.</div>
+      <div class="term-out" id="serialOut" style="display:none;">Serial monitor disconnected.</div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.documentElement.setAttribute('data-theme', params.get('theme') || 'light');
+    const $ = (id) => document.getElementById(id);
+    const API = '/api/plugin/iot-studio';
+    let serialConnected = false, serialNextIdx = 0, serialTimer = null;
+
+    function notify(msg) { window.parent.postMessage({ type: 'toast', message: msg }, '*'); }
+
+    async function loadStatus() {
+      const r = await fetch(API + '/status');
+      const d = await r.json();
+      const selP = $('selPort');
+      const prevP = selP.value;
+      selP.innerHTML = (d.ports && d.ports.length)
+        ? d.ports.map((p) => `<option value="${p.device}">${p.device} (${p.description})</option>`).join('')
+        : '<option value="">No COM port detected</option>';
+      if (prevP) selP.value = prevP;
+
+      const selS = $('selSketch');
+      const prevS = selS.value;
+      selS.innerHTML = '<option value="">-- Select Sketch --</option>' + (d.sketches || []).map((s) => `<option value="${s}">${s}</option>`).join('');
+      if (prevS) selS.value = prevS;
+
+      if (!d.toolchain.arduino_cli_available) {
+        $('compileOut').textContent = 'Note: arduino-cli not found in PATH. Install arduino-cli for real hardware compilation/upload.\nLive SVG Wiring & pyserial COM detection remain active.';
+      }
+    }
+
+    $('btnRefreshPorts').onclick = loadStatus;
+    $('selSketch').onchange = async () => {
+      const p = $('selSketch').value;
+      if (!p) return;
+      $('txtSketchPath').value = p;
+      const r = await fetch(API + '/file?path=' + encodeURIComponent(p));
+      const d = await r.json();
+      if (d.content !== undefined) {
+        $('codeEditor').value = d.content;
+        analyzeWiring();
+      }
+    };
+
+    $('btnSaveSketch').onclick = async () => {
+      const p = ($('txtSketchPath').value || '').trim();
+      if (!p) return notify('Enter sketch file path (e.g. sketch/main.ino)');
+      const r = await fetch(API + '/file/save', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ path: p, content: $('codeEditor').value }),
+      });
+      const d = await r.json();
+      if (d.ok) { notify('Saved ' + p); loadStatus(); }
+      else notify(d.error || 'Save failed');
+    };
+
+    async function analyzeWiring() {
+      const r = await fetch(API + '/wiring/analyze', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ code: $('codeEditor').value, board: $('selBoard').value }),
+      });
+      const d = await r.json();
+      if (d.ok) drawWiringSvg(d.wiring);
+    }
+
+    function drawWiringSvg(w) {
+      const svg = $('wiringSvg');
+      svg.innerHTML = '';
+      const pins = w.board_pins || [];
+      const half = Math.ceil(pins.length / 2);
+      const boardH = Math.max(220, half * 22 + 40);
+      svg.setAttribute('height', Math.max(360, boardH + 30));
+
+      // Draw Board MCU Box
+      const bx = 180, by = 20, bw = 150;
+      svg.innerHTML += `<rect x="${bx}" y="${by}" width="${bw}" height="${boardH}" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>`;
+      svg.innerHTML += `<text x="${bx + bw / 2}" y="${by + 20}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">${w.board_name}</text>`;
+
+      const pinCoords = {};
+      pins.forEach((pin, i) => {
+        const isLeft = i < half;
+        const rowIdx = isLeft ? i : i - half;
+        const py = by + 40 + rowIdx * 22;
+        const px = isLeft ? bx : bx + bw;
+        pinCoords[pin] = { x: px, y: py, isLeft };
+        svg.innerHTML += `<circle cx="${px}" cy="${py}" r="4" fill="var(--accent)"/>`;
+        svg.innerHTML += `<text x="${isLeft ? px + 8 : px - 8}" y="${py + 4}" text-anchor="${isLeft ? 'start' : 'end'}" font-size="10" font-family="monospace" fill="var(--muted)">${pin}</text>`;
+      });
+
+      const wireColors = ['#2563EB', '#059669', '#D97706', '#7C3AED', '#DC2626'];
+      (w.connections || []).forEach((c, idx) => {
+        const pKey = Object.keys(pinCoords).find((k) => k === c.pin || k.endsWith('/' + c.pin) || k === 'D' + c.pin);
+        const col = wireColors[idx % wireColors.length];
+        const compY = 30 + idx * 36;
+        const goLeft = idx % 2 === 0;
+        const compX = goLeft ? 10 : 380;
+        svg.innerHTML += `<rect x="${compX}" y="${compY}" width="125" height="28" rx="6" fill="var(--subtle)" stroke="${col}" stroke-width="1.5"/>`;
+        svg.innerHTML += `<text x="${compX + 8}" y="${compY + 18}" font-size="10.5" font-weight="600" fill="var(--text)">${c.component} (${c.pin})</text>`;
+        if (pKey) {
+          const pt = pinCoords[pKey];
+          const wx1 = goLeft ? compX + 125 : compX;
+          const wy1 = compY + 14;
+          svg.innerHTML += `<path d="M ${wx1} ${wy1} C ${(wx1+pt.x)/2} ${wy1}, ${(wx1+pt.x)/2} ${pt.y}, ${pt.x} ${pt.y}" fill="none" stroke="${col}" stroke-width="2"/>`;
+        }
+      });
+
+      const cb = $('conflictBadge');
+      if (w.conflicts && w.conflicts.length > 0) {
+        cb.style.color = 'var(--danger)';
+        cb.textContent = '⚠ Pin Conflict: ' + w.conflicts.map((x) => `${x.pin} (${x.components.join(', ')})`).join('; ');
+      } else {
+        cb.style.color = 'var(--success)';
+        cb.textContent = `✓ ${(w.connections || []).length} pins mapped · No conflicts`;
+      }
+    }
+
+    $('codeEditor').addEventListener('input', () => { analyzeWiring(); });
+    $('selBoard').onchange = analyzeWiring;
+
+    async function runCli(action) {
+      await $('btnSaveSketch').onclick();
+      const sketch = ($('txtSketchPath').value || '').trim();
+      if (!sketch) return;
+      $('tCompile').click();
+      $('compileOut').textContent = `Running arduino-cli ${action}...`;
+      const r = await fetch(API + '/' + action, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ sketch, board: $('selBoard').value, port: $('selPort').value }),
+      });
+      const d = await r.json();
+      $('compileOut').textContent = d.output || 'Done.';
+    }
+    $('btnCompile').onclick = () => runCli('compile');
+    $('btnUpload').onclick = () => runCli('upload');
+
+    // Terminal tabs & Serial Monitor
+    $('tCompile').onclick = () => {
+      $('tCompile').className = 'btn btn-primary'; $('tSerial').className = 'btn';
+      $('compileOut').style.display = ''; $('serialOut').style.display = 'none'; $('serialCtrl').style.display = 'none';
+    };
+    $('tSerial').onclick = () => {
+      $('tSerial').className = 'btn btn-primary'; $('tCompile').className = 'btn';
+      $('serialOut').style.display = ''; $('compileOut').style.display = 'none'; $('serialCtrl').style.display = 'flex';
+    };
+
+    async function pollSerial() {
+      if (!serialConnected) return;
+      const r = await fetch(API + '/serial/read?after=' + serialNextIdx);
+      const d = await r.json();
+      serialNextIdx = d.next_index || serialNextIdx;
+      if (d.lines && d.lines.length) {
+        $('serialOut').textContent += ( $('serialOut').textContent ? '\n' : '' ) + d.lines.join('\n');
+        $('serialOut').scrollTop = $('serialOut').scrollHeight;
+      }
+      serialTimer = setTimeout(pollSerial, 400);
+    }
+
+    $('btnSerialToggle').onclick = async () => {
+      if (!serialConnected) {
+        const port = $('selPort').value;
+        if (!port) return notify('No COM port selected');
+        const r = await fetch(API + '/serial/open', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ port, baudrate: $('selBaud').value }),
+        });
+        const d = await r.json();
+        if (!d.ok) return notify(d.message || 'Open failed');
+        serialConnected = true; serialNextIdx = 0; $('serialOut').textContent = '';
+        $('btnSerialToggle').textContent = 'Disconnect'; $('btnSerialToggle').className = 'btn btn-danger';
+        pollSerial();
+      } else {
+        await fetch(API + '/serial/close', { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
+        serialConnected = false; if (serialTimer) clearTimeout(serialTimer);
+        $('btnSerialToggle').textContent = 'Connect'; $('btnSerialToggle').className = 'btn btn-success';
+      }
+    };
+
+    $('btnSerialSend').onclick = async () => {
+      const txt = $('txtSerialSend').value;
+      if (!txt) return;
+      await fetch(API + '/serial/send', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ text: txt }) });
+      $('txtSerialSend').value = '';
+    };
+
+    $('btnAskIoTAI').onclick = () => {
+      window.parent.postMessage({
+        type: 'send_prompt',
+        prompt: `Review my ${$('selBoard').value} sketch and suggest wiring or code fixes:\n\`\`\`cpp\n${$('codeEditor').value}\n\`\`\``
+      }, '*');
+    };
+
+    loadStatus();
+    analyzeWiring();
+  </script>
+</body>
+</html>

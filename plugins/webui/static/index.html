@@ -273,20 +273,78 @@
     .file-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 7px 8px;
+      gap: 6px;
+      padding: 6px 6px;
       border-radius: var(--radius-sm);
       cursor: pointer;
       font-size: 13px;
       color: var(--text-primary);
       transition: background 0.12s;
       user-select: none;
+      position: relative;
     }
     .file-item:hover { background: var(--bg-subtle); }
     .file-item.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 500; }
+    .tree-chevron {
+      width: 14px;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      flex-shrink: 0;
+    }
     .file-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
     .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .file-size { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+    .file-more-btn {
+      width: 22px;
+      height: 22px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0.65;
+      transition: background 0.12s, color 0.12s, opacity 0.12s;
+    }
+    .file-item:hover .file-more-btn, .file-more-btn:focus { opacity: 1; }
+    .file-more-btn:hover { background: var(--bg-hover); color: var(--text-primary); opacity: 1; }
+
+    .tree-ctx-menu {
+      position: fixed;
+      z-index: 95;
+      min-width: 170px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      padding: 4px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .tree-ctx-menu.open { display: flex; }
+    .tree-ctx-item {
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 12.5px;
+      font-family: var(--font-sans);
+      text-align: left;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .tree-ctx-item:hover { background: var(--accent-soft); color: var(--accent-text); }
 
     .session-card {
       padding: 9px 10px;
@@ -679,6 +737,334 @@
     }
     .toast.show { display: block; }
 
+    /* Settings Modal & Side-Tab Navigation (Mobile-First) */
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(15, 23, 42, 0.48);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .settings-overlay.open { display: flex; }
+    .settings-modal {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    .settings-header {
+      height: 52px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-canvas);
+      flex-shrink: 0;
+    }
+    .settings-header h3 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .settings-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .settings-nav {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      gap: 6px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-canvas);
+      flex-shrink: 0;
+    }
+    .settings-tab-btn {
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .settings-tab-btn:hover { background: var(--bg-subtle); color: var(--text-primary); }
+    .settings-tab-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      border-color: rgba(37, 99, 235, 0.25);
+      font-weight: 600;
+    }
+    .settings-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .settings-panel { display: none; max-width: 680px; }
+    .settings-panel.active { display: block; }
+    .settings-section-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+    .settings-section-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+    .setting-card {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .setting-info { flex: 1; min-width: 180px; }
+    .setting-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .setting-sub { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+    .search-bar-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .text-input {
+      flex: 1;
+      min-width: 160px;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+    }
+    .text-input:focus { border-color: var(--accent); }
+    .catalog-card {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .catalog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .catalog-title { font-size: 13.5px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .catalog-meta { font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono); }
+    .catalog-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.45; }
+    .badge-pill { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px; background: var(--bg-subtle); color: var(--text-secondary); }
+    .badge-pill.installed { background: var(--success-soft); color: var(--success); }
+    .hf-files-box {
+      margin-top: 6px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hf-file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .progress-box {
+      background: var(--accent-soft);
+      border: 1px solid rgba(37, 99, 235, 0.25);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .progress-box.active { display: block; }
+    .progress-track { height: 7px; background: var(--bg-subtle); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+    .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s; }
+
+    /* Composer Attachments */
+    .composer-attachments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-bottom: 4px;
+    }
+    .composer-attachments:empty { display: none; }
+    .attach-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+    .composer-box.drag-over { border-color: var(--accent); background: var(--accent-soft); }
+    .composer-actions-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
+    /* Multi-Tab Chat Bar */
+    .chat-tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px 0;
+      background: var(--bg-canvas);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+    .chat-tabs-bar::-webkit-scrollbar { display: none; }
+    .chat-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 190px;
+      padding: 6px 10px;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.12s, color 0.12s;
+      flex-shrink: 0;
+    }
+    .chat-tab:hover { background: var(--bg-subtle); color: var(--text-primary); }
+    .chat-tab.active {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border);
+      font-weight: 600;
+      margin-bottom: -1px;
+      padding-bottom: 7px;
+    }
+    .chat-tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-tab-close {
+      width: 16px;
+      height: 16px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .chat-tab-close:hover { background: var(--bg-hover); color: var(--danger); }
+    .chat-tab-add {
+      width: 26px;
+      height: 26px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+    .chat-tab-add:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border); }
+
+    /* Home Project Launcher View (Mobile-First) */
+    .home-view {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 14px 40px;
+      background: var(--bg-canvas);
+      display: none;
+    }
+    .home-view.open { display: block; }
+    .home-inner { max-width: 960px; margin: 0 auto; }
+    .home-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .home-header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+    .home-header p { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+    .home-add-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 640px) {
+      .projects-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (min-width: 960px) {
+      .projects-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .project-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+      box-shadow: var(--shadow-sm);
+    }
+    .project-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .project-card.active { border-color: var(--accent); background: var(--accent-soft); }
+    .project-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .project-card-name { font-size: 14px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px; word-break: break-word; }
+    .project-card-path { font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono); word-break: break-all; margin-top: 4px; }
+    .project-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--text-secondary); }
+
+    @media (min-width: 768px) {
+      .settings-overlay { padding: 24px; }
+      .settings-modal { max-width: 880px; height: 82vh; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+      .settings-body { flex-direction: row; }
+      .settings-nav {
+        width: 210px;
+        flex-direction: column;
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+        padding: 14px 10px;
+      }
+      .settings-tab-btn { width: 100%; justify-content: flex-start; }
+    }
+
     /* Tablet & Desktop Responsive Breakpoints */
     @media (min-width: 900px) {
       .workspace-pill { display: inline-flex; }
@@ -712,11 +1098,12 @@
       <div class="topbar-left">
         <button class="icon-btn mobile-menu-btn" id="btnMobileMenu" title="Explorer & Sessions" aria-label="Menu">☰</button>
         <button class="icon-btn desktop-only" id="btnToggleSidebar" title="Toggle Sidebar">◧</button>
-        <div class="brand">
+        <button class="icon-btn" id="btnHome" title="Home / Projects">🏠</button>
+        <div class="brand" style="cursor:pointer;" id="brandHomeTrigger" title="Home / Projects">
           <div class="brand-mark">L</div>
           <span>Lensetek</span>
         </div>
-        <div class="workspace-pill" id="workspacePill" title="Workspace">📁 .</div>
+        <div class="workspace-pill" id="workspacePill" style="cursor:pointer;" title="Switch Project (Home)">📁 .</div>
       </div>
 
       <div class="topbar-right">
@@ -724,13 +1111,45 @@
           <span class="dot" id="serverDot"></span>
           <span id="serverStatusText">Connecting...</span>
         </div>
+        <button class="icon-btn" id="btnTopSettings" title="Settings">⚙</button>
         <button class="icon-btn" id="btnToggleEditor" title="Toggle Code Editor">{ }</button>
         <button class="icon-btn" id="btnThemeToggle" title="Switch Light/Dark Theme">◐</button>
       </div>
     </header>
 
+    <!-- Home View: Multi-Project Launcher -->
+    <section class="home-view" id="homeView">
+      <div class="home-inner">
+        <div class="home-header">
+          <div>
+            <h1>🏠 Projects & Workspaces</h1>
+            <p>Select an existing project or open any local folder. Switching projects keeps your LLM warm in memory.</p>
+          </div>
+          <button class="btn" id="btnBackToWorkspace">← Back to Workspace</button>
+        </div>
+
+        <div class="home-add-card">
+          <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Open or Add Project Folder</div>
+          <div class="search-bar-row" style="margin-bottom:8px;">
+            <input type="text" class="text-input" id="newProjectPathInput" placeholder="C:\path\to\my-project" />
+            <button class="btn" id="btnBrowseProjectFolder" type="button" title="Browse folder in File Explorer">📁 Browse...</button>
+            <button class="btn btn-primary" id="btnOpenProjectPath" type="button">Open Project</button>
+          </div>
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);cursor:pointer;">
+            <input type="checkbox" id="chkCreateProjectDir" />
+            Create folder if it does not exist
+          </label>
+        </div>
+
+        <div class="search-bar-row">
+          <input type="text" class="text-input" id="projectSearchInput" placeholder="Filter recent projects by name or path..." />
+        </div>
+        <div class="projects-grid" id="projectsGrid"></div>
+      </div>
+    </section>
+
     <!-- Main 3-Pane Workspace -->
-    <div class="workspace-body">
+    <div class="workspace-body" id="workspaceBody">
       <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
       <!-- Left Sidebar: File Explorer & Sessions -->
@@ -743,7 +1162,10 @@
         <div class="sidebar-content" id="paneFiles">
           <div class="tree-header">
             <span>Project Explorer</span>
-            <button class="icon-btn" id="btnRefreshFiles" style="width:24px;height:24px;font-size:12px;" title="Refresh">↻</button>
+            <div style="display:flex;align-items:center;gap:2px;">
+              <button class="icon-btn" id="btnRefreshFiles" style="width:24px;height:24px;font-size:12px;" title="Refresh">↻</button>
+              <button class="icon-btn" id="btnRootMore" style="width:24px;height:24px;font-size:14px;" title="Project Root Options">⋮</button>
+            </div>
           </div>
           <div class="breadcrumb-bar" id="breadcrumbBar"></div>
           <div id="fileList"></div>
@@ -758,42 +1180,37 @@
         </div>
 
         <div class="sidebar-controls">
-          <div class="ctrl-row">
-            <span>Safety</span>
-            <select class="select-pill" id="selSafety">
-              <option value="strict">Strict (Confirm)</option>
-              <option value="auto-approve">Auto-Approve</option>
-              <option value="yolo">YOLO</option>
-            </select>
-          </div>
-          <div class="ctrl-row">
-            <span>Effort</span>
-            <select class="select-pill" id="selEffort">
-              <option value="off">Off</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-          <div class="ctrl-row">
-            <span>Language</span>
-            <select class="select-pill" id="selLanguage">
-              <option value="en">English</option>
-              <option value="id">Indonesia</option>
-              <option value="cn">简体中文</option>
-            </select>
-          </div>
+          <button class="btn" id="btnOpenSettings" style="width:100%;justify-content:space-between;">
+            <span>⚙ Settings</span>
+            <span id="settingsSummaryPill" style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Strict · Medium · EN</span>
+          </button>
         </div>
       </aside>
 
       <!-- Center: Agent Conversation & Tool Execution -->
       <main class="chat-pane">
-        <div class="chat-subbar">
-          <div class="subbar-pills">
+        <div class="chat-tabs-bar" id="chatTabsBar"></div>
+        <div class="chat-subbar" id="chatSubbar">
+          <div class="subbar-pills" style="position:relative;">
             <select class="select-pill" id="selModel" style="max-width:220px;" title="Active GGUF Model"></select>
+            <button class="btn" id="btnLoraPopover" type="button" style="padding:4px 9px;font-size:11.5px;" title="Select LoRA Adapters (Single or Multi-LoRA)">🧩 LoRA (0)</button>
+            <div class="tree-ctx-menu" id="loraPopover" style="width:280px;max-width:90vw;padding:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:12px;font-weight:600;">LoRA Adapters</span>
+                <div style="display:flex;gap:4px;">
+                  <button class="btn" id="btnLoraSelectAll" type="button" style="padding:2px 6px;font-size:10.5px;">All</button>
+                  <button class="btn" id="btnLoraClearAll" type="button" style="padding:2px 6px;font-size:10.5px;">None</button>
+                </div>
+              </div>
+              <div id="loraPopoverList" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
+              <button class="btn btn-primary" id="btnLoraApply" type="button" style="width:100%;justify-content:center;padding:5px;font-size:12px;">Apply LoRA Selection</button>
+            </div>
             <span class="token-pill" id="tokenUsagePill">0 tok</span>
           </div>
-          <button class="btn" id="btnClearView" style="padding:4px 10px;font-size:11.5px;">+ New Chat</button>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <div id="pluginPanelsBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
+            <button class="btn" id="btnClearView" style="padding:4px 10px;font-size:11.5px;">+ New Chat</button>
+          </div>
         </div>
 
         <div class="messages-scroll" id="messagesScroll">
@@ -810,15 +1227,24 @@
           </div>
         </div>
 
-        <div class="composer-wrap">
+        <div class="composer-wrap" id="composerWrap">
           <div class="slash-menu" id="slashMenu"></div>
-          <div class="composer-box">
+          <div class="composer-box" id="composerBox">
+            <div class="composer-attachments" id="composerAttachments"></div>
             <textarea class="composer-input" id="promptInput" rows="1" placeholder="Ask Lensetek, type / for commands, or @ to mention files..."></textarea>
             <div class="composer-footer">
-              <span class="composer-hint">Type / for commands · @ to mention files · Enter to send</span>
+              <div class="composer-actions-left">
+                <input type="file" id="composerFileInput" multiple style="display:none;" />
+                <button class="btn" id="btnAddFile" type="button" style="width:32px;height:32px;padding:0;justify-content:center;border-radius:50%;font-size:18px;font-weight:600;line-height:1;border:1px solid var(--border-strong);background:var(--bg-subtle);color:var(--text-primary);flex-shrink:0;" title="Add file to project folder" aria-label="Add file to project folder">+</button>
+                <span class="composer-hint desktop-only">Type / for commands · @ to mention files · Drop files to upload</span>
+              </div>
               <button class="btn btn-primary" id="btnSend">Send ↑</button>
             </div>
           </div>
+        </div>
+
+        <div id="pluginTabHost" style="display:none;flex:1;min-height:0;flex-direction:column;">
+          <iframe id="pluginTabFrame" style="flex:1;width:100%;height:100%;border:none;background:var(--bg-canvas);"></iframe>
         </div>
       </main>
 
@@ -837,6 +1263,118 @@
     </div>
   </div>
 
+  <!-- Settings Modal (General, Plugins, Models) -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <h3>⚙ Settings</h3>
+        <button class="icon-btn" id="btnCloseSettings" title="Close Settings">✕</button>
+      </div>
+      <div class="settings-body">
+        <nav class="settings-nav" id="settingsNav">
+          <button class="settings-tab-btn active" data-stab="general">⚙ General</button>
+          <button class="settings-tab-btn" data-stab="plugins">🧩 Plugins</button>
+          <button class="settings-tab-btn" data-stab="models">🧠 Models</button>
+        </nav>
+        <div class="settings-content">
+          <!-- General Panel -->
+          <div class="settings-panel active" id="spanel-general">
+            <div class="settings-section-title">Agent Preferences</div>
+            <div class="settings-section-desc">Configure safety guardrails, reasoning effort, and interface language.</div>
+            <div class="setting-card">
+              <div class="setting-info">
+                <div class="setting-label">Safety Mode</div>
+                <div class="setting-sub">Control whether file writes and shell commands require confirmation.</div>
+              </div>
+              <select class="select-pill" id="selSafety">
+                <option value="strict">Strict (Confirm)</option>
+                <option value="auto-approve">Auto-Approve</option>
+                <option value="yolo">YOLO</option>
+              </select>
+            </div>
+            <div class="setting-card">
+              <div class="setting-info">
+                <div class="setting-label">Thinking Effort</div>
+                <div class="setting-sub">Adjust internal reasoning token depth before answering.</div>
+              </div>
+              <select class="select-pill" id="selEffort">
+                <option value="off">Off</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div class="setting-card">
+              <div class="setting-info">
+                <div class="setting-label">Language</div>
+                <div class="setting-sub">Preferred language for agent responses and slash command guides.</div>
+              </div>
+              <select class="select-pill" id="selLanguage">
+                <option value="en">English</option>
+                <option value="id">Indonesia</option>
+                <option value="cn">简体中文</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Plugins Panel -->
+          <div class="settings-panel" id="spanel-plugins">
+            <div class="settings-section-title">Plugins Marketplace</div>
+            <div class="settings-section-desc">Search, download, install, or uninstall Lensetek Agent plugins.</div>
+            <div class="search-bar-row">
+              <input type="text" class="text-input" id="pluginSearchInput" placeholder="Realtime search plugins (name, ID, category)..." />
+              <button class="btn" id="btnRefreshPlugins">↻ Refresh</button>
+            </div>
+            <div id="pluginsCatalogList"></div>
+          </div>
+
+          <!-- Models Panel -->
+          <div class="settings-panel" id="spanel-models">
+            <div class="settings-section-title">Local & Hugging Face GGUF Models</div>
+            <div class="settings-section-desc">Manage installed local models, register custom GGUF paths, or search & download from Hugging Face Hub.</div>
+
+            <div class="progress-box" id="hfDownloadProgressBox">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:600;flex-wrap:wrap;">
+                <span id="hfDownloadMsg">Downloading...</span>
+                <span id="hfDownloadPct">0%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="hfDownloadFill"></div></div>
+              <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;" id="hfDownloadControls">
+                <button class="btn" id="btnPauseHF" style="padding:3px 10px;font-size:11.5px;">⏸ Pause</button>
+                <button class="btn btn-primary" id="btnResumeHF" style="padding:3px 10px;font-size:11.5px;display:none;">▶ Resume</button>
+                <button class="btn btn-danger" id="btnCancelHF" style="padding:3px 10px;font-size:11.5px;">✕ Cancel</button>
+              </div>
+            </div>
+
+            <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin:8px 0 6px;">Add Custom Local Model (.gguf / folder)</div>
+            <div class="search-bar-row">
+              <input type="text" class="text-input" id="customModelPathInput" placeholder="C:\path\to\model.gguf or folder path..." />
+              <button class="btn btn-primary" id="btnAddCustomModel">+ Add</button>
+            </div>
+
+            <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin:14px 0 6px;">Installed Local Models</div>
+            <div id="localModelsList"></div>
+
+            <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin:18px 0 6px;">LoRA Adapters (.gguf — Single or Multi-LoRA)</div>
+            <div class="search-bar-row">
+              <input type="text" class="text-input" id="customLoraPathInput" placeholder="C:\path\to\adapter.gguf or folder path..." />
+              <button class="btn btn-primary" id="btnAddCustomLora" type="button">+ Add LoRA</button>
+            </div>
+            <div id="localLorasList"></div>
+
+            <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin:18px 0 6px;">Search & Download from Hugging Face</div>
+            <div class="search-bar-row">
+              <input type="text" class="text-input" id="hfModelSearchInput" placeholder="Search GGUF on Hugging Face (e.g. lensetek, qwen, gemma-4)..." />
+              <button class="btn btn-primary" id="btnSearchHF">Search HF</button>
+            </div>
+            <div id="hfSearchResults"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tree-ctx-menu" id="treeCtxMenu"></div>
   <div class="toast" id="toast"></div>
 
   <script>
@@ -972,13 +1510,172 @@
         $('selSafety').value = data.safety_mode || 'strict';
         $('selEffort').value = data.effort || 'medium';
         $('selLanguage').value = data.language || 'en';
+        if ($('settingsSummaryPill')) {
+          const sMap = { strict: 'Strict', 'auto-approve': 'Auto', yolo: 'YOLO' };
+          const eMap = { off: 'Off', low: 'Low', medium: 'Med', high: 'High' };
+          $('settingsSummaryPill').textContent = `${sMap[data.safety_mode] || 'Strict'} · ${eMap[data.effort] || 'Med'} · ${(data.language || 'en').toUpperCase()}`;
+        }
+        state.lastModels = data.models || [];
+        state.activeModelName = data.model || '';
+        renderLocalModels(state.lastModels, state.activeModelName);
+        state.lastLoras = data.loras || [];
+        state.activeLoras = data.active_loras || [];
+        renderLorasUI(state.lastLoras, state.activeLoras);
+        renderPluginPanels(data.plugin_panels || []);
 
         const tok = (data.usage && data.usage.total_tokens) || 0;
         $('tokenUsagePill').textContent = `${tok} / ${data.ctx || 8192} tok`;
 
-        renderSessions(data.sessions || [], data.active_session_id);
+        state.workspace = data.workspace || '';
+        state.sessionsList = data.sessions || [];
+        state.activeSessionId = data.active_session_id || null;
+        syncOpenTabsWithState();
+
+        renderSessions(state.sessionsList, state.activeSessionId);
+        renderChatTabs();
       } catch (e) {
         $('serverStatusText').textContent = 'Offline';
+      }
+    }
+
+    function getTabsStorageKey() {
+      return 'lensetek_tabs_' + (state.workspace || 'default');
+    }
+
+    function saveOpenTabs() {
+      try {
+        localStorage.setItem(getTabsStorageKey(), JSON.stringify(state.openTabs || []));
+      } catch (e) {}
+    }
+
+    function syncOpenTabsWithState() {
+      const validIds = new Set((state.sessionsList || []).map((s) => s.id));
+      let saved = [];
+      try {
+        saved = JSON.parse(localStorage.getItem(getTabsStorageKey()) || '[]');
+      } catch (e) { saved = []; }
+      let tabs = Array.isArray(saved) ? saved.filter((id) => validIds.has(id)) : [];
+      if (state.activeSessionId && validIds.has(state.activeSessionId) && !tabs.includes(state.activeSessionId)) {
+        tabs.push(state.activeSessionId);
+      }
+      if (tabs.length === 0 && state.sessionsList && state.sessionsList.length > 0) {
+        tabs.push(state.sessionsList[0].id);
+      }
+      state.openTabs = tabs;
+      saveOpenTabs();
+    }
+
+    state.openPluginTabs = [];
+    state.activePluginTabId = null;
+
+    function syncActivePaneView() {
+      const isPlugin = Boolean(state.activePluginTabId);
+      $('chatSubbar').style.display = isPlugin ? 'none' : '';
+      $('messagesScroll').style.display = isPlugin ? 'none' : '';
+      $('composerWrap').style.display = isPlugin ? 'none' : '';
+      $('pluginTabHost').style.display = isPlugin ? 'flex' : 'none';
+    }
+
+    function renderChatTabs() {
+      const bar = $('chatTabsBar');
+      if (!bar) return;
+      bar.innerHTML = '';
+      const byId = new Map((state.sessionsList || []).map((s) => [s.id, s]));
+
+      (state.openTabs || []).forEach((sid) => {
+        const sess = byId.get(sid);
+        const title = (sess && sess.name) ? sess.name : sid;
+        const isActive = !state.activePluginTabId && (sid === state.activeSessionId);
+
+        const tab = document.createElement('div');
+        tab.className = 'chat-tab' + (isActive ? ' active' : '');
+        tab.title = title;
+        tab.innerHTML = `
+          <span class="chat-tab-title">${escapeHtml(title)}</span>
+          <button class="chat-tab-close" type="button" title="Close tab">✕</button>
+        `;
+        tab.onclick = (e) => {
+          if (e.target.closest('.chat-tab-close')) return;
+          if (state.activePluginTabId || sid !== state.activeSessionId) {
+            switchToSession(sid);
+          }
+        };
+        tab.querySelector('.chat-tab-close').onclick = (e) => {
+          e.stopPropagation();
+          closeChatTab(sid);
+        };
+        bar.appendChild(tab);
+      });
+
+      (state.openPluginTabs || []).forEach((p) => {
+        const isActive = state.activePluginTabId === p.id;
+        const tab = document.createElement('div');
+        tab.className = 'chat-tab' + (isActive ? ' active' : '');
+        tab.title = p.title;
+        tab.innerHTML = `
+          <span class="chat-tab-title">${escapeHtml((p.icon || '🧩') + ' ' + p.title)}</span>
+          <button class="chat-tab-close" type="button" title="Close plugin tab">✕</button>
+        `;
+        tab.onclick = (e) => {
+          if (e.target.closest('.chat-tab-close')) return;
+          openPluginTab(p);
+        };
+        tab.querySelector('.chat-tab-close').onclick = (e) => {
+          e.stopPropagation();
+          closePluginTab(p.id);
+        };
+        bar.appendChild(tab);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'chat-tab-add';
+      addBtn.type = 'button';
+      addBtn.title = 'New Chat Tab';
+      addBtn.textContent = '+';
+      addBtn.onclick = createNewSession;
+      bar.appendChild(addBtn);
+      syncActivePaneView();
+    }
+
+    async function switchToSession(sid) {
+      if (!sid) return;
+      state.activePluginTabId = null;
+      syncActivePaneView();
+      if (!state.openTabs) state.openTabs = [];
+      if (!state.openTabs.includes(sid)) {
+        state.openTabs.push(sid);
+        saveOpenTabs();
+      }
+      if (sid !== state.activeSessionId) {
+        await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'switch_session', session_id: sid }),
+        });
+        await loadMessages();
+        await loadState();
+      } else {
+        renderChatTabs();
+      }
+      closeMobileDrawer();
+    }
+
+    async function closeChatTab(sid) {
+      const tabs = state.openTabs || [];
+      const idx = tabs.indexOf(sid);
+      if (idx === -1) return;
+      if (tabs.length <= 1) {
+        showToast('At least one chat tab must remain open');
+        return;
+      }
+      tabs.splice(idx, 1);
+      state.openTabs = tabs;
+      saveOpenTabs();
+      if (sid === state.activeSessionId) {
+        const nextId = tabs[Math.max(0, idx - 1)];
+        await switchToSession(nextId);
+      } else {
+        renderChatTabs();
       }
     }
 
@@ -992,34 +1689,158 @@
           <div class="session-title">${escapeHtml(s.name || s.id)}</div>
           <div class="session-meta">${s.msg_count || 0} messages</div>
         `;
-        div.onclick = async () => {
-          await fetch('/api/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'switch_session', session_id: s.id }),
-          });
-          await loadMessages();
-          await loadState();
-          closeMobileDrawer();
-        };
+        div.onclick = () => switchToSession(s.id);
         box.appendChild(div);
       });
     }
 
-    async function loadFiles(dirPath = '') {
-      state.currentDir = dirPath;
+    state.expandedDirs = new Set();
+    state.dirEntries = {};
+
+    function closeTreeCtxMenu() {
+      const m = $('treeCtxMenu');
+      if (m) m.classList.remove('open');
+    }
+    document.addEventListener('click', (e) => {
+      const m = $('treeCtxMenu');
+      if (m && m.classList.contains('open') && !m.contains(e.target) && !e.target.closest('.file-more-btn') && e.target.id !== 'btnRootMore') {
+        closeTreeCtxMenu();
+      }
+    });
+
+    async function openInExplorer(relPath = '') {
+      closeTreeCtxMenu();
+      try {
+        const res = await fetch('/api/workspace/open_explorer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: relPath }),
+        });
+        const data = await res.json();
+        if (data.ok) showToast('Opened in File Explorer');
+        else showToast(data.error || 'Failed to open Explorer');
+      } catch (err) {
+        showToast('Error: ' + err.message);
+      }
+    }
+
+    function showTreeCtxMenu(anchorEl, item) {
+      const menu = $('treeCtxMenu');
+      const relPath = item ? item.path : '';
+      const isDir = item ? item.is_dir : true;
+
+      menu.innerHTML = '';
+      const openBtn = document.createElement('button');
+      openBtn.className = 'tree-ctx-item';
+      openBtn.innerHTML = `<span>📂</span><span>Open in Explorer</span>`;
+      openBtn.onclick = () => openInExplorer(relPath);
+      menu.appendChild(openBtn);
+
+      if (isDir) {
+        const uploadBtn = document.createElement('button');
+        uploadBtn.className = 'tree-ctx-item';
+        uploadBtn.innerHTML = `<span>➕</span><span>Add File Here</span>`;
+        uploadBtn.onclick = () => {
+          closeTreeCtxMenu();
+          state.currentDir = relPath;
+          $('composerFileInput').click();
+        };
+        menu.appendChild(uploadBtn);
+
+        const refBtn = document.createElement('button');
+        refBtn.className = 'tree-ctx-item';
+        refBtn.innerHTML = `<span>↻</span><span>Refresh Folder</span>`;
+        refBtn.onclick = async () => {
+          closeTreeCtxMenu();
+          state.expandedDirs.add(relPath);
+          await fetchDirEntries(relPath);
+          renderTree();
+        };
+        menu.appendChild(refBtn);
+      }
+
+      const rect = anchorEl.getBoundingClientRect();
+      menu.classList.add('open');
+      const menuW = 176;
+      const left = Math.min(window.innerWidth - menuW - 8, Math.max(8, rect.right - menuW));
+      const top = Math.min(window.innerHeight - 130, rect.bottom + 4);
+      menu.style.left = left + 'px';
+      menu.style.top = top + 'px';
+    }
+
+    $('btnRootMore').onclick = (e) => {
+      e.stopPropagation();
+      showTreeCtxMenu($('btnRootMore'), null);
+    };
+
+    async function fetchDirEntries(dirPath = '') {
       const res = await fetch('/api/files?path=' + encodeURIComponent(dirPath));
       const data = await res.json();
       if (data.error) {
         showToast(data.error);
-        return;
+        return [];
       }
+      state.dirEntries[dirPath] = data.entries || [];
+      return state.dirEntries[dirPath];
+    }
 
-      // Breadcrumbs
+    function renderTreeBranch(container, dirPath, depth) {
+      const entries = state.dirEntries[dirPath] || [];
+      entries.forEach((item) => {
+        const isExpanded = item.is_dir && state.expandedDirs.has(item.path);
+        const row = document.createElement('div');
+        row.className = 'file-item' + (state.activeFile === item.path ? ' active' : '');
+        row.style.paddingLeft = (8 + depth * 14) + 'px';
+
+        const chevron = item.is_dir ? (isExpanded ? '▾' : '▸') : '';
+        const icon = item.is_dir ? (isExpanded ? '📂' : '📁') : '📄';
+        const size = item.is_dir ? '' : (item.size >= 1024 ? (item.size / 1024).toFixed(1) + ' KB' : item.size + ' B');
+
+        row.innerHTML = `
+          <span class="tree-chevron">${chevron}</span>
+          <span class="file-icon">${icon}</span>
+          <span class="file-name">${escapeHtml(item.name)}</span>
+          ${size ? `<span class="file-size">${size}</span>` : ''}
+          <button class="file-more-btn" type="button" title="Options" aria-label="Options">⋮</button>
+        `;
+
+        const moreBtn = row.querySelector('.file-more-btn');
+        moreBtn.onclick = (e) => {
+          e.stopPropagation();
+          showTreeCtxMenu(moreBtn, item);
+        };
+
+        row.onclick = async () => {
+          if (item.is_dir) {
+            state.currentDir = item.path;
+            if (state.expandedDirs.has(item.path)) {
+              state.expandedDirs.delete(item.path);
+              renderTree();
+            } else {
+              state.expandedDirs.add(item.path);
+              if (!state.dirEntries[item.path]) {
+                await fetchDirEntries(item.path);
+              }
+              renderTree();
+            }
+          } else {
+            openFile(item.path);
+          }
+        };
+
+        container.appendChild(row);
+
+        if (isExpanded) {
+          renderTreeBranch(container, item.path, depth + 1);
+        }
+      });
+    }
+
+    function renderTree() {
       const bc = $('breadcrumbBar');
       bc.innerHTML = `<span class="breadcrumb-link" onclick="loadFiles('')">root</span>`;
-      if (dirPath) {
-        const parts = dirPath.split('/');
+      if (state.currentDir) {
+        const parts = state.currentDir.split('/');
         let acc = '';
         parts.forEach((p) => {
           acc = acc ? `${acc}/${p}` : p;
@@ -1030,31 +1851,26 @@
 
       const list = $('fileList');
       list.innerHTML = '';
-      if (dirPath) {
-        const parent = dirPath.split('/').slice(0, -1).join('/');
-        const up = document.createElement('div');
-        up.className = 'file-item';
-        up.innerHTML = `<span class="file-icon">↩</span><span class="file-name">..</span>`;
-        up.onclick = () => loadFiles(parent);
-        list.appendChild(up);
-      }
+      renderTreeBranch(list, '', 0);
+    }
 
-      (data.entries || []).forEach((item) => {
-        const row = document.createElement('div');
-        row.className = 'file-item' + (state.activeFile === item.path ? ' active' : '');
-        const icon = item.is_dir ? '📁' : '📄';
-        const size = item.is_dir ? '' : (item.size >= 1024 ? (item.size / 1024).toFixed(1) + ' KB' : item.size + ' B');
-        row.innerHTML = `
-          <span class="file-icon">${icon}</span>
-          <span class="file-name">${escapeHtml(item.name)}</span>
-          <span class="file-size">${size}</span>
-        `;
-        row.onclick = () => {
-          if (item.is_dir) loadFiles(item.path);
-          else openFile(item.path);
-        };
-        list.appendChild(row);
-      });
+    async function loadFiles(dirPath = '') {
+      state.currentDir = dirPath;
+      await fetchDirEntries('');
+      if (dirPath) {
+        const parts = dirPath.split('/');
+        let acc = '';
+        for (const p of parts) {
+          acc = acc ? `${acc}/${p}` : p;
+          state.expandedDirs.add(acc);
+          await fetchDirEntries(acc);
+        }
+      } else {
+        for (const expanded of Array.from(state.expandedDirs)) {
+          await fetchDirEntries(expanded);
+        }
+      }
+      renderTree();
     }
 
     async function openFile(filePath) {
@@ -1508,17 +2324,971 @@
     $('selModel').onchange = (e) => updateSetting({ model: e.target.value });
 
     async function createNewSession() {
-      await fetch('/api/settings', {
+      const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'new_session' }),
       });
+      const data = await res.json();
+      if (data.session && data.session.id) {
+        if (!state.openTabs) state.openTabs = [];
+        if (!state.openTabs.includes(data.session.id)) {
+          state.openTabs.push(data.session.id);
+          saveOpenTabs();
+        }
+      }
       await loadMessages();
       await loadState();
       closeMobileDrawer();
     }
     $('btnNewSession').onclick = createNewSession;
     $('btnClearView').onclick = createNewSession;
+
+    // =========================================================================
+    // Home View & Multi-Project Launcher
+    // =========================================================================
+    let projectsCache = [];
+
+    function openHomeView() {
+      $('homeView').classList.add('open');
+      $('workspaceBody').style.display = 'none';
+      $('btnHome').classList.add('active');
+      closeMobileDrawer();
+      loadProjects();
+    }
+
+    function closeHomeView() {
+      $('homeView').classList.remove('open');
+      $('workspaceBody').style.display = '';
+      $('btnHome').classList.remove('active');
+    }
+
+    $('btnHome').onclick = () => {
+      if ($('homeView').classList.contains('open')) closeHomeView();
+      else openHomeView();
+    };
+    $('brandHomeTrigger').onclick = openHomeView;
+    $('workspacePill').onclick = openHomeView;
+    $('btnBackToWorkspace').onclick = closeHomeView;
+
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/projects');
+        const data = await res.json();
+        projectsCache = data.projects || [];
+        renderProjectsGrid();
+      } catch (e) {
+        showToast('Failed to load projects');
+      }
+    }
+
+    function renderProjectsGrid() {
+      const grid = $('projectsGrid');
+      const q = ($('projectSearchInput').value || '').trim().toLowerCase();
+      const filtered = projectsCache.filter((p) => {
+        if (!q) return true;
+        return (p.name || '').toLowerCase().includes(q) || (p.path || '').toLowerCase().includes(q);
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:12px 0;">No projects found. Add a local folder path above.</div>';
+        return;
+      }
+
+      grid.innerHTML = '';
+      filtered.forEach((p) => {
+        const card = document.createElement('div');
+        card.className = 'project-card' + (p.is_active ? ' active' : '');
+        const lastStr = p.last_opened ? p.last_opened.replace('T', ' ').slice(0, 16) : '';
+        card.innerHTML = `
+          <div>
+            <div class="project-card-top">
+              <div class="project-card-name">📁 ${escapeHtml(p.name)} ${p.is_active ? '<span class="badge-pill installed">● Active</span>' : ''}</div>
+              ${p.is_active ? '' : '<button class="btn" data-act="remove" style="padding:2px 7px;font-size:11px;" title="Remove from list">✕</button>'}
+            </div>
+            <div class="project-card-path">${escapeHtml(p.path)}</div>
+          </div>
+          <div class="project-card-footer">
+            <span>${p.exists ? 'Local Folder' : '⚠ Missing'} ${lastStr ? '· ' + lastStr : ''}</span>
+            <span style="color:var(--accent);font-weight:600;">${p.is_active ? 'Open →' : 'Switch →'}</span>
+          </div>
+        `;
+        card.onclick = (e) => {
+          if (e.target.closest('[data-act="remove"]')) return;
+          openProject(p.path, false);
+        };
+        const rmBtn = card.querySelector('[data-act="remove"]');
+        if (rmBtn) {
+          rmBtn.onclick = async (e) => {
+            e.stopPropagation();
+            const res = await fetch('/api/projects/remove', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: p.path }),
+            });
+            const data = await res.json();
+            projectsCache = data.projects || [];
+            renderProjectsGrid();
+            showToast('Removed from recent projects');
+          };
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    async function openProject(projPath, createIfMissing = false) {
+      try {
+        const res = await fetch('/api/projects/open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: projPath, create_if_missing: createIfMissing }),
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          showToast(data.error || 'Failed to open project');
+          return;
+        }
+        state.expandedDirs = new Set();
+        state.dirEntries = {};
+        state.activeFile = null;
+        $('editorPane').classList.remove('open');
+        $('newProjectPathInput').value = '';
+        closeHomeView();
+        await loadState();
+        await loadFiles('');
+        await loadMessages();
+        await loadMentionableFiles();
+        await loadCommands();
+        showToast(data.message || 'Project opened');
+      } catch (err) {
+        showToast('Error opening project: ' + err.message);
+      }
+    }
+
+    $('btnBrowseProjectFolder').onclick = async () => {
+      const btn = $('btnBrowseProjectFolder');
+      btn.disabled = true;
+      btn.textContent = 'Opening...';
+      try {
+        const res = await fetch('/api/projects/browse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+        });
+        const data = await res.json();
+        if (data.ok && data.path) {
+          $('newProjectPathInput').value = data.path;
+          await openProject(data.path, false);
+        } else if (data.error) {
+          showToast(data.error);
+        }
+      } catch (err) {
+        showToast('Browse failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📁 Browse...';
+      }
+    };
+
+    $('btnOpenProjectPath').onclick = () => {
+      const p = ($('newProjectPathInput').value || '').trim();
+      if (!p) {
+        showToast('Enter a project folder path');
+        return;
+      }
+      openProject(p, $('chkCreateProjectDir').checked);
+    };
+    $('newProjectPathInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') $('btnOpenProjectPath').click();
+    });
+    $('projectSearchInput').addEventListener('input', renderProjectsGrid);
+
+    // =========================================================================
+    // Settings Modal, Plugins Manager, Models Manager (Local + Hugging Face)
+    // =========================================================================
+    function openSettingsModal(tabName = 'general') {
+      $('settingsOverlay').classList.add('open');
+      closeMobileDrawer();
+      switchSettingsTab(tabName);
+    }
+    function closeSettingsModal() {
+      $('settingsOverlay').classList.remove('open');
+    }
+    function switchSettingsTab(tabName) {
+      document.querySelectorAll('.settings-tab-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.stab === tabName);
+      });
+      document.querySelectorAll('.settings-panel').forEach((panel) => {
+        panel.classList.toggle('active', panel.id === 'spanel-' + tabName);
+      });
+      if (tabName === 'plugins') loadPluginsCatalog();
+      if (tabName === 'models') renderLocalModels(state.lastModels || [], state.activeModelName || '');
+    }
+
+    $('btnOpenSettings').onclick = () => openSettingsModal('general');
+    $('btnTopSettings').onclick = () => openSettingsModal('general');
+    $('btnCloseSettings').onclick = closeSettingsModal;
+    $('settingsOverlay').onclick = (e) => {
+      if (e.target === $('settingsOverlay')) closeSettingsModal();
+    };
+    document.querySelectorAll('.settings-tab-btn').forEach((btn) => {
+      btn.onclick = () => switchSettingsTab(btn.dataset.stab);
+    });
+
+    // --- Plugins Panel (Realtime Search + Install/Uninstall) ---
+    let allPluginsCache = [];
+    let pluginsLang = 'en';
+
+    async function loadPluginsCatalog(forceRefresh = false) {
+      const box = $('pluginsCatalogList');
+      box.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:8px;">Loading plugins...</div>';
+      try {
+        const res = await fetch('/api/plugins' + (forceRefresh ? '?refresh=1' : ''));
+        const data = await res.json();
+        allPluginsCache = data.plugins || [];
+        pluginsLang = data.language || 'en';
+        renderPluginsCatalog();
+      } catch (e) {
+        box.innerHTML = `<div style="font-size:12.5px;color:var(--danger);padding:8px;">Failed to load plugins: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    function renderPluginsCatalog() {
+      const q = ($('pluginSearchInput').value || '').trim().toLowerCase();
+      const box = $('pluginsCatalogList');
+      const filtered = allPluginsCache.filter((p) => {
+        if (!q) return true;
+        const desc = p['description_' + pluginsLang] || p.description || '';
+        return (
+          (p.id || '').toLowerCase().includes(q) ||
+          (p.name || '').toLowerCase().includes(q) ||
+          (p.category || '').toLowerCase().includes(q) ||
+          desc.toLowerCase().includes(q)
+        );
+      });
+
+      if (filtered.length === 0) {
+        box.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:12px 0;">No plugins match your search.</div>';
+        return;
+      }
+
+      box.innerHTML = '';
+      filtered.forEach((p) => {
+        const card = document.createElement('div');
+        card.className = 'catalog-card';
+        const desc = p['description_' + pluginsLang] || p.description || 'No description provided.';
+        const statusBadge = p.is_installed
+          ? '<span class="badge-pill installed">✓ Installed</span>'
+          : '<span class="badge-pill">Available</span>';
+        const actionBtn = p.is_installed
+          ? `<button class="btn btn-danger" data-act="uninstall">Uninstall / Remove</button>`
+          : `<button class="btn btn-primary" data-act="install">Download & Install</button>`;
+
+        card.innerHTML = `
+          <div class="catalog-head">
+            <div style="min-width:0;flex:1;">
+              <div class="catalog-title">${escapeHtml(p.name || p.id)} ${statusBadge}</div>
+              <div class="catalog-meta">${escapeHtml(p.id)} · v${escapeHtml(p.version || '1.0.0')} · ${escapeHtml(p.category || 'tools')}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <button class="btn" data-act="open-folder" title="Show plugin folder in File Explorer" style="padding:5px 9px;font-size:12px;">📁 Show in Explorer</button>
+              ${actionBtn}
+            </div>
+          </div>
+          <div class="catalog-desc">${escapeHtml(desc)}</div>
+        `;
+
+        card.querySelector('[data-act="open-folder"]').onclick = async () => {
+          const res = await fetch('/api/plugins/open_folder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plugin_id: p.id }),
+          });
+          const data = await res.json();
+          if (data.ok) showToast('Opened plugin folder in Explorer');
+          else showToast(data.error || 'Plugin folder not found');
+        };
+
+        const btn = card.querySelector('[data-act="install"], [data-act="uninstall"]');
+        btn.onclick = async () => {
+          const act = btn.dataset.act;
+          if (act === 'uninstall' && !confirm(`Uninstall and remove plugin "${p.name || p.id}"?`)) return;
+          btn.disabled = true;
+          btn.textContent = act === 'install' ? 'Installing...' : 'Removing...';
+          try {
+            const res = await fetch('/api/plugins/' + act, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ plugin_id: p.id }),
+            });
+            const data = await res.json();
+            if (data.plugins) allPluginsCache = data.plugins;
+            showToast(data.message || (data.ok ? 'Done' : 'Error'));
+            renderPluginsCatalog();
+            loadCommands();
+            loadState();
+          } catch (err) {
+            showToast('Plugin action failed: ' + err.message);
+            btn.disabled = false;
+          }
+        };
+        box.appendChild(card);
+      });
+    }
+
+    $('pluginSearchInput').addEventListener('input', renderPluginsCatalog);
+    $('btnRefreshPlugins').onclick = () => loadPluginsCatalog(true);
+
+    // --- Models Panel (Local List + Add + Delete + HF Search + HF Download) ---
+    function renderLocalModels(models, activeName) {
+      const box = $('localModelsList');
+      if (!box) return;
+      if (!models || models.length === 0) {
+        box.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0;">No local .gguf models found.</div>';
+        return;
+      }
+      box.innerHTML = '';
+      models.forEach((m) => {
+        const isActive = m.name === activeName;
+        const sizeDisp = m.size_mb >= 1024 ? `${(m.size_mb / 1024).toFixed(2)} GB` : `${m.size_mb} MB`;
+        const card = document.createElement('div');
+        card.className = 'catalog-card';
+        card.innerHTML = `
+          <div class="catalog-head">
+            <div style="min-width:0;flex:1;">
+              <div class="catalog-title">${escapeHtml(m.name)} ${isActive ? '<span class="badge-pill installed">● Active</span>' : ''}</div>
+              <div class="catalog-meta" style="word-break:break-all;">
+                ${sizeDisp} · <a href="#" data-act="open-folder" style="color:var(--accent);text-decoration:none;" title="Open model folder in File Explorer">📁 ${escapeHtml(m.path)}</a>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              ${isActive ? '' : '<button class="btn btn-primary" data-act="use" style="padding:5px 10px;font-size:12px;">Use</button>'}
+              <button class="btn btn-danger" data-act="delete" style="padding:5px 10px;font-size:12px;">Delete</button>
+            </div>
+          </div>
+        `;
+        const openLink = card.querySelector('[data-act="open-folder"]');
+        if (openLink) {
+          openLink.onclick = async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/models/open_folder', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: m.path }),
+            });
+            const data = await res.json();
+            if (data.ok) {
+              showToast('Opened folder in File Explorer');
+            } else {
+              showToast(data.error || 'Failed to open folder');
+            }
+          };
+        }
+        const useBtn = card.querySelector('[data-act="use"]');
+        if (useBtn) {
+          useBtn.onclick = () => updateSetting({ model: m.path });
+        }
+        card.querySelector('[data-act="delete"]').onclick = async () => {
+          if (!confirm(`Delete or unregister model "${m.name}"?`)) return;
+          const res = await fetch('/api/models/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: m.path }),
+          });
+          const data = await res.json();
+          showToast(data.message || data.error || 'Model removed');
+          await loadState();
+        };
+        box.appendChild(card);
+      });
+    }
+
+    $('btnAddCustomModel').onclick = async () => {
+      const pathVal = ($('customModelPathInput').value || '').trim();
+      if (!pathVal) {
+        showToast('Enter a .gguf file or folder path');
+        return;
+      }
+      const btn = $('btnAddCustomModel');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/models/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: pathVal }),
+        });
+        const data = await res.json();
+        showToast(data.message || data.error || 'Model added');
+        if (data.ok) $('customModelPathInput').value = '';
+        await loadState();
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    async function searchHFModels() {
+      const q = ($('hfModelSearchInput').value || '').trim();
+      if (!q) {
+        showToast('Enter a model name to search');
+        return;
+      }
+      const box = $('hfSearchResults');
+      const btn = $('btnSearchHF');
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+      box.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:8px;">Searching Hugging Face Hub...</div>';
+      try {
+        const res = await fetch('/api/models/hf/search?q=' + encodeURIComponent(q));
+        const data = await res.json();
+        const results = data.results || [];
+        if (results.length === 0) {
+          box.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:8px;">No GGUF models found.</div>';
+          return;
+        }
+        box.innerHTML = '';
+        results.forEach((r) => {
+          const card = document.createElement('div');
+          card.className = 'catalog-card';
+          card.innerHTML = `
+            <div class="catalog-head">
+              <div>
+                <div class="catalog-title">${escapeHtml(r.id)}</div>
+                <div class="catalog-meta">↓ ${(r.downloads || 0).toLocaleString()} · ♥ ${r.likes || 0} · 📦 ${escapeHtml(r.size_display || 'N/A')}</div>
+              </div>
+              <button class="btn" data-act="inspect">View Files</button>
+            </div>
+            <div class="hf-files-box" style="display:none;"></div>
+          `;
+          const filesBox = card.querySelector('.hf-files-box');
+          const inspectBtn = card.querySelector('[data-act="inspect"]');
+          inspectBtn.onclick = async () => {
+            if (filesBox.style.display === 'flex') {
+              filesBox.style.display = 'none';
+              inspectBtn.textContent = 'View Files';
+              return;
+            }
+            inspectBtn.disabled = true;
+            inspectBtn.textContent = 'Loading...';
+            try {
+              const fRes = await fetch('/api/models/hf/files?repo=' + encodeURIComponent(r.id));
+              const fData = await fRes.json();
+              const files = fData.files || [];
+              filesBox.innerHTML = '';
+              if (files.length === 0) {
+                filesBox.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">No .gguf files found in main branch.</div>';
+              } else {
+                files.forEach((f) => {
+                  const row = document.createElement('div');
+                  row.className = 'hf-file-row';
+                  const baseName = f.path.split('/').pop();
+                  row.innerHTML = `
+                    <span style="font-family:var(--font-mono);word-break:break-all;">${escapeHtml(f.path)} <span style="color:var(--text-muted);">(${escapeHtml(f.size_display)})</span></span>
+                    <button class="btn btn-primary" data-filename="${escapeHtml(baseName)}" style="padding:4px 10px;font-size:11.5px;">Download & Install</button>
+                  `;
+                  row.querySelector('button').onclick = () => startHFModelDownload(r.id, f.path);
+                  filesBox.appendChild(row);
+                });
+                syncHFDownloadButtons();
+              }
+              filesBox.style.display = 'flex';
+              inspectBtn.textContent = 'Hide Files';
+            } finally {
+              inspectBtn.disabled = false;
+            }
+          };
+          box.appendChild(card);
+        });
+      } catch (err) {
+        box.innerHTML = `<div style="font-size:12.5px;color:var(--danger);padding:8px;">Search failed: ${escapeHtml(err.message)}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Search HF';
+      }
+    }
+
+    $('btnSearchHF').onclick = searchHFModels;
+    $('hfModelSearchInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') searchHFModels();
+    });
+
+    let activeDownloadJobId = null;
+    let activeDownloadFile = null;
+    let activeDownloadStatus = null;
+    let activePollTimer = null;
+
+    function syncHFDownloadButtons() {
+      const installedNames = new Set((state.lastModels || []).map((m) => m.name));
+      document.querySelectorAll('.hf-file-row button[data-filename]').forEach((btn) => {
+        const fname = btn.dataset.filename;
+        if (activeDownloadFile === fname && activeDownloadStatus === 'downloading') {
+          btn.disabled = true;
+          btn.textContent = 'Downloading...';
+          btn.style.opacity = '0.6';
+          btn.style.cursor = 'not-allowed';
+        } else if (activeDownloadFile === fname && activeDownloadStatus === 'paused') {
+          btn.disabled = true;
+          btn.textContent = 'Paused';
+          btn.style.opacity = '0.6';
+          btn.style.cursor = 'not-allowed';
+        } else if (installedNames.has(fname)) {
+          btn.disabled = true;
+          btn.textContent = '✓ Installed';
+          btn.classList.remove('btn-primary');
+          btn.style.opacity = '0.75';
+          btn.style.cursor = 'default';
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Download & Install';
+          btn.classList.add('btn-primary');
+          btn.style.opacity = '';
+          btn.style.cursor = '';
+        }
+      });
+    }
+
+    function updateDownloadButtons(status) {
+      activeDownloadStatus = status;
+      syncHFDownloadButtons();
+      const btnPause = $('btnPauseHF');
+      const btnResume = $('btnResumeHF');
+      const btnCancel = $('btnCancelHF');
+      if (status === 'downloading') {
+        btnPause.style.display = 'inline-flex';
+        btnResume.style.display = 'none';
+        btnCancel.style.display = 'inline-flex';
+      } else if (status === 'paused' || status === 'error') {
+        btnPause.style.display = 'none';
+        btnResume.style.display = 'inline-flex';
+        btnCancel.style.display = 'inline-flex';
+      } else {
+        btnPause.style.display = 'none';
+        btnResume.style.display = 'none';
+        btnCancel.style.display = 'none';
+      }
+    }
+
+    async function pollHFDownload(jobId) {
+      if (activePollTimer) clearTimeout(activePollTimer);
+      if (!jobId || activeDownloadJobId !== jobId) return;
+
+      const progBox = $('hfDownloadProgressBox');
+      const progMsg = $('hfDownloadMsg');
+      const progPct = $('hfDownloadPct');
+      const progFill = $('hfDownloadFill');
+
+      try {
+        const stRes = await fetch('/api/models/hf/download_status?job_id=' + encodeURIComponent(jobId));
+        const st = await stRes.json();
+        const pct = Number(st.progress_pct || 0);
+        progPct.textContent = `${pct.toFixed(1)}%`;
+        progFill.style.width = `${Math.min(100, pct)}%`;
+        updateDownloadButtons(st.status);
+
+        if (st.status === 'downloading') {
+          progMsg.textContent = st.total_mb > 0
+            ? `Downloading ${st.filename} (${st.downloaded_mb} / ${st.total_mb} MB)...`
+            : (st.message || `Downloading ${st.filename}...`);
+          activePollTimer = setTimeout(() => pollHFDownload(jobId), 700);
+        } else if (st.status === 'paused') {
+          progMsg.textContent = st.total_mb > 0
+            ? `Paused ${st.filename} (${st.downloaded_mb} / ${st.total_mb} MB)`
+            : (st.message || `Paused ${st.filename}`);
+        } else if (st.status === 'done') {
+          progMsg.textContent = st.message || 'Download complete!';
+          showToast(st.message || 'Model downloaded & activated!');
+          activeDownloadFile = null;
+          activeDownloadStatus = null;
+          await loadState();
+          syncHFDownloadButtons();
+          setTimeout(() => {
+            if (activeDownloadJobId === jobId) progBox.classList.remove('active');
+          }, 2500);
+        } else if (st.status === 'cancelled') {
+          progMsg.textContent = st.message || 'Download cancelled.';
+          showToast('Download cancelled');
+          activeDownloadFile = null;
+          activeDownloadStatus = null;
+          syncHFDownloadButtons();
+          setTimeout(() => {
+            if (activeDownloadJobId === jobId) progBox.classList.remove('active');
+          }, 1500);
+        } else if (st.status === 'error') {
+          progMsg.textContent = 'Error: ' + (st.message || 'Download failed');
+          showToast('Download failed: ' + (st.message || 'Unknown error'));
+          activeDownloadFile = null;
+          activeDownloadStatus = null;
+          syncHFDownloadButtons();
+        }
+      } catch (err) {
+        activePollTimer = setTimeout(() => pollHFDownload(jobId), 1200);
+      }
+    }
+
+    $('btnPauseHF').onclick = async () => {
+      if (!activeDownloadJobId) return;
+      await fetch('/api/models/hf/pause', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: activeDownloadJobId }),
+      });
+      pollHFDownload(activeDownloadJobId);
+    };
+
+    $('btnResumeHF').onclick = async () => {
+      if (!activeDownloadJobId) return;
+      await fetch('/api/models/hf/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: activeDownloadJobId }),
+      });
+      pollHFDownload(activeDownloadJobId);
+    };
+
+    $('btnCancelHF').onclick = async () => {
+      if (!activeDownloadJobId) return;
+      await fetch('/api/models/hf/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: activeDownloadJobId }),
+      });
+      pollHFDownload(activeDownloadJobId);
+    };
+
+    async function startHFModelDownload(repoId, filename) {
+      const baseName = filename.split('/').pop();
+      if (activeDownloadFile === baseName && (activeDownloadStatus === 'downloading' || activeDownloadStatus === 'paused')) {
+        showToast('Model is already downloading or paused.');
+        return;
+      }
+      activeDownloadFile = baseName;
+      const progBox = $('hfDownloadProgressBox');
+      const progMsg = $('hfDownloadMsg');
+      const progPct = $('hfDownloadPct');
+      const progFill = $('hfDownloadFill');
+      progBox.classList.add('active');
+      progMsg.textContent = `Starting download: ${filename}...`;
+      progPct.textContent = '0%';
+      progFill.style.width = '0%';
+      updateDownloadButtons('downloading');
+
+      try {
+        const res = await fetch('/api/models/hf/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo_id: repoId, filename, auto_switch: true }),
+        });
+        const data = await res.json();
+        if (!data.ok || !data.job_id) {
+          throw new Error(data.error || 'Failed to start download');
+        }
+        activeDownloadJobId = data.job_id;
+        pollHFDownload(activeDownloadJobId);
+      } catch (err) {
+        showToast('Download error: ' + err.message);
+        progMsg.textContent = 'Error: ' + err.message;
+        updateDownloadButtons('error');
+      }
+    }
+
+    // =========================================================================
+    // Prompt Composer File Upload -> Save directly to Project Workspace Folder
+    // =========================================================================
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          const commaIdx = result.indexOf(',');
+          resolve(commaIdx >= 0 ? result.slice(commaIdx + 1) : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error('File read error'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadFilesToWorkspace(fileList) {
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+      const attachBox = $('composerAttachments');
+      const btnAdd = $('btnAddFile');
+      btnAdd.disabled = true;
+      btnAdd.textContent = '…';
+
+      try {
+        for (const f of files) {
+          if (f.size > 50 * 1024 * 1024) {
+            showToast(`Skipped "${f.name}" (> 50 MB limit)`);
+            continue;
+          }
+          const b64 = await fileToBase64(f);
+          const res = await fetch('/api/workspace/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: f.name,
+              content_base64: b64,
+              target_dir: state.currentDir || '',
+            }),
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            showToast(data.error || `Failed to upload ${f.name}`);
+            continue;
+          }
+
+          // Add visual chip & insert @path reference into promptInput
+          const chip = document.createElement('span');
+          chip.className = 'attach-chip';
+          chip.innerHTML = `<span>📄 ${escapeHtml(data.path)}</span>`;
+          attachBox.appendChild(chip);
+
+          const inp = $('promptInput');
+          const mention = data.path.includes(' ') ? `@"${data.path}"` : `@${data.path}`;
+          inp.value = inp.value ? `${inp.value.trimEnd()} ${mention} ` : `${mention} `;
+          inp.dispatchEvent(new Event('input'));
+          showToast(`Added "${data.path}" to project folder`);
+        }
+        await loadFiles(state.currentDir);
+        await loadMentionableFiles();
+      } catch (err) {
+        showToast('Upload error: ' + err.message);
+      } finally {
+        btnAdd.disabled = false;
+        btnAdd.textContent = '+';
+        $('composerFileInput').value = '';
+      }
+    }
+
+    $('btnAddFile').onclick = () => $('composerFileInput').click();
+    $('composerFileInput').onchange = (e) => uploadFilesToWorkspace(e.target.files);
+
+    const composerBox = $('composerBox');
+    composerBox.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      composerBox.classList.add('drag-over');
+    });
+    composerBox.addEventListener('dragleave', () => composerBox.classList.remove('drag-over'));
+    composerBox.addEventListener('drop', (e) => {
+      e.preventDefault();
+      composerBox.classList.remove('drag-over');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+        uploadFilesToWorkspace(e.dataTransfer.files);
+      }
+    });
+
+    // Clear attachment chips when prompt is sent
+    const _origSendPrompt = sendPrompt;
+    sendPrompt = async function () {
+      $('composerAttachments').innerHTML = '';
+      return _origSendPrompt();
+    };
+
+    // =========================================================================
+    // Multi-LoRA Adapters UI & Dynamic Plugin Panel Host
+    // =========================================================================
+    function renderLorasUI(loras, activeLoras) {
+      const activeMap = new Map((activeLoras || []).map((a) => [a.path.toLowerCase(), a.scale || 1.0]));
+      const activeCount = activeMap.size;
+      const btnPop = $('btnLoraPopover');
+      if (btnPop) {
+        btnPop.textContent = `🧩 LoRA (${activeCount})`;
+        btnPop.classList.toggle('btn-primary', activeCount > 0);
+      }
+
+      const popList = $('loraPopoverList');
+      if (popList) {
+        if (!loras || loras.length === 0) {
+          popList.innerHTML = '<div style="font-size:11.5px;color:var(--text-muted);padding:4px 0;">No LoRA adapters registered. Add .gguf in Settings → Models.</div>';
+        } else {
+          popList.innerHTML = '';
+          loras.forEach((l) => {
+            const checked = activeMap.has((l.path || '').toLowerCase());
+            const scaleVal = checked ? activeMap.get((l.path || '').toLowerCase()) : 1.0;
+            const row = document.createElement('label');
+            row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 6px;border-radius:6px;background:var(--bg-canvas);border:1px solid var(--border);font-size:11.5px;cursor:pointer;';
+            row.innerHTML = `
+              <span style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
+                <input type="checkbox" class="lora-pop-chk" data-path="${escapeHtml(l.path)}" ${checked ? 'checked' : ''} />
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(l.path)}">${escapeHtml(l.name)}</span>
+              </span>
+              <input type="number" class="lora-pop-scale" value="${scaleVal}" min="0.1" max="2.0" step="0.1" style="width:48px;font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--bg-surface);color:var(--text-primary);" title="LoRA Scale" />
+            `;
+            popList.appendChild(row);
+          });
+        }
+      }
+
+      const setList = $('localLorasList');
+      if (setList) {
+        if (!loras || loras.length === 0) {
+          setList.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:6px 0;">No LoRA .gguf adapters found in models/loras/ or custom paths.</div>';
+        } else {
+          setList.innerHTML = '';
+          loras.forEach((l) => {
+            const isAct = activeMap.has((l.path || '').toLowerCase());
+            const card = document.createElement('div');
+            card.className = 'catalog-card';
+            card.innerHTML = `
+              <div class="catalog-head">
+                <div style="min-width:0;flex:1;">
+                  <div class="catalog-title">${escapeHtml(l.name)} ${isAct ? '<span class="badge-pill installed">● Active</span>' : ''}</div>
+                  <div class="catalog-meta">${l.size_mb} MB · ${escapeHtml(l.source || 'local')} · ${escapeHtml(l.path)}</div>
+                </div>
+                <button class="btn btn-danger" data-act="del-lora" style="padding:4px 10px;font-size:11.5px;">Delete</button>
+              </div>
+            `;
+            card.querySelector('[data-act="del-lora"]').onclick = async () => {
+              const res = await fetch('/api/loras/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: l.path }),
+              });
+              const d = await res.json();
+              showToast(d.message || d.error || 'Removed LoRA');
+              await loadState();
+            };
+            setList.appendChild(card);
+          });
+        }
+      }
+    }
+
+    $('btnLoraPopover').onclick = (e) => {
+      e.stopPropagation();
+      const pop = $('loraPopover');
+      const isOpen = pop.classList.contains('open');
+      if (isOpen) {
+        pop.classList.remove('open');
+        return;
+      }
+      pop.classList.add('open');
+      pop.style.position = 'absolute';
+      pop.style.top = '36px';
+      pop.style.left = '0px';
+    };
+    document.addEventListener('click', (e) => {
+      const pop = $('loraPopover');
+      if (pop && pop.classList.contains('open') && !pop.contains(e.target) && e.target.id !== 'btnLoraPopover') {
+        pop.classList.remove('open');
+      }
+    });
+    $('btnLoraSelectAll').onclick = () => {
+      document.querySelectorAll('.lora-pop-chk').forEach((c) => { c.checked = true; });
+    };
+    $('btnLoraClearAll').onclick = () => {
+      document.querySelectorAll('.lora-pop-chk').forEach((c) => { c.checked = false; });
+    };
+    $('btnLoraApply').onclick = async () => {
+      const selected = [];
+      document.querySelectorAll('#loraPopoverList label').forEach((row) => {
+        const chk = row.querySelector('.lora-pop-chk');
+        const scl = row.querySelector('.lora-pop-scale');
+        if (chk && chk.checked) {
+          selected.push({ path: chk.dataset.path, scale: parseFloat(scl ? scl.value : '1.0') || 1.0 });
+        }
+      });
+      const btn = $('btnLoraApply');
+      btn.disabled = true;
+      btn.textContent = 'Applying...';
+      try {
+        const res = await fetch('/api/loras/set', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ loras: selected }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`Applied ${selected.length} LoRA adapter(s)`);
+          $('loraPopover').classList.remove('open');
+          await loadState();
+        } else {
+          showToast(data.error || 'Failed to apply LoRA');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Apply LoRA Selection';
+      }
+    };
+
+    $('btnAddCustomLora').onclick = async () => {
+      const pathVal = ($('customLoraPathInput').value || '').trim();
+      if (!pathVal) {
+        showToast('Enter a LoRA .gguf file or folder path');
+        return;
+      }
+      const res = await fetch('/api/loras/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: pathVal }),
+      });
+      const data = await res.json();
+      showToast(data.message || data.error || 'LoRA added');
+      if (data.ok) $('customLoraPathInput').value = '';
+      await loadState();
+    };
+
+    // Dynamic Installed Plugin Tabs
+    function renderPluginPanels(panels) {
+      const bar = $('pluginPanelsBar');
+      if (!bar) return;
+      bar.innerHTML = '';
+      const validIds = new Set((panels || []).map((x) => x.id));
+      state.openPluginTabs = (state.openPluginTabs || []).filter((t) => validIds.has(t.id));
+      if (state.activePluginTabId && !validIds.has(state.activePluginTabId)) {
+        state.activePluginTabId = null;
+      }
+
+      (panels || []).forEach((p) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.type = 'button';
+        btn.style.cssText = 'padding:4px 10px;font-size:11.5px;border-color:rgba(37,99,235,0.3);background:var(--accent-soft);color:var(--accent-text);';
+        btn.textContent = `${p.icon || '🧩'} ${p.title}`;
+        btn.onclick = () => openPluginTab(p);
+        bar.appendChild(btn);
+      });
+      renderChatTabs();
+    }
+
+    function openPluginTab(panel) {
+      if (!state.openPluginTabs) state.openPluginTabs = [];
+      if (!state.openPluginTabs.some((t) => t.id === panel.id)) {
+        state.openPluginTabs.push(panel);
+      }
+      state.activePluginTabId = panel.id;
+      const targetUrl = panel.url + '?theme=' + encodeURIComponent(state.theme || 'light');
+      const frame = $('pluginTabFrame');
+      if (!frame.getAttribute('data-plugin-id') || frame.getAttribute('data-plugin-id') !== panel.id) {
+        frame.setAttribute('data-plugin-id', panel.id);
+        frame.src = targetUrl;
+      }
+      renderChatTabs();
+    }
+
+    function closePluginTab(pluginId) {
+      state.openPluginTabs = (state.openPluginTabs || []).filter((t) => t.id !== pluginId);
+      const frame = $('pluginTabFrame');
+      if (frame.getAttribute('data-plugin-id') === pluginId) {
+        frame.removeAttribute('data-plugin-id');
+        frame.src = 'about:blank';
+      }
+      if (state.activePluginTabId === pluginId) {
+        state.activePluginTabId = null;
+      }
+      renderChatTabs();
+    }
+
+    window.addEventListener('message', (e) => {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === 'send_prompt' && e.data.prompt) {
+        state.activePluginTabId = null;
+        renderChatTabs();
+        $('promptInput').value = e.data.prompt;
+        sendPrompt();
+      } else if (e.data.type === 'toast' && e.data.message) {
+        showToast(e.data.message);
+      }
+    });
 
     // Initial boot
     loadState();

@@ -7,6 +7,7 @@ Strictly binds to 127.0.0.1 and blocks credential/secret file access.
 
 from __future__ import annotations
 
+import base64
 import json
 import mimetypes
 import os
@@ -23,7 +24,7 @@ from typing import Any, Dict, List, Optional
 _THIS_DIR = Path(__file__).resolve().parent
 _REPO_CLI = _THIS_DIR.parent.parent / "cli-agent"
 _HOME_CLI = Path.home() / ".lensetek-agent" / "cli-agent"
-for _p in (_REPO_CLI, _HOME_CLI):
+for _p in (_HOME_CLI, _REPO_CLI):
     if _p.exists() and str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
@@ -48,6 +49,11 @@ except ImportError:
     plugin_manager = None
 
 try:
+    import hf_hub
+except ImportError:
+    hf_hub = None
+
+try:
     import version as app_version
 except ImportError:
     app_version = None
@@ -68,6 +74,23 @@ SENSITIVE_KEYWORDS = (
     ".npmrc",
     ".pypirc",
 )
+
+
+def _open_path_in_os_explorer(target_path: Path) -> Path:
+    """Open the containing folder in OS File Explorer, selecting the file when applicable."""
+    import subprocess
+    p_resolved = target_path.resolve()
+    folder_path = p_resolved.parent if p_resolved.is_file() else p_resolved
+    if sys.platform == "win32":
+        if p_resolved.is_file():
+            subprocess.Popen(["explorer", "/select,", str(p_resolved)])
+        else:
+            os.startfile(str(folder_path))
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", "-R", str(p_resolved)] if p_resolved.is_file() else ["open", str(folder_path)])
+    else:
+        subprocess.Popen(["xdg-open", str(folder_path)])
+    return folder_path
 
 
 def is_sensitive_path(target: Path, workspace_root: Path) -> bool:
@@ -114,6 +137,8 @@ class WebUIBackendState:
         self.agent_lock = threading.Lock()
         self.jobs: Dict[str, Dict[str, Any]] = {}
         self.jobs_lock = threading.Lock()
+        self.download_jobs: Dict[str, Dict[str, Any]] = {}
+        self.download_lock = threading.Lock()
         self.pending_approvals: Dict[str, Dict[str, Any]] = {}
         self.approvals_lock = threading.Lock()
         self.active_job_id: Optional[str] = None
@@ -152,13 +177,136 @@ class WebUIBackendState:
                 language=self.language,
                 effort_level=self.effort,
             )
-            active_sess = self.session_mgr.get_active_session()
+            active_sess = self.session_mgr.get_active_session(workspace=str(self.workspace_root))
             self.loaded_session_id = active_sess.get("id") if active_sess else None
             if active_sess:
                 self.agent.load_session(active_sess)
         if not hasattr(self, "loaded_session_id"):
-            active_sess = self.session_mgr.get_active_session()
+            active_sess = self.session_mgr.get_active_session(workspace=str(self.workspace_root))
             self.loaded_session_id = active_sess.get("id") if active_sess else None
+        self._register_project(self.workspace_root)
+
+    @staticmethod
+    def _is_blocked_project_dir(target: Path) -> bool:
+        """Block sensitive system or credential directories from being opened as workspaces."""
+        low = str(target.resolve()).lower()
+        blocked_parts = ("\\.ssh", "/.ssh", "\\.gnupg", "/.gnupg", "\\.git", "/.git")
+        if any(bp in low for bp in blocked_parts):
+            return True
+        sys_roots = ("c:\\windows", "c:\\program files", "/etc", "/root", "/bin", "/sbin", "/usr")
+        if any(low == sr or low.startswith(sr + "\\") or low.startswith(sr + "/") for sr in sys_roots):
+            return True
+        return False
+
+    def _register_project(self, project_path: Path):
+        """Record a project directory into user_settings.json recent_projects."""
+        try:
+            resolved = str(project_path.resolve())
+            st = config.load_user_settings()
+            projects = st.get("recent_projects", [])
+            now_iso = time.strftime("%Y-%m-%dT%H:%M:%S")
+            norm_res = resolved.lower() if sys.platform == "win32" else resolved
+            filtered = [
+                p for p in projects
+                if (p.get("path", "").lower() if sys.platform == "win32" else p.get("path", "")) != norm_res
+            ]
+            filtered.insert(0, {
+                "name": project_path.resolve().name or resolved,
+                "path": resolved,
+                "last_opened": now_iso,
+            })
+            st["recent_projects"] = filtered[:25]
+            config.save_user_settings(st)
+        except Exception:
+            pass
+
+    def list_projects(self) -> List[Dict[str, Any]]:
+        st = config.load_user_settings()
+        projects = st.get("recent_projects", [])
+        active_str = str(self.workspace_root.resolve())
+        norm_active = active_str.lower() if sys.platform == "win32" else active_str
+        out = []
+        seen = set()
+        for p in projects:
+            raw_p = p.get("path", "")
+            if not raw_p:
+                continue
+            norm_p = raw_p.lower() if sys.platform == "win32" else raw_p
+            if norm_p in seen:
+                continue
+            seen.add(norm_p)
+            p_obj = Path(raw_p)
+            out.append({
+                "name": p.get("name") or p_obj.name or raw_p,
+                "path": raw_p,
+                "last_opened": p.get("last_opened", ""),
+                "exists": p_obj.exists() and p_obj.is_dir(),
+                "is_active": norm_p == norm_active,
+            })
+        if norm_active not in seen:
+            out.insert(0, {
+                "name": self.workspace_root.name or active_str,
+                "path": active_str,
+                "last_opened": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                "exists": True,
+                "is_active": True,
+            })
+        return out
+
+    def switch_project(self, raw_path: str, create_if_missing: bool = False) -> tuple[bool, str]:
+        """Switch active workspace_root dynamically without restarting llama-server."""
+        clean = raw_path.strip().strip("'\"")
+        if not clean:
+            return False, "Project path cannot be empty."
+        target = Path(clean).expanduser().resolve()
+        if self._is_blocked_project_dir(target):
+            return False, "Access to system or credential directories is blocked."
+        if not target.exists():
+            if create_if_missing:
+                try:
+                    target.mkdir(parents=True, exist_ok=True)
+                except Exception as exc:
+                    return False, f"Failed to create directory: {exc}"
+            else:
+                return False, f"Directory not found: {target}"
+        if not target.is_dir():
+            return False, f"Not a directory: {target}"
+
+        with self.agent_lock:
+            self.workspace_root = target
+            self.fs_tools = LocalWorkspaceTools(
+                workspace_root=str(self.workspace_root),
+                confirm_fn=self._web_confirm,
+                safety_mode=self.safety_mode,
+            )
+            self.skills_mgr = SkillManager(
+                local_skills_dir=config.CLI_DIR / "skills",
+                workspace_root=self.workspace_root,
+                safety_mode=self.safety_mode,
+            )
+            self.agent.fs_tools = self.fs_tools
+            self.agent.skills_manager = self.skills_mgr
+            active_sess = self.session_mgr.get_active_session(workspace=str(self.workspace_root))
+            self.loaded_session_id = active_sess.get("id") if active_sess else None
+            if active_sess:
+                self.agent.load_session(active_sess)
+            self._register_project(self.workspace_root)
+        return True, f"Switched project to {self.workspace_root.name}"
+
+    def remove_project(self, raw_path: str) -> bool:
+        clean = raw_path.strip()
+        if not clean:
+            return False
+        norm_target = str(Path(clean).resolve()).lower() if sys.platform == "win32" else str(Path(clean).resolve())
+        st = config.load_user_settings()
+        projects = st.get("recent_projects", [])
+        new_list = [
+            p for p in projects
+            if (p.get("path", "").lower() if sys.platform == "win32" else p.get("path", "")) != norm_target
+        ]
+        st["recent_projects"] = new_list
+        config.save_user_settings(st)
+        return len(new_list) != len(projects)
 
     def _web_confirm(self, prompt_text: str) -> bool:
         """Pause tool execution and request approval in the active WebUI job."""
@@ -634,7 +782,7 @@ class WebUIBackendState:
                 self.active_job_id = job_id
                 try:
                     # Auto-sync session if active_session_id changed externally
-                    cur_sid = self.session_mgr.get_active_session_id()
+                    cur_sid = self.session_mgr.get_active_session_id(workspace=str(self.workspace_root))
                     if cur_sid and cur_sid != getattr(self, "loaded_session_id", None):
                         cur_sess = self.session_mgr.get_active_session()
                         if cur_sess is not None:
@@ -669,7 +817,7 @@ class WebUIBackendState:
                                 job_id,
                                 {"type": "status", "message": f"Starting llama-server ({Path(self.model_name).name})..."},
                             )
-                            self.server_mgr.start(self.model_name)
+                            self.server_mgr.start(self.model_name, loras=config.get_active_loras())
                         reply = self.agent.run_turn(prompt_text, on_status=on_status, on_tool=on_tool)
 
                     self._push_event(
@@ -692,22 +840,267 @@ class WebUIBackendState:
         threading.Thread(target=_worker, daemon=True).start()
         return job_id
 
+    def _spawn_hf_download_worker(self, job_id: str):
+        with self.download_lock:
+            job = self.download_jobs.get(job_id)
+            if not job:
+                return
+            url = job["url"]
+            out_file = Path(job["out_file"])
+            safe_name = job["filename"]
+            auto_switch = bool(job.get("auto_switch", True))
+            cancel_evt = job["cancel_event"]
+
+        def _on_progress(done_bytes: int, total_bytes: int):
+            with self.download_lock:
+                j = self.download_jobs.get(job_id)
+                if not j or j.get("status") != "downloading":
+                    return
+                if total_bytes > 0:
+                    j["total_mb"] = round(total_bytes / (1024 * 1024), 1)
+                    j["downloaded_mb"] = round(done_bytes / (1024 * 1024), 1)
+                    j["progress_pct"] = round((done_bytes / total_bytes) * 100, 1)
+
+        def _dl_worker():
+            try:
+                ok, msg, final_path = hf_hub.download_file_parallel(
+                    url,
+                    out_file,
+                    cancel_event=cancel_evt,
+                    progress_cb=_on_progress,
+                )
+                with self.download_lock:
+                    j = self.download_jobs.get(job_id)
+                    if not j:
+                        return
+                    intent = j.get("action_intent")
+                    if ok and final_path:
+                        j["status"] = "done"
+                        j["progress_pct"] = 100.0
+                        if final_path.exists():
+                            sz_mb = round(final_path.stat().st_size / (1024 * 1024), 1)
+                            j["downloaded_mb"] = sz_mb
+                            j["total_mb"] = sz_mb
+                        j["message"] = f"Downloaded {safe_name} successfully."
+                        if auto_switch:
+                            self.model_name = str(final_path)
+                            self.agent.model_name = final_path.name
+                    elif intent == "pause":
+                        j["status"] = "paused"
+                        j["message"] = f"Paused {safe_name} ({j.get('progress_pct', 0)}%)"
+                    elif intent == "cancel":
+                        j["status"] = "cancelled"
+                        j["message"] = f"Cancelled {safe_name}."
+                        for tmp_f in (
+                            out_file.parent / f"{out_file.name}.part",
+                            out_file.parent / f"{out_file.name}.part.meta.json",
+                        ):
+                            try:
+                                if tmp_f.exists():
+                                    tmp_f.unlink()
+                            except Exception:
+                                pass
+                    else:
+                        j["status"] = "error"
+                        j["message"] = msg or "Download failed."
+            except Exception as exc:
+                with self.download_lock:
+                    j = self.download_jobs.get(job_id)
+                    if j:
+                        if j.get("action_intent") == "pause":
+                            j["status"] = "paused"
+                        elif j.get("action_intent") == "cancel":
+                            j["status"] = "cancelled"
+                        else:
+                            j["status"] = "error"
+                            j["message"] = str(exc)
+
+        threading.Thread(target=_dl_worker, daemon=True).start()
+
+    def start_hf_download(self, repo_id: str, filename: str, auto_switch: bool = True) -> str:
+        """Start an asynchronous GGUF download from Hugging Face into REPO_ROOT/models/."""
+        if hf_hub is None:
+            raise RuntimeError("hf_hub module is not available.")
+
+        clean_repo = repo_id.strip()
+        clean_file = filename.strip().lstrip("/")
+        safe_name = Path(clean_file).name
+        if not safe_name.lower().endswith(".gguf"):
+            raise ValueError("Only .gguf model files are supported.")
+
+        models_dir = config.REPO_ROOT / "models"
+        models_dir.mkdir(parents=True, exist_ok=True)
+        out_file = models_dir / safe_name
+        url = f"https://huggingface.co/{clean_repo}/resolve/main/{urllib.parse.quote(clean_file)}"
+
+        job_id = "dl_" + uuid.uuid4().hex[:10]
+        with self.download_lock:
+            for existing_id, existing_job in self.download_jobs.items():
+                if existing_job.get("filename") == safe_name and existing_job.get("status") in ("downloading", "paused"):
+                    return existing_id
+            self.download_jobs[job_id] = {
+                "job_id": job_id,
+                "repo_id": clean_repo,
+                "filename": safe_name,
+                "url": url,
+                "out_file": str(out_file),
+                "auto_switch": auto_switch,
+                "cancel_event": threading.Event(),
+                "action_intent": None,
+                "status": "downloading",
+                "progress_pct": 0.0,
+                "downloaded_mb": 0.0,
+                "total_mb": 0.0,
+                "message": f"Downloading {safe_name}...",
+            }
+
+        self._spawn_hf_download_worker(job_id)
+        return job_id
+
+    def pause_hf_download(self, job_id: str) -> Optional[Dict[str, Any]]:
+        with self.download_lock:
+            job = self.download_jobs.get(job_id)
+            if not job:
+                return None
+            if job["status"] == "downloading":
+                job["action_intent"] = "pause"
+                job["status"] = "paused"
+                job["message"] = f"Paused {job['filename']} ({job.get('progress_pct', 0)}%)"
+                job["cancel_event"].set()
+        return self.get_hf_download_status(job_id)
+
+    def resume_hf_download(self, job_id: str) -> Optional[Dict[str, Any]]:
+        with self.download_lock:
+            job = self.download_jobs.get(job_id)
+            if not job:
+                return None
+            if job["status"] in ("paused", "error"):
+                job["action_intent"] = None
+                job["cancel_event"] = threading.Event()
+                job["status"] = "downloading"
+                job["message"] = f"Resuming {job['filename']}..."
+                should_spawn = True
+            else:
+                should_spawn = False
+        if should_spawn:
+            self._spawn_hf_download_worker(job_id)
+        return self.get_hf_download_status(job_id)
+
+    def cancel_hf_download(self, job_id: str) -> Optional[Dict[str, Any]]:
+        out_file = None
+        with self.download_lock:
+            job = self.download_jobs.get(job_id)
+            if not job:
+                return None
+            job["action_intent"] = "cancel"
+            job["status"] = "cancelled"
+            job["message"] = f"Cancelled {job['filename']}."
+            job["cancel_event"].set()
+            out_file = Path(job["out_file"])
+        if out_file:
+            for tmp_f in (
+                out_file.parent / f"{out_file.name}.part",
+                out_file.parent / f"{out_file.name}.part.meta.json",
+            ):
+                try:
+                    if tmp_f.exists():
+                        tmp_f.unlink()
+                except Exception:
+                    pass
+        return self.get_hf_download_status(job_id)
+
+    def get_hf_download_status(self, job_id: str) -> Optional[Dict[str, Any]]:
+        with self.download_lock:
+            job = self.download_jobs.get(job_id)
+            if not job:
+                return None
+            res = {k: v for k, v in job.items() if k not in ("cancel_event", "url", "action_intent")}
+        return res
+
+    def _resolve_installed_plugin_dir(self, plugin_id: str) -> Optional[Path]:
+        if not plugin_manager or not plugin_id or "/" in plugin_id or "\\" in plugin_id or ".." in plugin_id:
+            return None
+        if plugin_id not in set(plugin_manager.list_installed_plugin_ids()):
+            return None
+        for d in (plugin_manager.get_plugins_dir() / plugin_id, config.REPO_ROOT / "plugins" / plugin_id):
+            if d.exists() and d.is_dir():
+                return d
+        return None
+
+    def get_installed_plugin_panels(self) -> List[Dict[str, Any]]:
+        if not plugin_manager:
+            return []
+        panels = []
+        for pid in plugin_manager.list_installed_plugin_ids():
+            p_dir = self._resolve_installed_plugin_dir(pid)
+            if not p_dir:
+                continue
+            meta_file = p_dir / "plugin.json"
+            if not meta_file.exists():
+                continue
+            try:
+                meta = json.loads(meta_file.read_text(encoding="utf-8"))
+                ui_cfg = meta.get("ui")
+                if isinstance(ui_cfg, dict) and ui_cfg.get("entry"):
+                    entry = str(ui_cfg["entry"]).lstrip("/")
+                    panels.append({
+                        "id": pid,
+                        "title": ui_cfg.get("title", meta.get("name", pid)),
+                        "icon": ui_cfg.get("icon", "🧩"),
+                        "url": f"/plugin-ui/{pid}/{entry}",
+                    })
+            except Exception:
+                continue
+        return panels
+
+    def dispatch_plugin_api(self, plugin_id: str, method: str, sub_path: str, qs: Dict[str, Any], body: Dict[str, Any]) -> tuple[int, Dict[str, Any]]:
+        import importlib.util
+        p_dir = self._resolve_installed_plugin_dir(plugin_id)
+        if not p_dir:
+            return 404, {"error": f"Installed plugin '{plugin_id}' not found."}
+        api_file = p_dir / "server_api.py"
+        if not api_file.exists():
+            return 404, {"error": f"Plugin '{plugin_id}' has no server_api.py"}
+        try:
+            mod_name = f"lensetek_plugin_api_{plugin_id.replace('-', '_')}"
+            spec = importlib.util.spec_from_file_location(mod_name, str(api_file))
+            if not spec or not spec.loader:
+                return 500, {"error": "Unable to load plugin API module."}
+            mod = sys.modules.get(mod_name)
+            if mod is None:
+                mod = importlib.util.module_from_spec(spec)
+                sys.modules[mod_name] = mod
+                spec.loader.exec_module(mod)
+            if not hasattr(mod, "handle_request"):
+                return 500, {"error": "server_api.py missing handle_request()"}
+            return mod.handle_request(method=method, sub_path=sub_path, query=qs, body=body, state=self)
+        except Exception as exc:
+            return 500, {"error": f"Plugin API error: {exc}"}
+
     def get_state_payload(self) -> Dict[str, Any]:
         models_raw = config.list_gguf_models()
         models_info = []
         for m in models_raw:
             p = Path(m)
+            resolved = config.resolve_model_file(m)
+            if resolved and resolved.exists():
+                p = resolved
+            elif not p.is_absolute() and (config.REPO_ROOT / p).exists():
+                p = (config.REPO_ROOT / p).resolve()
             sz_mb = round(p.stat().st_size / (1024 * 1024), 1) if p.exists() else 0
             models_info.append({"name": p.name, "path": str(p), "size_mb": sz_mb})
 
-        sessions_list = self.session_mgr.list_sessions()
-        active_sess = self.session_mgr.get_active_session()
+        sessions_list = self.session_mgr.list_sessions(workspace=str(self.workspace_root))
+        active_sess = self.session_mgr.get_active_session(workspace=str(self.workspace_root))
 
         return {
             "workspace": str(self.workspace_root),
             "workspace_name": self.workspace_root.name,
             "model": Path(self.model_name).name if self.model_name else "None",
             "models": models_info,
+            "loras": config.list_lora_adapters(),
+            "active_loras": config.get_active_loras(),
+            "plugin_panels": self.get_installed_plugin_panels(),
             "effort": self.agent.effort_level,
             "safety_mode": self.fs_tools.safety_mode,
             "language": self.agent.language,
@@ -743,7 +1136,7 @@ def make_handler(state: WebUIBackendState):
 
         def _read_json_body(self) -> Dict[str, Any]:
             length = int(self.headers.get("Content-Length", "0"))
-            if length <= 0 or length > 10 * 1024 * 1024:
+            if length <= 0 or length > 75 * 1024 * 1024:
                 return {}
             raw = self.rfile.read(length)
             return json.loads(raw.decode("utf-8"))
@@ -778,8 +1171,111 @@ def make_handler(state: WebUIBackendState):
                 self._send_json({"files": state.fs_tools.list_mentionable_files()})
                 return
 
+            if path == "/api/plugins":
+                if plugin_manager is None:
+                    self._send_json({"plugins": [], "error": "plugin_manager unavailable"})
+                    return
+                q = (qs.get("q") or [""])[0].strip().lower()
+                force_refresh = (qs.get("refresh") or ["0"])[0] in ("1", "true", "yes")
+                all_p = plugin_manager.get_all_catalog_plugins(force_remote=force_refresh)
+                if q:
+                    all_p = [
+                        p for p in all_p
+                        if q in p.get("id", "").lower()
+                        or q in p.get("name", "").lower()
+                        or q in p.get("category", "").lower()
+                        or q in p.get(f"description_{state.language}", p.get("description", "")).lower()
+                    ]
+                self._send_json({"plugins": all_p, "language": state.language})
+                return
+
+            if path == "/api/plugins/ui":
+                self._send_json({"panels": state.get_installed_plugin_panels()})
+                return
+
+            if path.startswith("/plugin-ui/"):
+                parts = path[len("/plugin-ui/"):].split("/", 1)
+                if len(parts) != 2 or not parts[0] or not parts[1]:
+                    self._send_json({"error": "Invalid plugin UI path"}, 400)
+                    return
+                pid, rel_f = parts[0], parts[1]
+                p_dir = state._resolve_installed_plugin_dir(pid)
+                if not p_dir:
+                    self._send_json({"error": "Plugin not installed"}, 404)
+                    return
+                ui_root = (p_dir / "ui").resolve()
+                target_f = (p_dir / rel_f).resolve()
+                try:
+                    target_f.relative_to(ui_root)
+                except ValueError:
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                if not target_f.exists() or not target_f.is_file():
+                    self._send_json({"error": "Plugin UI file not found"}, 404)
+                    return
+                ctype, _ = mimetypes.guess_type(str(target_f))
+                content = target_f.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", f"{ctype or 'text/html'}; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Cache-Control", "no-store")
+                self.end_headers()
+                self.wfile.write(content)
+                return
+
+            if path.startswith("/api/plugin/"):
+                rest = path[len("/api/plugin/"):]
+                parts = rest.split("/", 1)
+                pid = parts[0]
+                sub_p = parts[1] if len(parts) > 1 else ""
+                code, payload = state.dispatch_plugin_api(pid, "GET", sub_p, qs, {})
+                self._send_json(payload, status=code)
+                return
+
+            if path == "/api/models/hf/search":
+                if hf_hub is None:
+                    self._send_json({"results": [], "error": "hf_hub unavailable"}, 500)
+                    return
+                q = (qs.get("q") or [""])[0].strip()
+                if not q:
+                    self._send_json({"results": []})
+                    return
+                results = hf_hub.search_hf_gguf_models(q, limit=12, fetch_sizes=True)
+                self._send_json({"results": results})
+                return
+
+            if path == "/api/models/hf/files":
+                if hf_hub is None:
+                    self._send_json({"files": [], "error": "hf_hub unavailable"}, 500)
+                    return
+                repo = (qs.get("repo") or [""])[0].strip()
+                if not repo:
+                    self._send_json({"error": "Missing repo parameter"}, 400)
+                    return
+                files = hf_hub.list_hf_gguf_files(repo)
+                self._send_json({"repo": repo, "files": files})
+                return
+
+            if path == "/api/models/hf/download_status":
+                jid = (qs.get("job_id") or [""])[0].strip()
+                st_job = state.get_hf_download_status(jid)
+                if not st_job:
+                    self._send_json({"error": "Download job not found"}, 404)
+                    return
+                if st_job.get("status") == "done":
+                    st_job["state"] = state.get_state_payload()
+                self._send_json(st_job)
+                return
+
+            if path == "/api/projects":
+                self._send_json({
+                    "projects": state.list_projects(),
+                    "active_workspace": str(state.workspace_root),
+                })
+                return
+
             if path == "/api/session/messages":
-                active_sess = state.session_mgr.get_active_session()
+                active_sess = state.session_mgr.get_active_session(workspace=str(state.workspace_root))
                 msgs = active_sess.get("messages", []) if active_sess else []
                 self._send_json({"messages": msgs, "session": active_sess})
                 return
@@ -912,6 +1408,355 @@ def make_handler(state: WebUIBackendState):
                     self._send_json({"error": str(exc)}, 500)
                 return
 
+            if path == "/api/workspace/upload":
+                filename = str(body.get("filename", "")).strip()
+                content_b64 = str(body.get("content_base64", "")).strip()
+                target_dir_rel = str(body.get("target_dir", "")).strip()
+                if not filename or not content_b64:
+                    self._send_json({"error": "Missing filename or file content"}, 400)
+                    return
+                safe_name = Path(filename).name
+                if not safe_name or safe_name in (".", ".."):
+                    self._send_json({"error": "Invalid filename"}, 400)
+                    return
+                dest_dir = (state.workspace_root / target_dir_rel).resolve() if target_dir_rel else state.workspace_root
+                try:
+                    dest_dir.relative_to(state.workspace_root)
+                except ValueError:
+                    self._send_json({"error": "Target directory outside workspace"}, 403)
+                    return
+                dest_file = (dest_dir / safe_name).resolve()
+                if is_sensitive_path(dest_file, state.workspace_root):
+                    self._send_json({"error": "Uploading sensitive/credential files is blocked"}, 403)
+                    return
+                try:
+                    raw_bytes = base64.b64decode(content_b64)
+                    if len(raw_bytes) > 50 * 1024 * 1024:
+                        self._send_json({"error": "File exceeds 50 MB limit"}, 413)
+                        return
+                    dest_dir.mkdir(parents=True, exist_ok=True)
+                    dest_file.write_bytes(raw_bytes)
+                    rel_item = str(dest_file.relative_to(state.workspace_root)).replace("\\", "/")
+                    self._send_json({
+                        "ok": True,
+                        "name": safe_name,
+                        "path": rel_item,
+                        "size": len(raw_bytes),
+                    })
+                except Exception as exc:
+                    self._send_json({"error": f"Upload failed: {exc}"}, 500)
+                return
+
+            if path == "/api/plugins/install":
+                if plugin_manager is None:
+                    self._send_json({"error": "plugin_manager unavailable"}, 500)
+                    return
+                pid = str(body.get("plugin_id", "")).strip()
+                if not pid:
+                    self._send_json({"error": "Missing plugin_id"}, 400)
+                    return
+                ok, msg = plugin_manager.install_plugin(pid, lang=state.language)
+                self._send_json({
+                    "ok": ok,
+                    "message": msg,
+                    "plugins": plugin_manager.get_all_catalog_plugins(),
+                })
+                return
+
+            if path == "/api/plugins/uninstall":
+                if plugin_manager is None:
+                    self._send_json({"error": "plugin_manager unavailable"}, 500)
+                    return
+                pid = str(body.get("plugin_id", "")).strip()
+                if not pid:
+                    self._send_json({"error": "Missing plugin_id"}, 400)
+                    return
+                ok, msg = plugin_manager.uninstall_plugin(pid, lang=state.language)
+                self._send_json({
+                    "ok": ok,
+                    "message": msg,
+                    "plugins": plugin_manager.get_all_catalog_plugins(),
+                })
+                return
+
+            if path == "/api/plugins/open_folder":
+                if self.client_address[0] != "127.0.0.1":
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                if plugin_manager is None:
+                    self._send_json({"error": "plugin_manager unavailable"}, 500)
+                    return
+                pid = str(body.get("plugin_id", "")).strip()
+                if not pid or "/" in pid or "\\" in pid or ".." in pid:
+                    self._send_json({"error": "Invalid plugin_id"}, 400)
+                    return
+                cand_dirs = [
+                    plugin_manager.get_plugins_dir() / pid,
+                    config.REPO_ROOT / "plugins" / pid,
+                ]
+                target_dir = next((d for d in cand_dirs if d.exists() and d.is_dir()), None)
+                if not target_dir:
+                    self._send_json({"error": f"Plugin folder '{pid}' not found on disk."}, 404)
+                    return
+                try:
+                    folder_path = _open_path_in_os_explorer(target_dir)
+                    self._send_json({"ok": True, "folder": str(folder_path)})
+                except Exception as exc:
+                    self._send_json({"error": f"Failed to open plugin folder: {exc}"}, 500)
+                return
+
+            if path == "/api/models/hf/download":
+                repo_id = str(body.get("repo_id", "")).strip()
+                filename = str(body.get("filename", "")).strip()
+                auto_switch = bool(body.get("auto_switch", True))
+                if not repo_id or not filename:
+                    self._send_json({"error": "Missing repo_id or filename"}, 400)
+                    return
+                try:
+                    jid = state.start_hf_download(repo_id, filename, auto_switch=auto_switch)
+                    self._send_json({"ok": True, "job_id": jid})
+                except Exception as exc:
+                    self._send_json({"error": str(exc)}, 400)
+                return
+
+            if path == "/api/models/hf/pause":
+                jid = str(body.get("job_id", "")).strip()
+                res = state.pause_hf_download(jid)
+                if not res:
+                    self._send_json({"error": "Download job not found"}, 404)
+                    return
+                self._send_json({"ok": True, "job": res})
+                return
+
+            if path == "/api/models/hf/resume":
+                jid = str(body.get("job_id", "")).strip()
+                res = state.resume_hf_download(jid)
+                if not res:
+                    self._send_json({"error": "Download job not found"}, 404)
+                    return
+                self._send_json({"ok": True, "job": res})
+                return
+
+            if path == "/api/models/hf/cancel":
+                jid = str(body.get("job_id", "")).strip()
+                res = state.cancel_hf_download(jid)
+                if not res:
+                    self._send_json({"error": "Download job not found"}, 404)
+                    return
+                self._send_json({"ok": True, "job": res})
+                return
+
+            if path == "/api/models/add":
+                path_str = str(body.get("path", "")).strip()
+                if not path_str:
+                    self._send_json({"error": "Missing model path"}, 400)
+                    return
+                ok, msg, p_obj = config.add_custom_model_path(path_str, lang=state.language)
+                if ok and p_obj and p_obj.is_file() and body.get("auto_switch"):
+                    state.model_name = str(p_obj)
+                    state.agent.model_name = p_obj.name
+                self._send_json({"ok": ok, "message": msg, "state": state.get_state_payload()})
+                return
+
+            if path == "/api/workspace/open_explorer":
+                if self.client_address[0] != "127.0.0.1":
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                rel_path = str(body.get("path", "")).strip()
+                target = (state.workspace_root / rel_path).resolve() if rel_path else state.workspace_root.resolve()
+                try:
+                    target.relative_to(state.workspace_root.resolve())
+                except ValueError:
+                    self._send_json({"error": "Access denied outside workspace"}, 403)
+                    return
+                if rel_path and is_sensitive_path(target, state.workspace_root):
+                    self._send_json({"error": "Access to sensitive/credential paths is blocked"}, 403)
+                    return
+                if not target.exists():
+                    self._send_json({"error": "Path not found"}, 404)
+                    return
+                try:
+                    folder_path = _open_path_in_os_explorer(target)
+                    self._send_json({"ok": True, "folder": str(folder_path)})
+                except Exception as exc:
+                    self._send_json({"error": f"Failed to open Explorer: {exc}"}, 500)
+                return
+
+            if path == "/api/models/open_folder":
+                if self.client_address[0] != "127.0.0.1":
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                target_path = str(body.get("path", "")).strip()
+                if not target_path:
+                    self._send_json({"error": "Missing model path"}, 400)
+                    return
+                p = Path(target_path)
+                if not p.is_absolute():
+                    cand_models = config.REPO_ROOT / "models" / target_path
+                    cand_root = config.REPO_ROOT / target_path
+                    p = cand_models if cand_models.exists() else cand_root
+                p_resolved = p.resolve()
+                if not p_resolved.exists():
+                    self._send_json({"error": "Model path not found"}, 404)
+                    return
+                if p_resolved.is_file() and p_resolved.suffix.lower() != ".gguf":
+                    self._send_json({"error": "Only .gguf model paths are allowed"}, 403)
+                    return
+                try:
+                    folder_path = _open_path_in_os_explorer(p_resolved)
+                    self._send_json({"ok": True, "folder": str(folder_path)})
+                except Exception as exc:
+                    self._send_json({"error": f"Failed to open folder: {exc}"}, 500)
+                return
+
+            if path == "/api/models/delete":
+                target_path = str(body.get("path", "")).strip()
+                if not target_path:
+                    self._send_json({"error": "Missing model path"}, 400)
+                    return
+                p = Path(target_path)
+                if not p.is_absolute():
+                    cand_models = config.REPO_ROOT / "models" / target_path
+                    cand_root = config.REPO_ROOT / target_path
+                    p = cand_models if cand_models.exists() else cand_root
+                p_resolved = p.resolve()
+
+                removed_from_custom = False
+                st_cfg = config.load_user_settings()
+                custom_list = st_cfg.get("custom_models", [])
+                new_custom = [c for c in custom_list if Path(c).resolve() != p_resolved]
+                if len(new_custom) != len(custom_list):
+                    st_cfg["custom_models"] = new_custom
+                    config.save_user_settings(st_cfg)
+                    removed_from_custom = True
+
+                deleted_file = False
+                repo_root_res = config.REPO_ROOT.resolve()
+                is_in_repo = False
+                try:
+                    p_resolved.relative_to(repo_root_res)
+                    is_in_repo = True
+                except ValueError:
+                    is_in_repo = False
+
+                if is_in_repo and p_resolved.exists() and p_resolved.is_file() and p_resolved.suffix.lower() == ".gguf":
+                    try:
+                        if state.model_name and Path(state.model_name).resolve() == p_resolved:
+                            if state.server_mgr.is_healthy():
+                                state.server_mgr.stop()
+                        p_resolved.unlink()
+                        deleted_file = True
+                    except Exception as exc:
+                        self._send_json({"error": f"Failed to delete model file: {exc}"}, 500)
+                        return
+
+                if not deleted_file and not removed_from_custom:
+                    self._send_json({"error": "Model file not found or cannot be deleted outside workspace."}, 404)
+                    return
+
+                if state.model_name and (Path(state.model_name).name == p_resolved.name):
+                    next_model = config.pick_default_model()
+                    state.model_name = next_model
+                    state.agent.model_name = Path(next_model).name if next_model else "None"
+
+                msg = f"Removed model '{p_resolved.name}'."
+                self._send_json({"ok": True, "message": msg, "state": state.get_state_payload()})
+                return
+
+            if path == "/api/projects/browse":
+                if self.client_address[0] != "127.0.0.1":
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                try:
+                    import subprocess
+                    init_dir = str(state.workspace_root)
+                    py_code = (
+                        "import tkinter as tk, tkinter.filedialog as fd; "
+                        "r=tk.Tk(); r.withdraw(); r.attributes('-topmost', True); "
+                        f"p=fd.askdirectory(initialdir={init_dir!r}, title='Select Project Folder'); "
+                        "print(p or '')"
+                    )
+                    res = subprocess.run(
+                        [sys.executable, "-c", py_code],
+                        capture_output=True,
+                        text=True,
+                        timeout=120,
+                    )
+                    chosen = (res.stdout or "").strip()
+                    if chosen:
+                        self._send_json({"ok": True, "path": str(Path(chosen).resolve())})
+                    else:
+                        self._send_json({"ok": False, "cancelled": True})
+                except Exception as exc:
+                    self._send_json({"ok": False, "error": f"Folder picker failed: {exc}"}, 500)
+                return
+
+            if path == "/api/projects/open":
+                if self.client_address[0] != "127.0.0.1":
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                proj_path = str(body.get("path", "")).strip()
+                create_flag = bool(body.get("create_if_missing", False))
+                ok, msg = state.switch_project(proj_path, create_if_missing=create_flag)
+                if ok:
+                    self._send_json({
+                        "ok": True,
+                        "message": msg,
+                        "state": state.get_state_payload(),
+                        "projects": state.list_projects(),
+                    })
+                else:
+                    self._send_json({"ok": False, "error": msg}, 400)
+                return
+
+            if path == "/api/projects/remove":
+                if self.client_address[0] != "127.0.0.1":
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                proj_path = str(body.get("path", "")).strip()
+                removed = state.remove_project(proj_path)
+                self._send_json({"ok": removed, "projects": state.list_projects()})
+                return
+
+            if path == "/api/loras/add":
+                p_str = str(body.get("path", "")).strip()
+                if not p_str:
+                    self._send_json({"error": "Missing LoRA path"}, 400)
+                    return
+                ok, msg, _ = config.add_custom_lora_path(p_str)
+                self._send_json({"ok": ok, "message": msg, "state": state.get_state_payload()})
+                return
+
+            if path == "/api/loras/delete":
+                p_str = str(body.get("path", "")).strip()
+                if not p_str:
+                    self._send_json({"error": "Missing LoRA path"}, 400)
+                    return
+                ok, msg = config.remove_lora_adapter(p_str)
+                self._send_json({"ok": ok, "message": msg, "state": state.get_state_payload()})
+                return
+
+            if path == "/api/loras/set":
+                loras_in = body.get("loras", [])
+                clean = config.set_active_loras(loras_in)
+                if state.server_mgr.is_healthy() and state.model_name:
+                    try:
+                        state.server_mgr.start(state.model_name, loras=clean)
+                    except Exception as exc:
+                        self._send_json({"ok": False, "error": f"Failed to reload model with LoRA: {exc}"}, 500)
+                        return
+                self._send_json({"ok": True, "active_loras": clean, "state": state.get_state_payload()})
+                return
+
+            if path.startswith("/api/plugin/"):
+                rest = path[len("/api/plugin/"):]
+                parts = rest.split("/", 1)
+                pid = parts[0]
+                sub_p = parts[1] if len(parts) > 1 else ""
+                code, payload = state.dispatch_plugin_api(pid, "POST", sub_p, {}, body)
+                self._send_json(payload, status=code)
+                return
+
             if path == "/api/settings":
                 if "safety_mode" in body:
                     mode = str(body["safety_mode"]).lower()
@@ -939,14 +1784,14 @@ def make_handler(state: WebUIBackendState):
                         state.model_name = new_model
                         state.agent.model_name = Path(new_model).name
                         try:
-                            state.server_mgr.start(new_model)
+                            state.server_mgr.start(new_model, loras=config.get_active_loras())
                         except Exception as exc:
                             self._send_json({"error": f"Failed to switch model: {exc}"}, 500)
                             return
 
                 if body.get("action") == "new_session":
                     title = str(body.get("title", "")).strip() or None
-                    sess = state.session_mgr.create_session(name=title)
+                    sess = state.session_mgr.create_session(name=title or "", workspace=str(state.workspace_root))
                     state.loaded_session_id = sess.get("id")
                     state.agent.reset_session()
                     self._send_json({"ok": True, "session": sess, "state": state.get_state_payload()})
@@ -954,7 +1799,7 @@ def make_handler(state: WebUIBackendState):
 
                 if body.get("action") == "switch_session":
                     sid = str(body.get("session_id", "")).strip()
-                    ok, msg, s_data = state.session_mgr.switch_session(sid)
+                    ok, msg, s_data = state.session_mgr.switch_session(sid, workspace=str(state.workspace_root))
                     if ok and s_data:
                         state.loaded_session_id = sid
                         state.agent.load_session(s_data)

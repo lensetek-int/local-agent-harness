@@ -1,0 +1,24 @@
+{
+  "id": "tutor-mode",
+  "name": "Guided Study Tutor & Mindmap",
+  "version": "1.0.0",
+  "category": "education",
+  "author": "Lensetek",
+  "description": "Structured study tutor with PDF/file ingestion into SQLite, chapter progress tracking, active recall quizzes, flashcards, and interactive SVG mindmap viewer.",
+  "description_id": "Mode tutor belajar terstruktur dengan ingest PDF/berkas ke SQLite, pelacakan progres bab, kuis active recall, flashcard, dan tampilan mindmap SVG interaktif.",
+  "description_cn": "结构化学习导师插件：支持将 PDF/文档导入 SQLite、章节进度追踪、主动回忆测验、抽认卡及交互式 SVG 思维导图。",
+  "entry_point": "main.py",
+  "folder": "plugins/tutor-mode",
+  "dependencies": [
+    "pypdf"
+  ],
+  "permissions": [
+    "workspace_read",
+    "workspace_write"
+  ],
+  "ui": {
+    "entry": "ui/panel.html",
+    "title": "Tutor Mode",
+    "icon": "🎓"
+  }
+}

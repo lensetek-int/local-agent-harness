@@ -1,0 +1,24 @@
+{
+  "id": "iot-studio",
+  "name": "IoT Studio & Hardware Workbench",
+  "version": "1.0.0",
+  "category": "hardware",
+  "author": "Lensetek",
+  "description": "Arduino/ESP32 code editor with real pyserial COM port monitor, arduino-cli compile/upload terminal, and live interactive SVG wiring & pin conflict analyzer.",
+  "description_id": "Editor kode Arduino/ESP32 dengan monitor port COM nyata (pyserial), terminal compile/upload (arduino-cli), serta diagram wiring SVG interaktif & pemeriksa konflik pin.",
+  "description_cn": "Arduino/ESP32 物联网工作台：支持真实串口监视器 (pyserial)、arduino-cli 编译烧录终端以及交互式 SVG 接线图与引脚冲突检测。",
+  "entry_point": "main.py",
+  "folder": "plugins/iot-studio",
+  "dependencies": [
+    "pyserial"
+  ],
+  "permissions": [
+    "workspace_read",
+    "workspace_write"
+  ],
+  "ui": {
+    "entry": "ui/panel.html",
+    "title": "IoT Studio",
+    "icon": "🔌"
+  }
+}

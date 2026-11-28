@@ -201,6 +201,135 @@ def list_gguf_models() -> list[str]:
     models.sort()
     return models
 
+
+LORAS_DIR = REPO_ROOT / "models" / "loras"
+
+
+def list_lora_adapters() -> list[dict]:
+    """Mengembalikan daftar adapter LoRA (*.gguf) dari models/loras, custom_loras, dan plugin terpasang."""
+    loras = []
+    seen = set()
+
+    def _add_lora_file(p: Path, source: str = "local", base_hint: str = ""):
+        if not p.is_file() or p.suffix.lower() != ".gguf":
+            return
+        res_str = str(p.resolve())
+        key = res_str.lower() if sys.platform == "win32" else res_str
+        if key in seen:
+            return
+        seen.add(key)
+        sz_mb = round(p.stat().st_size / (1024 * 1024), 1)
+        loras.append({
+            "name": p.name,
+            "path": res_str,
+            "size_mb": sz_mb,
+            "source": source,
+            "base_model_hint": base_hint,
+        })
+
+    if LORAS_DIR.exists() and LORAS_DIR.is_dir():
+        for f in LORAS_DIR.glob("*.gguf"):
+            _add_lora_file(f, source="local")
+
+    st = load_user_settings()
+    for p_str in st.get("custom_loras", []):
+        p = Path(p_str)
+        if p.is_file():
+            _add_lora_file(p, source="custom")
+        elif p.is_dir():
+            for f in p.glob("*.gguf"):
+                _add_lora_file(f, source="custom")
+
+    # Cek LoRA yang disertakan oleh plugin yang sedang terpasang
+    for pid in st.get("installed_plugins", []):
+        for base_dir in (REPO_ROOT / "plugins" / pid, Path.home() / ".lensetek-agent" / "plugins" / pid):
+            meta_file = base_dir / "plugin.json"
+            if meta_file.exists():
+                try:
+                    meta = json.loads(meta_file.read_text(encoding="utf-8"))
+                    for item in meta.get("lora_adapters", []):
+                        rel_f = item.get("file", "")
+                        if rel_f:
+                            _add_lora_file(base_dir / rel_f, source=f"plugin:{pid}", base_hint=item.get("base_model_hint", ""))
+                except Exception:
+                    pass
+                break
+
+    loras.sort(key=lambda x: x["name"].lower())
+    return loras
+
+
+def add_custom_lora_path(path_str: str) -> tuple[bool, str, Path | None]:
+    """Mendaftarkan file *.gguf LoRA atau folder LoRA ke user_settings.json."""
+    raw = path_str.strip().strip("'\"")
+    p = Path(raw).resolve()
+    if not p.exists():
+        return False, f"LoRA path not found: {path_str}", None
+    if p.is_file() and p.suffix.lower() != ".gguf":
+        return False, "LoRA adapter must be a .gguf file.", None
+
+    st = load_user_settings()
+    custom_list = st.get("custom_loras", [])
+    res_str = str(p)
+    if res_str not in custom_list:
+        custom_list.append(res_str)
+        st["custom_loras"] = custom_list
+        save_user_settings(st)
+        return True, f"Added LoRA: {p.name}", p
+    return True, f"LoRA already registered: {p.name}", p
+
+
+def remove_lora_adapter(path_str: str) -> tuple[bool, str]:
+    """Menghapus/melepas pendaftaran LoRA dari custom_loras atau models/loras/."""
+    p = Path(path_str.strip()).resolve()
+    st = load_user_settings()
+    custom_list = st.get("custom_loras", [])
+    norm_target = str(p).lower() if sys.platform == "win32" else str(p)
+    new_custom = [c for c in custom_list if (str(Path(c).resolve()).lower() if sys.platform == "win32" else str(Path(c).resolve())) != norm_target]
+    removed = len(new_custom) != len(custom_list)
+    if removed:
+        st["custom_loras"] = new_custom
+
+    active_loras = st.get("active_loras", [])
+    st["active_loras"] = [a for a in active_loras if (str(Path(a.get("path", "")).resolve()).lower() if sys.platform == "win32" else str(Path(a.get("path", "")).resolve())) != norm_target]
+    save_user_settings(st)
+
+    deleted = False
+    try:
+        p.relative_to(LORAS_DIR.resolve())
+        if p.exists() and p.is_file():
+            p.unlink()
+            deleted = True
+    except Exception:
+        pass
+
+    if removed or deleted:
+        return True, f"Removed LoRA '{p.name}'."
+    return False, f"LoRA '{p.name}' not found in custom/local loras."
+
+
+def get_active_loras() -> list[dict]:
+    st = load_user_settings()
+    out = []
+    for item in st.get("active_loras", []):
+        p = item.get("path", "")
+        if p and Path(p).exists():
+            out.append({"path": str(Path(p).resolve()), "scale": float(item.get("scale", 1.0))})
+    return out
+
+
+def set_active_loras(loras: list[dict]) -> list[dict]:
+    clean = []
+    for item in loras or []:
+        p = str(item.get("path", "")).strip()
+        if p and Path(p).exists():
+            scale = max(0.0, min(2.0, float(item.get("scale", 1.0))))
+            clean.append({"path": str(Path(p).resolve()), "scale": scale})
+    st = load_user_settings()
+    st["active_loras"] = clean
+    save_user_settings(st)
+    return clean
+
 def add_custom_model_path(path_str: str, lang: str = "en") -> tuple[bool, str, Path | None]:
     """Mendaftarkan file *.gguf atau direktori model baru ke user_settings.json."""
     raw = path_str.strip().strip("'\"")

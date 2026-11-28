@@ -68,7 +68,18 @@ function Install-FromArchive {
     Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
     if (!(Test-Path $TargetDir)) { New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null }
     Get-ChildItem -Path $extractRoot -Force | ForEach-Object {
-        Copy-Item -Path $_.FullName -Destination $TargetDir -Recurse -Force
+        if ($_.Name -eq "plugins") {
+            $dstPlugins = Join-Path $TargetDir "plugins"
+            if (!(Test-Path $dstPlugins)) { New-Item -ItemType Directory -Path $dstPlugins -Force | Out-Null }
+            if (Test-Path (Join-Path $_.FullName "manifest.json")) {
+                Copy-Item -Path (Join-Path $_.FullName "manifest.json") -Destination (Join-Path $dstPlugins "manifest.json") -Force
+            }
+            if (Test-Path (Join-Path $_.FullName "_template")) {
+                Copy-Item -Path (Join-Path $_.FullName "_template") -Destination $dstPlugins -Recurse -Force
+            }
+        } else {
+            Copy-Item -Path $_.FullName -Destination $TargetDir -Recurse -Force
+        }
     }
     Remove-Item -Path $extractRoot -Recurse -Force -ErrorAction SilentlyContinue
 }

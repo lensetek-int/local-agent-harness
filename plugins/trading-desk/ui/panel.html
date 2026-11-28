@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading Desk</title>
+  <style>
+    :root {
+      --bg: #F8FAFC; --surface: #FFFFFF; --subtle: #F1F5F9; --border: #E2E8F0;
+      --text: #0F172A; --muted: #64748B; --accent: #2563EB; --accent-soft: #EFF6FF;
+      --bull: #059669; --bear: #DC2626;
+    }
+    html[data-theme="dark"] {
+      --bg: #0F1117; --surface: #161922; --subtle: #1E222E; --border: #262B38;
+      --text: #F1F5F9; --muted: #94A3B8; --accent: #3B82F6; --accent-soft: rgba(59,130,246,0.16);
+      --bull: #10B981; --bear: #EF4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .toolbar { display: flex; gap: 6px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .btn { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer; }
+    .btn:hover { background: var(--subtle); }
+    .btn-primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
+    .btn-primary:hover { background: #1D4ED8; color: #FFF; border-color: #1D4ED8; }
+    .btn-danger { background: rgba(220,38,38,0.12); color: var(--bear); border-color: transparent; }
+    .btn-danger:hover { background: var(--bear); color: #FFF; }
+    .input, select { padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 12px; }
+    .ticker-strip { display: flex; gap: 14px; padding: 8px 14px; background: var(--subtle); border-bottom: 1px solid var(--border); flex-wrap: wrap; align-items: center; font-size: 12.5px; }
+    .main-scroll { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+    .tab-btn { padding: 5px 11px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .tab-btn.active { background: var(--accent-soft); color: var(--accent); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .kpi { padding: 8px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); font-size: 12px; }
+    .kpi-val { font-size: 14px; font-weight: 700; font-family: ui-monospace, monospace; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+    th { font-size: 10.5px; text-transform: uppercase; color: var(--muted); }
+    .num { text-align: right; font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <input type="text" class="input" id="txtSymbol" value="BTCUSDT" placeholder="BTCUSDT, BBCA.JK, AAPL, GC=F" style="width:155px;font-weight:600;" />
+      <select id="selInterval">
+        <option value="15m">15m</option>
+        <option value="1h">1h</option>
+        <option value="1d" selected>1d</option>
+        <option value="1wk">1wk</option>
+      </select>
+      <select id="selRange">
+        <option value="5d">5d</option>
+        <option value="1mo">1mo</option>
+        <option value="3mo" selected>3mo</option>
+        <option value="1y">1y</option>
+      </select>
+      <button class="btn btn-primary" id="btnLoadChart">Load Live Data</button>
+      <button class="btn" id="btnAddWatch">⭐ + Watchlist</button>
+    </div>
+    <button class="btn btn-primary" id="btnAskTradingAI">🤖 Ask AI Analyst</button>
+  </div>
+
+  <div class="ticker-strip" id="tickerStrip">
+    <span>Enter a symbol (e.g. <strong>BTCUSDT</strong>, <strong>BBCA.JK</strong>, <strong>AAPL</strong>, <strong>GC=F</strong>) and click <strong>Load Live Data</strong>.</span>
+  </div>
+
+  <div class="main-scroll">
+    <div class="chart-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap;gap:6px;">
+        <span id="chartMeta">Candlestick + EMA(20) [Blue] + EMA(50) [Amber] + Bollinger(20,2)</span>
+        <span id="hoverOHLC"></span>
+      </div>
+      <canvas id="candleCanvas" style="width:100%;height:300px;display:block;"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-t="tech">📊 Technicals & Orderbook</button>
+        <button class="tab-btn" data-t="journal">📒 Trade Journal (SQLite)</button>
+        <button class="tab-btn" data-t="watch">⭐ Watchlist</button>
+      </div>
+
+      <div id="p-tech">
+        <div class="grid-auto" id="techGrid"></div>
+        <div id="obBox" style="margin-top:12px;"></div>
+      </div>
+
+      <div id="p-journal" style="display:none;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          <input type="text" class="input" id="trSym" placeholder="Symbol" style="width:100px;" />
+          <select id="trSide"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>
+          <input type="number" class="input" id="trEntry" placeholder="Entry Price" step="any" style="width:105px;" />
+          <input type="number" class="input" id="trQty" placeholder="Qty" step="any" style="width:80px;" />
+          <input type="number" class="input" id="trSL" placeholder="Stop Loss" step="any" style="width:95px;" />
+          <input type="number" class="input" id="trTP" placeholder="Take Profit" step="any" style="width:95px;" />
+          <input type="text" class="input" id="trNotes" placeholder="Notes..." style="flex:1;min-width:120px;" />
+          <button class="btn btn-primary" id="btnAddTrade">+ Log Trade</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Symbol</th><th>Side</th><th class="num">Entry</th><th class="num">Qty</th><th class="num">SL / TP</th><th>Status / PnL</th><th>Actions</th></tr></thead>
+            <tbody id="tradesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="p-watch" style="display:none;">
+        <div id="watchList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.documentElement.setAttribute('data-theme', params.get('theme') || 'light');
+    const $ = (id) => document.getElementById(id);
+    const API = '/api/plugin/trading-desk';
+    let lastMarket = null;
+
+    function notify(msg) { window.parent.postMessage({ type: 'toast', message: msg }, '*'); }
+    function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    document.querySelectorAll('.tab-btn').forEach((b) => {
+      b.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach((x) => x.classList.toggle('active', x === b));
+        ['tech', 'journal', 'watch'].forEach((k) => { $('p-' + k).style.display = (k === b.dataset.t) ? 'block' : 'none'; });
+      };
+    });
+
+    async function loadMarket() {
+      const sym = ($('txtSymbol').value || '').trim();
+      if (!sym) return notify('Enter a symbol');
+      $('btnLoadChart').disabled = true; $('btnLoadChart').textContent = 'Loading...';
+      try {
+        const r = await fetch(`${API}/quote?symbol=${encodeURIComponent(sym)}&interval=${encodeURIComponent($('selInterval').value)}&range=${encodeURIComponent($('selRange').value)}`);
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || 'Failed to fetch market data');
+        lastMarket = d.market;
+        $('trSym').value = lastMarket.symbol;
+        $('trEntry').value = lastMarket.indicators.last_price;
+        renderTicker(lastMarket);
+        drawCandles(lastMarket);
+        renderTechnicals(lastMarket);
+      } catch (err) {
+        notify(err.message);
+        $('tickerStrip').innerHTML = `<span style="color:var(--bear);">${esc(err.message)}</span>`;
+      } finally {
+        $('btnLoadChart').disabled = false; $('btnLoadChart').textContent = 'Load Live Data';
+      }
+    }
+
+    function renderTicker(m) {
+      const ind = m.indicators;
+      const col = ind.change_pct >= 0 ? 'var(--bull)' : 'var(--bear)';
+      const sigCol = ind.trend_signal === 'BULLISH' ? 'var(--bull)' : (ind.trend_signal === 'BEARISH' ? 'var(--bear)' : 'var(--muted)');
+      $('tickerStrip').innerHTML = `
+        <span><strong>${esc(m.symbol)}</strong> <span style="color:var(--muted);">(${esc(m.source)})</span></span>
+        <span>Price: <strong style="font-size:14px;">${ind.last_price} ${esc(m.currency)}</strong></span>
+        <span style="color:${col};font-weight:700;">${ind.change_pct >= 0 ? '+' : ''}${ind.change_pct}%</span>
+        <span>RSI(14): <strong>${ind.last_rsi14 ?? '-'}</strong></span>
+        <span style="color:${sigCol};font-weight:700;">● ${ind.trend_signal}</span>
+      `;
+    }
+
+    function drawCandles(m) {
+      const canvas = $('candleCanvas');
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth || 700, h = 300;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      const candles = (m.candles || []).slice(-80);
+      if (!candles.length) return;
+      const offset = (m.candles || []).length - candles.length;
+      const ema20 = (m.indicators.ema20 || []).slice(offset);
+      const ema50 = (m.indicators.ema50 || []).slice(offset);
+
+      let minP = Infinity, maxP = -Infinity;
+      candles.forEach((c) => { minP = Math.min(minP, c.low); maxP = Math.max(maxP, c.high); });
+      const pad = (maxP - minP) * 0.08 || 1;
+      minP -= pad; maxP += pad;
+
+      const chartH = h - 30, slotW = (w - 60) / candles.length;
+      const yOf = (p) => 12 + ((maxP - p) / (maxP - minP)) * (chartH - 12);
+
+      // Grid & Price Axis
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border');
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--muted');
+      ctx.font = '10px monospace';
+      for (let i = 0; i <= 4; i++) {
+        const p = minP + ((maxP - minP) * i) / 4;
+        const y = yOf(p);
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w - 58, y); ctx.stroke();
+        ctx.fillText(p.toFixed(p > 100 ? 2 : 4), w - 54, y + 3);
+      }
+
+      // Candlesticks
+      const bullCol = getComputedStyle(document.documentElement).getPropertyValue('--bull').trim();
+      const bearCol = getComputedStyle(document.documentElement).getPropertyValue('--bear').trim();
+      candles.forEach((c, i) => {
+        const cx = i * slotW + slotW / 2;
+        const up = c.close >= c.open;
+        ctx.strokeStyle = up ? bullCol : bearCol;
+        ctx.fillStyle = up ? bullCol : bearCol;
+        ctx.beginPath(); ctx.moveTo(cx, yOf(c.high)); ctx.lineTo(cx, yOf(c.low)); ctx.stroke();
+        const top = yOf(Math.max(c.open, c.close));
+        const bh = Math.max(1.5, Math.abs(yOf(c.open) - yOf(c.close)));
+        ctx.fillRect(cx - Math.max(1.5, slotW * 0.32), top, Math.max(3, slotW * 0.64), bh);
+      });
+
+      function drawLine(arr, color) {
+        ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.beginPath();
+        let started = false;
+        arr.forEach((v, i) => {
+          if (v == null) return;
+          const x = i * slotW + slotW / 2, y = yOf(v);
+          if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+      drawLine(ema20, '#3B82F6');
+      drawLine(ema50, '#F59E0B');
+
+      canvas.onmousemove = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const idx = Math.floor(((e.clientX - rect.left) / (w - 60)) * candles.length);
+        const c = candles[idx];
+        if (c) $('hoverOHLC').textContent = `${c.time} | O:${c.open} H:${c.high} L:${c.low} C:${c.close}`;
+      };
+    }
+
+    function renderTechnicals(m) {
+      const ind = m.indicators;
+      const items = [
+        ['EMA (20)', ind.last_ema20 ?? '-'],
+        ['EMA (50)', ind.last_ema50 ?? '-'],
+        ['RSI (14)', ind.last_rsi14 ?? '-'],
+        ['MACD', ind.last_macd ?? '-'],
+        ['Support (20)', ind.support_20],
+        ['Resistance (20)', ind.resistance_20],
+      ];
+      $('techGrid').innerHTML = items.map(([k, v]) => `<div class="kpi"><div style="color:var(--muted);">${k}</div><div class="kpi-val">${v}</div></div>`).join('');
+
+      if (m.orderbook && (m.orderbook.bids.length || m.orderbook.asks.length)) {
+        const bids = m.orderbook.bids.map(([p, q]) => `<tr><td style="color:var(--bull);">${p}</td><td class="num">${q}</td></tr>`).join('');
+        const asks = m.orderbook.asks.map(([p, q]) => `<tr><td style="color:var(--bear);">${p}</td><td class="num">${q}</td></tr>`).join('');
+        $('obBox').innerHTML = `
+          <div style="font-weight:700;font-size:12.5px;margin-bottom:6px;">Live Orderbook (${esc(m.symbol)})</div>
+          <div class="grid-auto">
+            <table><thead><tr><th>Bid Price</th><th class="num">Qty</th></tr></thead><tbody>${bids}</tbody></table>
+            <table><thead><tr><th>Ask Price</th><th class="num">Qty</th></tr></thead><tbody>${asks}</tbody></table>
+          </div>`;
+      } else {
+        $('obBox').innerHTML = '';
+      }
+    }
+
+    async function loadJournalAndWatch() {
+      const r = await fetch(API + '/status');
+      const d = await r.json();
+      const wl = $('watchList');
+      wl.innerHTML = (d.watchlist || []).length ? '' : '<span style="font-size:12.5px;color:var(--muted);">Watchlist is empty.</span>';
+      (d.watchlist || []).forEach((w) => {
+        const chip = document.createElement('div');
+        chip.className = 'btn';
+        chip.innerHTML = `<span onclick="pickSymbol('${esc(w.symbol)}')">⭐ ${esc(w.symbol)}</span> <span style="color:var(--bear);margin-left:6px;" onclick="rmWatch('${esc(w.symbol)}')">✕</span>`;
+        wl.appendChild(chip);
+      });
+
+      const tb = $('tradesBody');
+      tb.innerHTML = (d.trades || []).length ? '' : '<tr><td colspan="7" style="color:var(--muted);">No trades logged yet.</td></tr>';
+      (d.trades || []).forEach((t) => {
+        const tr = document.createElement('tr');
+        const pnl = t.status === 'CLOSED'
+          ? ((t.side === 'BUY' ? (t.exit_price - t.entry_price) : (t.entry_price - t.exit_price)) * t.qty).toFixed(2)
+          : 'OPEN';
+        tr.innerHTML = `
+          <td><strong>${esc(t.symbol)}</strong></td>
+          <td style="color:${t.side === 'BUY' ? 'var(--bull)' : 'var(--bear)'};font-weight:700;">${t.side}</td>
+          <td class="num">${t.entry_price}</td>
+          <td class="num">${t.qty}</td>
+          <td class="num">${t.stop_loss || '-'} / ${t.take_profit || '-'}</td>
+          <td>${t.status === 'CLOSED' ? `CLOSED (PnL: ${pnl})` : 'OPEN'}</td>
+          <td style="display:flex;gap:4px;">
+            ${t.status === 'OPEN' ? `<button class="btn" data-act="close" style="padding:2px 6px;font-size:11px;">Close</button>` : ''}
+            <button class="btn btn-danger" data-act="del" style="padding:2px 6px;font-size:11px;">✕</button>
+          </td>`;
+        const clBtn = tr.querySelector('[data-act="close"]');
+        if (clBtn) clBtn.onclick = async () => {
+          const ex = prompt('Exit Price:', lastMarket && lastMarket.symbol === t.symbol ? lastMarket.indicators.last_price : t.entry_price);
+          if (!ex) return;
+          await fetch(API + '/trades/close', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ trade_id: t.id, exit_price: parseFloat(ex) }) });
+          loadJournalAndWatch();
+        };
+        tr.querySelector('[data-act="del"]').onclick = async () => {
+          await fetch(API + '/trades/delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ trade_id: t.id }) });
+          loadJournalAndWatch();
+        };
+        tb.appendChild(tr);
+      });
+    }
+
+    window.pickSymbol = (s) => { $('txtSymbol').value = s; loadMarket(); };
+    window.rmWatch = async (s) => {
+      await fetch(API + '/watchlist/remove', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ symbol: s }) });
+      loadJournalAndWatch();
+    };
+
+    $('btnAddWatch').onclick = async () => {
+      const s = ($('txtSymbol').value || '').trim();
+      if (!s) return;
+      await fetch(API + '/watchlist/add', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ symbol: s }) });
+      notify('Added to watchlist');
+      loadJournalAndWatch();
+    };
+
+    $('btnAddTrade').onclick = async () => {
+      const r = await fetch(API + '/trades/add', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          symbol: $('trSym').value, side: $('trSide').value,
+          entry_price: parseFloat($('trEntry').value || 0), qty: parseFloat($('trQty').value || 0),
+          stop_loss: parseFloat($('trSL').value || 0), take_profit: parseFloat($('trTP').value || 0),
+          notes: $('trNotes').value,
+        }),
+      });
+      const d = await r.json();
+      if (!d.ok) return notify(d.error || 'Failed');
+      notify('Trade logged');
+      loadJournalAndWatch();
+    };
+
+    $('btnLoadChart').onclick = loadMarket;
+    $('txtSymbol').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadMarket(); });
+
+    $('btnAskTradingAI').onclick = () => {
+      const summary = lastMarket ? { symbol: lastMarket.symbol, price: lastMarket.indicators.last_price, ema20: lastMarket.indicators.last_ema20, ema50: lastMarket.indicators.last_ema50, rsi14: lastMarket.indicators.last_rsi14, macd: lastMarket.indicators.last_macd, support: lastMarket.indicators.support_20, resistance: lastMarket.indicators.resistance_20, signal: lastMarket.indicators.trend_signal } : { symbol: $('txtSymbol').value };
+      window.parent.postMessage({
+        type: 'send_prompt',
+        prompt: `Analyze this real-time market setup and suggest key risk/reward levels:\n${JSON.stringify(summary, null, 2)}`
+      }, '*');
+    };
+
+    loadJournalAndWatch();
+  </script>
+</body>
+</html>

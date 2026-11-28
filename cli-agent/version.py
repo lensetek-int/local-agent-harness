@@ -15,14 +15,21 @@ import threading
 import urllib.request
 from pathlib import Path
 
-APP_VERSION = "0.3.1"
+APP_VERSION = "0.4.0"
 APP_NAME = "Lensetek Local LLM Agent Harness"
-RELEASE_DATE = "2026-11-25"
+RELEASE_DATE = "2026-11-28"
 GITHUB_RAW_VERSION_URL = "https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/cli-agent/version.json"
 GITHUB_API_COMMIT_URL = "https://api.github.com/repos/lensetek-int/local-agent-harness/commits/main"
 GITHUB_ARCHIVE_ZIP_URL = "https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.zip"
 
 CHANGELOG: dict[str, list[str]] = {
+    "0.4.0": [
+        "WebUI Studio Overhaul: Multi-tab chat, Home multi-project launcher with native folder picker, TreeView explorer with Open in Explorer, and Settings side-tabs",
+        "Multi-LoRA Adapter Support: Register and stack single or multiple GGUF LoRA adapters with scale control on llama-server",
+        "True On-Demand Plugins: Lean core install with GitHub on-demand plugin download, uninstall/remove, Show in Explorer, and full-width plugin tabs",
+        "4 New On-Demand Plugins: Tutor Mode (+ Interactive SVG Mindmap), Double-Entry Accounting (SQLite), IoT Studio (pyserial + arduino-cli + SVG wiring), and Trading Desk (live OHLCV + SQLite journal)",
+        "Resilient HF Downloads & Prompt Upload: Pause/Resume/Cancel HF downloads with duplicate-click guard and (+) file upload directly into project folder"
+    ],
     "0.3.1": [
         "WebUI Cancel & Full Slash Commands: Real-time Cancel button (/api/cancel) plus /goal, /loop, /session, /mcp, /schedule, /ctx, /workspace, and /update in WebUI",
         "Multi-Part & Resume GGUF Downloader: 6x parallel HTTP Range downloads with automatic resume from .part state",

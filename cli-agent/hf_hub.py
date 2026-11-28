@@ -156,6 +156,8 @@ def download_file_parallel(
     user_agent: str = USER_AGENT,
     num_workers: int = 6,
     chunk_size: int = 4 * 1024 * 1024,
+    cancel_event: threading.Event | None = None,
+    progress_cb=None,
 ) -> tuple[bool, str, Path | None]:
     """
     Download a file using multi-part parallel HTTP Range requests with automatic resume.
@@ -185,11 +187,18 @@ def download_file_parallel(
                 if total_bytes <= 0:
                     total_bytes = int(resp.headers.get("Content-Length", 0) or 0)
                 while True:
+                    if cancel_event and cancel_event.is_set():
+                        return False, lbl_cancelled, None
                     chunk = resp.read(512 * 1024)
                     if not chunk:
                         break
                     f_out.write(chunk)
                     downloaded += len(chunk)
+                    if progress_cb:
+                        try:
+                            progress_cb(downloaded, total_bytes)
+                        except Exception:
+                            pass
                     elapsed = max(0.1, time.time() - start_time)
                     speed_mb = (downloaded / (1024 * 1024)) / elapsed
                     if total_bytes > 0:
@@ -267,6 +276,11 @@ def download_file_parallel(
             return
         last_print = now
         total_done = min(total_bytes, resumed_bytes + session_bytes)
+        if progress_cb:
+            try:
+                progress_cb(total_done, total_bytes)
+            except Exception:
+                pass
         elapsed = max(0.1, now - start_time)
         speed_mb = (session_bytes / (1024 * 1024)) / elapsed
         pct = (total_done / total_bytes) * 100
@@ -286,7 +300,7 @@ def download_file_parallel(
         expected_len = c_end - c_start + 1
 
         for attempt in range(3):
-            if stop_event.is_set():
+            if stop_event.is_set() or (cancel_event and cancel_event.is_set()):
                 return
             reported = 0
             try:
@@ -297,7 +311,7 @@ def download_file_parallel(
                 buf = bytearray()
                 with urllib.request.urlopen(req, timeout=45) as resp:
                     while len(buf) < expected_len:
-                        if stop_event.is_set():
+                        if stop_event.is_set() or (cancel_event and cancel_event.is_set()):
                             return
                         block = resp.read(min(262144, expected_len - len(buf)))
                         if not block:
@@ -343,6 +357,21 @@ def download_file_parallel(
         with progress_lock:
             _render_progress(force=True)
         print()
+        if cancel_event and cancel_event.is_set():
+            f_part.close()
+            try:
+                meta_file.write_text(
+                    json.dumps({
+                        "url": url,
+                        "total_bytes": total_bytes,
+                        "chunk_size": chunk_size,
+                        "completed": sorted(completed_set),
+                    }),
+                    encoding="utf-8",
+                )
+            except Exception:
+                pass
+            return False, lbl_cancelled, None
     except KeyboardInterrupt:
         stop_event.set()
         f_part.close()

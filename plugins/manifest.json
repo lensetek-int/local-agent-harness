@@ -37,6 +37,99 @@
       "permissions": [
         "network_outbound"
       ]
+    },
+    {
+      "id": "tutor-mode",
+      "name": "Guided Study Tutor & Mindmap",
+      "version": "1.0.0",
+      "category": "education",
+      "author": "Lensetek",
+      "description": "Structured study tutor with PDF/file ingestion into SQLite, chapter progress tracking, active recall quizzes, flashcards, and interactive SVG mindmap viewer.",
+      "description_id": "Mode tutor belajar terstruktur dengan ingest PDF/berkas ke SQLite, pelacakan progres bab, kuis active recall, flashcard, dan tampilan mindmap SVG interaktif.",
+      "description_cn": "结构化学习导师插件：支持将 PDF/文档导入 SQLite、章节进度追踪、主动回忆测验、抽认卡及交互式 SVG 思维导图。",
+      "entry_point": "main.py",
+      "folder": "plugins/tutor-mode",
+      "dependencies": [
+        "pypdf"
+      ],
+      "permissions": [
+        "workspace_read",
+        "workspace_write"
+      ],
+      "ui": {
+        "entry": "ui/panel.html",
+        "title": "Tutor Mode",
+        "icon": "🎓"
+      }
+    },
+    {
+      "id": "accounting-ledger",
+      "name": "Double-Entry Accounting & Ledger",
+      "version": "1.0.0",
+      "category": "finance",
+      "author": "Lensetek",
+      "description": "Local SQLite double-entry bookkeeping with Chart of Accounts, General & Special Journals, General Ledger, Trial Balance, Income Statement, and Balance Sheet.",
+      "description_id": "Pembukuan akuntansi double-entry berbasis SQLite lokal dengan Bagan Akun (CoA), Jurnal Umum & Khusus, Buku Besar, Neraca Saldo, Laba Rugi, dan Neraca.",
+      "description_cn": "基于本地 SQLite 的复式记账会计插件：支持会计科目表、通用/特种日记账、总分类账、试算平衡表、损益表与资产负债表。",
+      "entry_point": "main.py",
+      "folder": "plugins/accounting-ledger",
+      "dependencies": [],
+      "permissions": [
+        "workspace_read",
+        "workspace_write"
+      ],
+      "ui": {
+        "entry": "ui/panel.html",
+        "title": "Accounting",
+        "icon": "📒"
+      }
+    },
+    {
+      "id": "iot-studio",
+      "name": "IoT Studio & Hardware Workbench",
+      "version": "1.0.0",
+      "category": "hardware",
+      "author": "Lensetek",
+      "description": "Arduino/ESP32 code editor with real pyserial COM port monitor, arduino-cli compile/upload terminal, and live interactive SVG wiring & pin conflict analyzer.",
+      "description_id": "Editor kode Arduino/ESP32 dengan monitor port COM nyata (pyserial), terminal compile/upload (arduino-cli), serta diagram wiring SVG interaktif & pemeriksa konflik pin.",
+      "description_cn": "Arduino/ESP32 物联网工作台：支持真实串口监视器 (pyserial)、arduino-cli 编译烧录终端以及交互式 SVG 接线图与引脚冲突检测。",
+      "entry_point": "main.py",
+      "folder": "plugins/iot-studio",
+      "dependencies": [
+        "pyserial"
+      ],
+      "permissions": [
+        "workspace_read",
+        "workspace_write"
+      ],
+      "ui": {
+        "entry": "ui/panel.html",
+        "title": "IoT Studio",
+        "icon": "🔌"
+      }
+    },
+    {
+      "id": "trading-desk",
+      "name": "Trading Desk & Market Analytics",
+      "version": "1.0.0",
+      "category": "finance",
+      "author": "Lensetek",
+      "description": "Real-time market data (IDX/Global stocks, Crypto, Forex, Commodities), candlestick chart, EMA/RSI/MACD/Bollinger indicators, crypto orderbook, and SQLite trade journal.",
+      "description_id": "Dasbor trading dengan data pasar nyata (Saham IDX/Global, Crypto, Forex, Komoditas), grafik candlestick, indikator EMA/RSI/MACD/Bollinger, orderbook, dan jurnal trading SQLite.",
+      "description_cn": "交易分析仪表盘：支持真实行情数据（股票/加密货币/外汇/大宗商品）、K线图、EMA/RSI/MACD/布林带指标、盘口深度与 SQLite 交易日志。",
+      "entry_point": "main.py",
+      "folder": "plugins/trading-desk",
+      "dependencies": [],
+      "permissions": [
+        "network_outbound",
+        "workspace_read",
+        "workspace_write"
+      ],
+      "ui": {
+        "entry": "ui/panel.html",
+        "title": "Trading Desk",
+        "icon": "📈"
+      }
     }
   ]
 }

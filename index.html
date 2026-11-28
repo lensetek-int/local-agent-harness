@@ -57,7 +57,7 @@
         "@id": "https://lensetek-int.github.io/local-agent-harness/#software",
         "name": "Lensetek Lean Agent Harness",
         "alternateName": "Lensetek CLI Agent",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Windows, macOS, Linux",
         "softwareRequirements": "Python 3.10+, Standard CPU (No GPU required)",
@@ -2867,14 +2867,14 @@
           output = `
 <span class="term-dim">Memeriksa pembaruan dari repositori upstream...</span><br>
 <span class="term-bold">=== Manajer Pembaruan Aplikasi ===</span><br>
-  • <span class="term-bold">Versi Saat Ini:</span> <span class="term-cyan">v0.2.0</span><br>
-  • <span class="term-bold">Versi Terbaru:</span> <span class="term-green">v0.2.1</span><br>
+  • <span class="term-bold">Versi Saat Ini:</span> <span class="term-cyan">v0.3.1</span><br>
+  • <span class="term-bold">Versi Terbaru:</span> <span class="term-green">v0.4.0</span><br>
 <br>
-<span class="term-yellow term-bold">★ What's New pada v0.2.1:</span><br>
-  • Model Search: Cari dan unduh model GGUF langsung dari Hugging Face Hub (/model search)<br>
-  • Thinking Effort: Atur kedalaman berpikir model (off, low, medium, high) secara interaktif (/effort)<br>
-  • Update Manager: Otomatisasi cek update saat startup, perintah /update, dan restart mandiri<br>
-  • Trilingual Support: Pilihan bahasa dinamis (English, Bahasa Indonesia, 简体中文) via /language<br>
+<span class="term-yellow term-bold">★ What's New pada v0.4.0:</span><br>
+  • WebUI Studio: Multi-tab chat, Home multi-project launcher (+ Browse Explorer), TreeView, &amp; Settings side-tabs<br>
+  • Multi-LoRA Support: Pasang 1 atau beberapa adapter LoRA .gguf dengan pengaturan skala di llama-server<br>
+  • On-Demand Plugins: Instalasi awal ringan; unduh, uninstall, Show in Explorer, &amp; buka plugin sebagai tab penuh<br>
+  • 4 Plugin Baru: Tutor Mode (+ SVG Mindmap), Accounting SQLite, IoT Studio (pyserial + SVG wiring), &amp; Trading Desk<br>
 <br>
 <span class="term-bold">Apakah Anda ingin memperbarui sekarang dan me-restart aplikasi? [Y/n]:</span> <span class="term-green">Y</span><br>
 <span class="term-dim">Mengunduh dan menerapkan pembaruan via Git...</span><br>
@@ -2884,14 +2884,14 @@
           output = `
 <span class="term-dim">正在从远程仓库检查更新...</span><br>
 <span class="term-bold">=== 应用更新管理器 ===</span><br>
-  • <span class="term-bold">当前版本:</span> <span class="term-cyan">v0.2.0</span><br>
-  • <span class="term-bold">最新可用版本:</span> <span class="term-green">v0.2.1</span><br>
+  • <span class="term-bold">当前版本:</span> <span class="term-cyan">v0.3.1</span><br>
+  • <span class="term-bold">最新可用版本:</span> <span class="term-green">v0.4.0</span><br>
 <br>
-<span class="term-yellow term-bold">★ v0.2.1 更新内容 (What's New):</span><br>
-  • 模型检索: 支持直接搜索并下载 Hugging Face Hub 上的 GGUF 模型 (/model search)<br>
-  • 思考深度: 交互式调节思维链推演深度 (off, low, medium, high) (/effort)<br>
-  • 自动更新: 启动时静默检查更新，提供 /update 命令与自动重启升级流程<br>
-  • 三语支持: 支持随时切换 English、中文与印尼语 (/language)<br>
+<span class="term-yellow term-bold">★ v0.4.0 更新内容 (What's New):</span><br>
+  • WebUI 升级: 多标签页聊天、Home 多项目切换器、TreeView 文件树与侧边栏 Settings<br>
+  • Multi-LoRA 支持: 支持为 llama-server 挂载单个或多个 GGUF LoRA 适配器并调节权重<br>
+  • 按需插件系统: 轻量初始安装，支持从 GitHub 按需下载/卸载插件及全屏标签页视图<br>
+  • 4 款新插件: Tutor Mode (+ SVG 思维导图)、复式记账 SQLite、IoT Studio 与 Trading Desk<br>
 <br>
 <span class="term-bold">是否立即应用更新并重启应用? [Y/n]:</span> <span class="term-green">Y</span><br>
 <span class="term-dim">正在通过 Git 拉取并应用最新代码...</span><br>
@@ -2901,14 +2901,14 @@
           output = `
 <span class="term-dim">Checking for updates from remote repository...</span><br>
 <span class="term-bold">=== Application Update Manager ===</span><br>
-  • <span class="term-bold">Current Version:</span> <span class="term-cyan">v0.2.0</span><br>
-  • <span class="term-bold">Latest Available:</span> <span class="term-green">v0.2.1</span><br>
+  • <span class="term-bold">Current Version:</span> <span class="term-cyan">v0.3.1</span><br>
+  • <span class="term-bold">Latest Available:</span> <span class="term-green">v0.4.0</span><br>
 <br>
-<span class="term-yellow term-bold">★ What's New in v0.2.1:</span><br>
-  • Model Search: Search &amp; download GGUF models directly from Hugging Face Hub (/model search)<br>
-  • Thinking Effort: Tune reasoning depth (off, low, medium, high) interactively (/effort)<br>
-  • Update Manager: Startup update checks, in-app /update command, and auto-restart<br>
-  • Trilingual Interface: Seamlessly switch between English, Indonesian, and Chinese (/language)<br>
+<span class="term-yellow term-bold">★ What's New in v0.4.0:</span><br>
+  • WebUI Studio: Multi-tab chat, Home multi-project launcher (+ Browse Explorer), TreeView, &amp; Settings side-tabs<br>
+  • Multi-LoRA Support: Stack single or multiple .gguf LoRA adapters with scale control on llama-server<br>
+  • True On-Demand Plugins: Lean core install, GitHub on-demand download/uninstall, &amp; full-width plugin tabs<br>
+  • 4 New Plugins: Tutor Mode (+ SVG Mindmap), Accounting SQLite, IoT Studio (pyserial + SVG wiring), &amp; Trading Desk<br>
 <br>
 <span class="term-bold">Do you want to update now and restart? [Y/n]:</span> <span class="term-green">Y</span><br>
 <span class="term-dim">Applying update via Git...</span><br>

@@ -26,6 +26,7 @@ class LlamaServerManager:
         self.threads = threads
         self.process = None
         self.model_name = None
+        self.active_loras = []
         self.base_url = f"http://127.0.0.1:{self.port}"
         self_ref = weakref.ref(self)
         atexit.register(lambda: self_ref() and self_ref().stop())
@@ -39,8 +40,13 @@ class LlamaServerManager:
         except Exception:
             return False
 
-    def start(self, model_name: str):
-        """Menjalankan llama-server dengan profil hemat RAM Ryzen 3."""
+    def start(self, model_name: str, loras: list[dict] | None = None):
+        """Menjalankan llama-server dengan profil hemat RAM Ryzen 3 serta dukungan Multi-LoRA."""
+        norm_loras = []
+        for item in (loras or []):
+            lp = Path(str(item.get("path", ""))).resolve()
+            if lp.is_file() and lp.exists():
+                norm_loras.append({"path": str(lp), "scale": float(item.get("scale", 1.0))})
         server_exe = find_llama_server_binary()
         if not server_exe or not server_exe.exists():
             print("\n[i] Binary llama-server tidak terdeteksi. Memulai unduhan otomatis runtime...")
@@ -64,8 +70,8 @@ class LlamaServerManager:
         else:
             raise FileNotFoundError(f"Model '{model_name}' tidak ditemukan di REPO_ROOT maupun path kustom.")
 
-        # Jika sudah berjalan dengan model yang sama dan sehat, tidak perlu restart
-        if self.process and self.process.poll() is None and self.model_name == model_name:
+        # Jika sudah berjalan dengan model & LoRA yang sama dan sehat, tidak perlu restart
+        if self.process and self.process.poll() is None and self.model_name == model_name and self.active_loras == norm_loras:
             if self.is_healthy():
                 return
 
@@ -85,6 +91,12 @@ class LlamaServerManager:
             "-fa", "auto",
             "--temp", "0.4"
         ]
+        for l_item in norm_loras:
+            scale = l_item.get("scale", 1.0)
+            if abs(scale - 1.0) < 1e-6:
+                cmd.extend(["--lora", l_item["path"]])
+            else:
+                cmd.extend(["--lora-scaled", f"{l_item['path']}:{scale:.2f}"])
 
         creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
         self.process = subprocess.Popen(
@@ -94,6 +106,7 @@ class LlamaServerManager:
             creationflags=creationflags
         )
         self.model_name = model_name
+        self.active_loras = norm_loras
 
         # Polling /health hingga maksimal 30 detik
         started = False

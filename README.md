@@ -64,10 +64,16 @@ The **LENSETEK LEAN AGENT HARNESS** (`cli-agent/`) is a dedicated autonomous age
 | :--- | :--- | :--- |
 | **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 \| iex` | One-liner auto installer & launcher |
 | **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh \| bash` | Headless auto-install to `~/.lensetek-agent` |
-| **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Standard developer repository workflow |
+| **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Standard developer repository workflow (or `run_agent_gui.bat` for WebUI) |
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Direct Python launch with `prompt_toolkit` |
 
-> **Upgrading from v0.3.0 (Windows ZIP install)?** Re-run the PowerShell one-liner above once to upgrade to **v0.3.1**. Starting from v0.3.1+, `lensetek --update` and `/update` work automatically even without `git`.
+> **What's New in v0.4.0**:
+> - **WebUI Studio Overhaul**: Multi-tab chat, **Home** multi-project launcher with native folder picker, expandable **TreeView** explorer with *Open in Explorer*, Settings side-tabs (`General`, `Plugins`, `Models`), `+` prompt file upload, and Pause/Resume/Cancel HF downloads.
+> - **Multi-LoRA Adapter Support**: Register & stack single or multiple `.gguf` LoRA adapters with scale control directly on `llama-server`.
+> - **True On-Demand Plugins**: Lightweight core install (catalog-only) with GitHub on-demand plugin download, uninstall/remove, *Show in Explorer*, and full-width plugin tabs.
+> - **4 New On-Demand Plugins**: **Tutor Mode** (PDF/DOCX/MD + SQLite + Quiz/Flashcards + **Interactive SVG Mindmap**), **Double-Entry Accounting & SQLite Ledger**, **IoT Studio** (`pyserial` + `arduino-cli` + SVG wiring), and **Trading Desk** (live OHLCV + EMA/RSI/MACD + SQLite journal).
+
+> **Upgrading from v0.3.0 (Windows ZIP install)?** Re-run the PowerShell one-liner above once to upgrade to **v0.4.0**. Starting from v0.3.1+, `lensetek --update` and `/update` work automatically even without `git`.
 
 #### 🛠️ Key Agentic Features:
 - **Multi-Model Auto-Downloader (list.json)**: Fresh installs automatically download the flagship Lensetek Edge-Loop 3B (~1.93 GB) from Hugging Face if no local model is found. Use `/model download` to browse or `/model add <path>` to register models.
@@ -329,10 +335,16 @@ Aplikasi AI lokal mandiri (*self-contained*) untuk teks, multimodal visual (visi
 | :--- | :--- | :--- |
 | **PowerShell (Windows)** | `irm https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.ps1 \| iex` | Pemasangan otomatis & launcher global |
 | **curl (Linux / macOS)** | `curl -fsSL https://raw.githubusercontent.com/lensetek-int/local-agent-harness/main/install.sh \| bash` | Pemasangan headless ke `~/.lensetek-agent` |
-| **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Alur kerja lokal pengembang |
+| **git & local run** | `git clone https://github.com/lensetek-int/local-agent-harness.git && cd local-agent-harness/cli-agent && run_agent.bat` | Alur kerja lokal pengembang (atau `run_agent_gui.bat` untuk WebUI) |
 | **pip** | `pip install -r cli-agent/requirements.txt && py cli-agent/main.py` | Jalankan langsung via Python & prompt_toolkit |
 
-> **Upgrade dari v0.3.0 (instalasi ZIP Windows)?** Jalankan ulang *one-liner* PowerShell di atas satu kali untuk naik ke **v0.3.1**. Mulai v0.3.1+, perintah `lensetek --update` dan `/update` otomatis mendukung pembaruan tanpa memerlukan `git`.
+> **What's New di v0.4.0**:
+> - **WebUI Studio Overhaul**: Multi-tab chat, laman **Home** multi-project dengan pemilih folder Explorer, **TreeView** dengan menu titik tiga (*Open in Explorer*), laman Settings (`General`, `Plugins`, `Models`), tombol `+` upload file ke project, serta Pause/Resume/Cancel download model HF.
+> - **Dukungan Multi-LoRA**: Pasang 1 atau beberapa adapter LoRA `.gguf` sekaligus lengkap dengan pengaturan skala pada `llama-server`.
+> - **Plugin 100% On-Demand**: Instalasi awal super ringan (hanya katalog `manifest.json`); folder & dependensi plugin baru diunduh dari GitHub saat klik *Download & Install*, bisa *Uninstall/Remove*, *Show in Explorer*, dan terbuka sebagai tab penuh di WebUI.
+> - **4 Plugin Baru On-Demand**: **Tutor Mode** (PDF/DOCX/MD + SQLite + Kuis/Flashcard + **Interactive SVG Mindmap**), **Accounting & Ledger** (Double-Entry SQLite), **IoT Studio** (`pyserial` + `arduino-cli` + SVG wiring), dan **Trading Desk** (OHLCV live + EMA/RSI/MACD + Jurnal SQLite).
+
+> **Upgrade dari v0.3.0 (instalasi ZIP Windows)?** Jalankan ulang *one-liner* PowerShell di atas satu kali untuk naik ke **v0.4.0**. Mulai v0.3.1+, perintah `lensetek --update` dan `/update` otomatis mendukung pembaruan tanpa memerlukan `git`.
 
 #### 🛠️ Fitur-Fitur Utama Agen:
 - **Pengunduh Model Otomatis (list.json)**: Instalasi baru otomatis mengunduh model unggulan Lensetek Edge-Loop 3B (~1.93 GB) dari Hugging Face jika belum ada model lokal. Gunakan `/model download` atau `/model add <path>` untuk mengelola model.

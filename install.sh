@@ -52,13 +52,16 @@ pkill -f "$INSTALL_DIR/bin/llama-server" 2>/dev/null || true
 if [ ! -f "$INSTALL_DIR/cli-agent/main.py" ]; then
     echo "⬇️  [2/5] Downloading repository to $INSTALL_DIR..."
     if [ ! -d "$INSTALL_DIR" ] && command -v git &>/dev/null; then
-        git clone --depth 1 https://github.com/lensetek-int/local-agent-harness.git "$INSTALL_DIR"
+        git clone --depth 1 --filter=blob:none --sparse https://github.com/lensetek-int/local-agent-harness.git "$INSTALL_DIR"
+        git -C "$INSTALL_DIR" sparse-checkout set --no-cone cli-agent plugins/manifest.json plugins/_template
     else
-        echo "Downloading archive..."
+        echo "Downloading archive (lean core without uninstalled plugins)..."
         rm -rf "$HOME/local-agent-harness-main"
         curl -fsSL https://github.com/lensetek-int/local-agent-harness/archive/refs/heads/main.tar.gz | tar -xz -C "$HOME"
-        mkdir -p "$INSTALL_DIR"
-        cp -rf "$HOME/local-agent-harness-main/"* "$INSTALL_DIR/"
+        mkdir -p "$INSTALL_DIR/plugins"
+        cp -rf "$HOME/local-agent-harness-main/cli-agent" "$INSTALL_DIR/"
+        cp -f "$HOME/local-agent-harness-main/plugins/manifest.json" "$INSTALL_DIR/plugins/" 2>/dev/null || true
+        cp -rf "$HOME/local-agent-harness-main/plugins/_template" "$INSTALL_DIR/plugins/" 2>/dev/null || true
         rm -rf "$HOME/local-agent-harness-main"
     fi
 else

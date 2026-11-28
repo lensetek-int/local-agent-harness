@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutor Mode & Mindmap</title>
+  <style>
+    :root {
+      --bg: #F8FAFC; --surface: #FFFFFF; --subtle: #F1F5F9; --border: #E2E8F0;
+      --text: #0F172A; --muted: #64748B; --accent: #2563EB; --accent-soft: #EFF6FF;
+      --success: #059669; --success-soft: #ECFDF5; --warn: #D97706; --warn-soft: #FFFBEB;
+      --danger: #DC2626; --danger-soft: #FEF2F2;
+    }
+    html[data-theme="dark"] {
+      --bg: #0F1117; --surface: #161922; --subtle: #1E222E; --border: #262B38;
+      --text: #F1F5F9; --muted: #94A3B8; --accent: #3B82F6; --accent-soft: rgba(59,130,246,0.16);
+      --success: #10B981; --success-soft: rgba(16,185,129,0.16); --warn: #F59E0B; --warn-soft: rgba(245,158,11,0.16);
+      --danger: #EF4444; --danger-soft: rgba(239,68,68,0.16);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .layout { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .sidebar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px; max-height: 38vh; overflow-y: auto; flex-shrink: 0; }
+    .main { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+    @media (min-width: 768px) {
+      .layout { flex-direction: row; }
+      .sidebar { width: 290px; max-height: none; border-bottom: none; border-right: 1px solid var(--border); }
+    }
+    .btn { padding: 6px 11px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .btn:hover { background: var(--subtle); }
+    .btn-primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
+    .btn-primary:hover { background: #1D4ED8; color: #FFF; border-color: #1D4ED8; }
+    .btn-danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+    .btn-danger:hover { background: var(--danger); color: #FFF; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .input { width: 100%; padding: 6px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 12px; }
+    .section-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin: 10px 0 6px; letter-spacing: 0.04em; }
+    .item-row { padding: 7px 9px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); margin-bottom: 5px; cursor: pointer; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .item-row.active { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+    .badge { font-size: 10px; padding: 2px 6px; border-radius: 999px; background: var(--subtle); color: var(--muted); font-weight: 600; flex-shrink: 0; }
+    .badge.paham { background: var(--success-soft); color: var(--success); }
+    .badge.sedang { background: var(--warn-soft); color: var(--warn); }
+    .tabs { display: flex; gap: 4px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; }
+    .tab-btn { padding: 6px 12px; border: none; border-radius: 6px; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .tab-btn.active { background: var(--accent-soft); color: var(--accent); }
+    .panel { flex: 1; overflow-y: auto; padding: 14px; display: none; }
+    .panel.active { display: flex; flex-direction: column; gap: 12px; }
+    .content-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
+    .mindmap-wrap { flex: 1; min-height: 360px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; position: relative; overflow: hidden; touch-action: none; }
+    .mindmap-toolbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .mindmap-node-bar { padding: 8px 12px; border-radius: 8px; background: var(--accent-soft); border: 1px solid rgba(37,99,235,0.25); display: none; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
+    .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .quiz-opt { width: 100%; text-align: left; padding: 8px 10px; margin-top: 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; font-size: 12.5px; }
+    .quiz-opt:hover { border-color: var(--accent); }
+    .quiz-opt.correct { background: var(--success-soft); border-color: var(--success); color: var(--success); font-weight: 600; }
+    .quiz-opt.wrong { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+    .flashcard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-height: 130px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 8px; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <input type="file" id="fileUpload" accept=".pdf,.docx,.md,.txt" style="display:none;" />
+        <button class="btn btn-primary" id="btnUploadBook" style="flex:1;justify-content:center;">+ Upload PDF / Book</button>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <input type="text" class="input" id="wsPathInput" placeholder="or workspace path (e.g. book.pdf)" />
+        <button class="btn" id="btnIngestPath">Add</button>
+      </div>
+
+      <div class="section-lbl">Books / Materials</div>
+      <div id="booksList"></div>
+
+      <div class="section-lbl">Chapters Syllabus</div>
+      <div id="chaptersList"></div>
+    </aside>
+
+    <main class="main">
+      <div class="tabs">
+        <button class="tab-btn active" data-t="study">📖 Study & Explain</button>
+        <button class="tab-btn" data-t="mindmap">🧠 Mindmap</button>
+        <button class="tab-btn" data-t="quiz">📝 Quiz</button>
+        <button class="tab-btn" data-t="flashcards">🗂 Flashcards</button>
+      </div>
+
+      <div class="panel active" id="p-study">
+        <div id="studyEmpty" style="color:var(--muted);font-size:13px;">Upload a PDF, DOCX, Markdown, or text book on the left to start guided learning.</div>
+        <div id="studyContentWrap" style="display:none;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div>
+              <h3 id="chTitle" style="font-size:15px;"></h3>
+              <span id="chMeta" style="font-size:11.5px;color:var(--muted);"></span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <select class="input" id="selMastery" style="width:auto;">
+                <option value="belum">Belum</option>
+                <option value="sedang">Sedang</option>
+                <option value="paham">Paham</option>
+              </select>
+              <button class="btn btn-primary" id="btnExplainTutor">🎓 Explain with Tutor</button>
+            </div>
+          </div>
+          <div class="content-box" id="chText"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="p-mindmap">
+        <div class="mindmap-toolbar">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="btnGenMindmap">⚡ Generate Mindmap</button>
+            <button class="btn" id="btnZoomIn">+</button>
+            <button class="btn" id="btnZoomOut">−</button>
+            <button class="btn" id="btnZoomFit">Fit</button>
+            <button class="btn" id="btnExportSvg">⬇ SVG</button>
+          </div>
+          <span style="font-size:11.5px;color:var(--muted);" id="mmStatus">Drag to pan · Click node to expand/ask</span>
+        </div>
+        <div class="mindmap-node-bar" id="mmNodeBar">
+          <span>Selected: <strong id="mmNodeLabel"></strong></span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-primary" id="btnAskNode" style="padding:4px 9px;font-size:11.5px;">🎓 Explain This Node</button>
+            <button class="btn" id="btnToggleNode" style="padding:4px 9px;font-size:11.5px;">Expand / Collapse</button>
+          </div>
+        </div>
+        <div class="mindmap-wrap" id="mindmapWrap">
+          <svg id="mindmapSvg" width="100%" height="100%"></svg>
+        </div>
+      </div>
+
+      <div class="panel" id="p-quiz">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:13px;font-weight:600;">Active Recall Quiz</span>
+          <button class="btn btn-primary" id="btnGenQuiz">⚡ Generate Quiz (3)</button>
+        </div>
+        <div id="quizList" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+      <div class="panel" id="p-flashcards">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:13px;font-weight:600;">Concept Flashcards (Click card to flip)</span>
+          <button class="btn btn-primary" id="btnGenCards">⚡ Generate Flashcards (5)</button>
+        </div>
+        <div id="cardsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    document.documentElement.setAttribute('data-theme', params.get('theme') || 'light');
+    const $ = (id) => document.getElementById(id);
+    const API = '/api/plugin/tutor-mode';
+    let activeBookId = null, activeChapter = null, currentTree = null;
+    let mmScale = 1, mmTx = 30, mmTy = 40, selectedNode = null;
+    const collapsedNodes = new Set();
+
+    function notify(msg) { window.parent.postMessage({ type: 'toast', message: msg }, '*'); }
+    function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    document.querySelectorAll('.tab-btn').forEach((b) => {
+      b.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach((x) => x.classList.toggle('active', x === b));
+        document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'p-' + b.dataset.t));
+        if (b.dataset.t === 'mindmap' && currentTree) renderMindmap();
+      };
+    });
+
+    async function loadBooks() {
+      const r = await fetch(API + '/books');
+      const d = await r.json();
+      const box = $('booksList');
+      box.innerHTML = '';
+      (d.books || []).forEach((b) => {
+        const row = document.createElement('div');
+        row.className = 'item-row' + (b.id === activeBookId ? ' active' : '');
+        row.innerHTML = `
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📘 ${esc(b.title)}</span>
+          <span style="display:flex;gap:4px;align-items:center;">
+            <span class="badge">${b.completed_chapters || 0}/${b.total_chapters || 0}</span>
+            <button class="btn btn-danger" style="padding:1px 6px;font-size:10px;" title="Delete">✕</button>
+          </span>`;
+        row.onclick = (e) => { if (!e.target.closest('button')) selectBook(b.id); };
+        row.querySelector('button').onclick = async (e) => {
+          e.stopPropagation();
+          if (!confirm(`Delete "${b.title}"?`)) return;
+          await fetch(API + '/book/delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ book_id: b.id }) });
+          if (activeBookId === b.id) { activeBookId = null; activeChapter = null; $('chaptersList').innerHTML = ''; }
+          loadBooks();
+        };
+        box.appendChild(row);
+      });
+      if (!activeBookId && d.books && d.books.length > 0) selectBook(d.books[0].id);
+    }
+
+    async function selectBook(bookId) {
+      activeBookId = bookId;
+      const r = await fetch(API + '/book?id=' + bookId);
+      const d = await r.json();
+      const chs = (d.book && d.book.chapters) || [];
+      const box = $('chaptersList');
+      box.innerHTML = '';
+      chs.forEach((c) => {
+        const row = document.createElement('div');
+        row.className = 'item-row' + (activeChapter && activeChapter.id === c.id ? ' active' : '');
+        row.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.chapter_index}. ${esc(c.title)}</span><span class="badge ${c.status}">${c.mastery_score || 0}%</span>`;
+        row.onclick = () => selectChapter(c.id);
+        box.appendChild(row);
+      });
+      if (chs.length > 0 && (!activeChapter || activeChapter.book_id !== bookId)) selectChapter(chs[0].id);
+    }
+
+    async function selectChapter(cid) {
+      const r = await fetch(API + '/chapter?id=' + cid);
+      const d = await r.json();
+      activeChapter = d.chapter;
+      if (!activeChapter) return;
+      $('studyEmpty').style.display = 'none';
+      $('studyContentWrap').style.display = 'flex';
+      $('chTitle').textContent = activeChapter.title;
+      $('chMeta').textContent = `${activeChapter.page_range || ''} · Mastery: ${activeChapter.mastery_score}%`;
+      $('selMastery').value = activeChapter.status || 'belum';
+      $('chText').textContent = activeChapter.content;
+      currentTree = activeChapter.mindmap ? activeChapter.mindmap.tree : null;
+      renderMindmap();
+      renderQuizzes(activeChapter.quizzes || []);
+      renderFlashcards(activeChapter.flashcards || []);
+      selectBook(activeChapter.book_id);
+    }
+
+    $('selMastery').onchange = async (e) => {
+      if (!activeChapter) return;
+      await fetch(API + '/chapter/status', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chapter_id: activeChapter.id, status: e.target.value }) });
+      notify('Progress saved');
+      loadBooks();
+    };
+
+    $('btnExplainTutor').onclick = () => {
+      if (!activeChapter) return;
+      const snippet = activeChapter.content.slice(0, 1800);
+      window.parent.postMessage({
+        type: 'send_prompt',
+        prompt: `Act as my structured study tutor. Explain "${activeChapter.title}" step by step with clear analogies, then ask me 1 check-for-understanding question.\n\nMaterial:\n${snippet}`
+      }, '*');
+    };
+
+    // Upload & Ingest
+    $('btnUploadBook').onclick = () => $('fileUpload').click();
+    $('fileUpload').onchange = async (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      $('btnUploadBook').disabled = true; $('btnUploadBook').textContent = 'Ingesting...';
+      try {
+        const b64 = await new Promise((res, rej) => {
+          const rd = new FileReader();
+          rd.onload = () => res(String(rd.result).split(',')[1]);
+          rd.onerror = rej;
+          rd.readAsDataURL(f);
+        });
+        const r = await fetch(API + '/ingest', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ filename: f.name, content_base64: b64 }) });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || 'Ingest failed');
+        notify(`Ingested "${d.book.title}"`);
+        activeBookId = d.book.id;
+        await loadBooks();
+        await selectBook(d.book.id);
+      } catch (err) { notify(err.message); }
+      finally { $('btnUploadBook').disabled = false; $('btnUploadBook').textContent = '+ Upload PDF / Book'; $('fileUpload').value = ''; }
+    };
+
+    $('btnIngestPath').onclick = async () => {
+      const p = ($('wsPathInput').value || '').trim();
+      if (!p) return;
+      const r = await fetch(API + '/ingest', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ file_path: p }) });
+      const d = await r.json();
+      if (!d.ok) return notify(d.error || 'Failed');
+      $('wsPathInput').value = '';
+      activeBookId = d.book.id;
+      await loadBooks();
+      await selectBook(d.book.id);
+    };
+
+    // Interactive SVG Mindmap Engine (Offline, Pan/Zoom, Expand/Collapse)
+    function renderMindmap() {
+      const svg = $('mindmapSvg');
+      svg.innerHTML = '';
+      if (!currentTree) {
+        svg.innerHTML = `<text x="24" y="42" fill="var(--muted)" font-size="13">No mindmap yet for this chapter. Click "⚡ Generate Mindmap" above.</text>`;
+        return;
+      }
+      const gRoot = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      gRoot.setAttribute('transform', `translate(${mmTx},${mmTy}) scale(${mmScale})`);
+      svg.appendChild(gRoot);
+
+      const nodePositions = [];
+      let yCursor = 20;
+      const xStep = 210, yStep = 52;
+
+      function layout(node, depth, pathId) {
+        const kids = collapsedNodes.has(pathId) ? [] : (node.children || []);
+        const startY = yCursor;
+        const childCoords = kids.map((ch, idx) => layout(ch, depth + 1, `${pathId}.${idx}`));
+        let myY;
+        if (childCoords.length === 0) {
+          myY = yCursor;
+          yCursor += yStep;
+        } else {
+          myY = (childCoords[0].y + childCoords[childCoords.length - 1].y) / 2;
+        }
+        const info = { node, depth, pathId, x: depth * xStep + 10, y: myY, hasChildren: (node.children || []).length > 0 };
+        nodePositions.push({ info, childCoords });
+        return info;
+      }
+      layout(currentTree, 0, '0');
+
+      const colors = ['#2563EB', '#059669', '#D97706', '#7C3AED', '#DB2777'];
+      nodePositions.forEach(({ info, childCoords }) => {
+        childCoords.forEach((c) => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          const x1 = info.x + 150, y1 = info.y + 18, x2 = c.x, y2 = c.y + 18;
+          const mx = (x1 + x2) / 2;
+          path.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
+          path.setAttribute('fill', 'none');
+          path.setAttribute('stroke', colors[info.depth % colors.length]);
+          path.setAttribute('stroke-width', '2');
+          path.setAttribute('opacity', '0.55');
+          gRoot.appendChild(path);
+        });
+      });
+
+      nodePositions.forEach(({ info }) => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.style.cursor = 'pointer';
+        const col = colors[info.depth % colors.length];
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', info.x); rect.setAttribute('y', info.y);
+        rect.setAttribute('width', 150); rect.setAttribute('height', 36); rect.setAttribute('rx', 8);
+        rect.setAttribute('fill', info.depth === 0 ? col : 'var(--surface)');
+        rect.setAttribute('stroke', col); rect.setAttribute('stroke-width', selectedNode && selectedNode.pathId === info.pathId ? '3' : '1.5');
+        g.appendChild(rect);
+
+        const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        lbl.setAttribute('x', info.x + 10); lbl.setAttribute('y', info.y + 22);
+        lbl.setAttribute('font-size', '11.5'); lbl.setAttribute('font-weight', info.depth === 0 ? '700' : '500');
+        lbl.setAttribute('fill', info.depth === 0 ? '#FFFFFF' : 'var(--text)');
+        const rawTxt = String(info.node.label || '');
+        lbl.textContent = rawTxt.length > 20 ? rawTxt.slice(0, 18) + '…' : rawTxt;
+        g.appendChild(lbl);
+
+        if (info.hasChildren) {
+          const badge = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          badge.setAttribute('x', info.x + 136); badge.setAttribute('y', info.y + 22);
+          badge.setAttribute('font-size', '12'); badge.setAttribute('font-weight', '700');
+          badge.setAttribute('fill', info.depth === 0 ? '#FFF' : col);
+          badge.textContent = collapsedNodes.has(info.pathId) ? '+' : '−';
+          g.appendChild(badge);
+        }
+
+        g.onclick = (e) => {
+          e.stopPropagation();
+          selectedNode = info;
+          $('mmNodeBar').style.display = 'flex';
+          $('mmNodeLabel').textContent = rawTxt;
+          renderMindmap();
+        };
+        gRoot.appendChild(g);
+      });
+    }
+
+    // Pan & Zoom
+    let panning = false, panStart = null;
+    $('mindmapWrap').addEventListener('pointerdown', (e) => {
+      if (e.target.closest('g')) return;
+      panning = true; panStart = { x: e.clientX - mmTx, y: e.clientY - mmTy };
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!panning) return;
+      mmTx = e.clientX - panStart.x; mmTy = e.clientY - panStart.y;
+      renderMindmap();
+    });
+    window.addEventListener('pointerup', () => { panning = false; });
+
+    $('btnZoomIn').onclick = () => { mmScale = Math.min(2.2, mmScale + 0.15); renderMindmap(); };
+    $('btnZoomOut').onclick = () => { mmScale = Math.max(0.4, mmScale - 0.15); renderMindmap(); };
+    $('btnZoomFit').onclick = () => { mmScale = 1; mmTx = 24; mmTy = 24; renderMindmap(); };
+    $('btnToggleNode').onclick = () => {
+      if (!selectedNode || !selectedNode.hasChildren) return;
+      if (collapsedNodes.has(selectedNode.pathId)) collapsedNodes.delete(selectedNode.pathId);
+      else collapsedNodes.add(selectedNode.pathId);
+      renderMindmap();
+    };
+    $('btnAskNode').onclick = () => {
+      if (!selectedNode || !activeChapter) return;
+      window.parent.postMessage({
+        type: 'send_prompt',
+        prompt: `In the context of "${activeChapter.title}", explain the concept "${selectedNode.node.label}" clearly with an example.`
+      }, '*');
+    };
+    $('btnExportSvg').onclick = () => {
+      const svg = $('mindmapSvg').outerHTML;
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (activeChapter ? activeChapter.title.replace(/[^a-z0-9]/gi, '_') : 'mindmap') + '.svg';
+      a.click();
+    };
+
+    $('btnGenMindmap').onclick = async () => {
+      if (!activeChapter) return notify('Select a chapter first');
+      $('btnGenMindmap').disabled = true; $('btnGenMindmap').textContent = 'Generating...';
+      try {
+        const r = await fetch(API + '/mindmap/generate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chapter_id: activeChapter.id }) });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || 'Failed');
+        currentTree = d.mindmap.tree;
+        collapsedNodes.clear();
+        renderMindmap();
+        notify('Mindmap generated!');
+      } catch (e) { notify(e.message); }
+      finally { $('btnGenMindmap').disabled = false; $('btnGenMindmap').textContent = '⚡ Generate Mindmap'; }
+    };
+
+    // Quiz
+    function renderQuizzes(quizzes) {
+      const box = $('quizList');
+      box.innerHTML = quizzes.length ? '' : '<div style="font-size:12.5px;color:var(--muted);">No quizzes yet. Click "⚡ Generate Quiz".</div>';
+      quizzes.forEach((q, idx) => {
+        const card = document.createElement('div');
+        card.className = 'quiz-card';
+        card.innerHTML = `<div style="font-weight:600;font-size:13px;margin-bottom:6px;">Q${idx + 1}. ${esc(q.question)}</div>`;
+        (q.options || []).forEach((opt, oIdx) => {
+          const b = document.createElement('button');
+          b.className = 'quiz-opt';
+          if (q.is_correct >= 0) {
+            if (oIdx === q.correct_index) b.classList.add('correct');
+            else if (oIdx === q.user_index) b.classList.add('wrong');
+          }
+          b.textContent = opt;
+          b.onclick = async () => {
+            const r = await fetch(API + '/quiz/answer', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ quiz_id: q.id, selected_index: oIdx }) });
+            const d = await r.json();
+            if (d.ok) {
+              notify(d.result.is_correct ? '✓ Correct!' : '✕ Not quite — check explanation');
+              selectChapter(activeChapter.id);
+              loadBooks();
+            }
+          };
+          card.appendChild(b);
+        });
+        if (q.is_correct >= 0 && q.explanation) {
+          const ex = document.createElement('div');
+          ex.style.cssText = 'margin-top:8px;font-size:12px;color:var(--muted);';
+          ex.textContent = '💡 ' + q.explanation;
+          card.appendChild(ex);
+        }
+        box.appendChild(card);
+      });
+    }
+
+    $('btnGenQuiz').onclick = async () => {
+      if (!activeChapter) return notify('Select a chapter first');
+      $('btnGenQuiz').disabled = true; $('btnGenQuiz').textContent = 'Generating...';
+      try {
+        const r = await fetch(API + '/quiz/generate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chapter_id: activeChapter.id, count: 3 }) });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || 'Failed');
+        await selectChapter(activeChapter.id);
+        notify('Quiz generated!');
+      } catch (e) { notify(e.message); }
+      finally { $('btnGenQuiz').disabled = false; $('btnGenQuiz').textContent = '⚡ Generate Quiz (3)'; }
+    };
+
+    // Flashcards
+    function renderFlashcards(cards) {
+      const grid = $('cardsGrid');
+      grid.innerHTML = cards.length ? '' : '<div style="font-size:12.5px;color:var(--muted);">No flashcards yet. Click "⚡ Generate Flashcards".</div>';
+      cards.forEach((c) => {
+        const el = document.createElement('div');
+        el.className = 'flashcard';
+        let flipped = false;
+        const draw = () => {
+          el.innerHTML = `<span class="badge">${flipped ? 'Answer' : 'Concept'}</span><div style="font-size:13px;font-weight:${flipped ? '400' : '600'};">${esc(flipped ? c.back : c.front)}</div>`;
+        };
+        el.onclick = () => { flipped = !flipped; draw(); };
+        draw();
+        grid.appendChild(el);
+      });
+    }
+
+    $('btnGenCards').onclick = async () => {
+      if (!activeChapter) return notify('Select a chapter first');
+      $('btnGenCards').disabled = true; $('btnGenCards').textContent = 'Generating...';
+      try {
+        const r = await fetch(API + '/flashcards/generate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chapter_id: activeChapter.id, count: 5 }) });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || 'Failed');
+        await selectChapter(activeChapter.id);
+        notify('Flashcards generated!');
+      } catch (e) { notify(e.message); }
+      finally { $('btnGenCards').disabled = false; $('btnGenCards').textContent = '⚡ Generate Flashcards (5)'; }
+    };
+
+    loadBooks();
+  </script>
+</body>
+</html>
