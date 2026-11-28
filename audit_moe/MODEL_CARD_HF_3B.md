@@ -18,6 +18,10 @@ pipeline_tag: text-generation
 
 # Asadeltek Indo Tax & Audit 3B (`asadeltek-indo-tax-3b.gguf`)
 
+> **Repositori Utama (Direkomendasikan):** Ini adalah repositori resmi model utama Asadeltek (`asadeltek-indo-tax-3b.gguf`, akurasi **100%** pada uji standar dalam 1 file tunggal). Varian eksperimen MoE & Multi-LoRA sebelumnya tersedia di [`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b).
+>
+> **Primary Repository (Recommended):** This is the official primary Asadeltek model repository (`asadeltek-indo-tax-3b.gguf`, **100%** held-out accuracy in a single file). The earlier MoE & Multi-LoRA variant is available at [`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b).
+
 [Bahasa Indonesia](#bahasa-indonesia) | [English](#english)
 
 ---

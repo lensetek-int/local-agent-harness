@@ -1,5 +1,9 @@
 # Asadeltek Indo Tax & Audit (`Qwen2.5-Coder-3B` Unified & `Qwen3-1.7B` MoE/Multi-LoRA)
 
+> **Model Utama (Direkomendasikan):** Gunakan **[`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)** (`asadeltek-indo-tax-3b.gguf`, akurasi **100%** pada uji standar). Varian eksperimen MoE & Multi-LoRA sebelumnya tersedia di [`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b).
+>
+> **Primary Model (Recommended):** Use **[`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)** (`asadeltek-indo-tax-3b.gguf`, **100%** held-out accuracy). The earlier MoE & Multi-LoRA variant is available at [`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b).
+
 [Bahasa Indonesia](#bahasa-indonesia) | [English](#english)
 
 ---

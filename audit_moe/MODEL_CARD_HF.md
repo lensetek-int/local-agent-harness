@@ -19,6 +19,10 @@ pipeline_tag: text-generation
 
 # Asadeltek Indo Tax & Audit MoE (`Qwen3-1.7B` MoE & 4 LoRA Spesialis)
 
+> **PERHATIAN — Gunakan Model Utama Terbaru:** Untuk penggunaan sehari-hari dan akurasi tertinggi (**100%** pada uji standar dalam 1 file tunggal), gunakan repositori utama kami di **[`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)** (`asadeltek-indo-tax-3b.gguf`). Repositori ini (`moe-5b`) adalah varian eksperimen MoE & Multi-LoRA ringan sebelumnya.
+>
+> **NOTICE — Use Our Latest Primary Model:** For production use and top accuracy (**100%** on held-out evaluation in a single file), use our primary repository at **[`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)** (`asadeltek-indo-tax-3b.gguf`). This repository (`moe-5b`) is kept as the earlier MoE & lightweight Multi-LoRA variant.
+
 [Bahasa Indonesia](#bahasa-indonesia) | [English](#english)
 
 ---
