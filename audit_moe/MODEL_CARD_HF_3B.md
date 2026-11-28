@@ -26,11 +26,11 @@ pipeline_tag: text-generation
 
 **`asadeltek-indo-tax-3b.gguf`** (**Plan C — Unified Dense 3B**) adalah model tunggal berbasis **`Qwen/Qwen2.5-Coder-3B-Instruct`** (`Q4_K_M`, ~1.9 GB) yang dilatih *jointly* pada **6.480 sampel** untuk **Audit, Akuntansi, Perpajakan Indonesia, Agentic Tool-Calling, serta Perhitungan Python `Decimal` (`run_python_calc`)** — berjalan 100% offline di laptop CPU-only maupun VPS tanpa GPU.
 
-### Perbedaan dengan Repo Saudara (`lensetek/asadeltek-indo-tax-moe-5b`)
-* **Repo ini ([`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)):**
+### Perbandingan dengan Varian Lain (`lensetek/asadeltek-indo-tax-moe-5b`)
+* **Model Ini ([`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)):**
   * **1 file GGUF tunggal** (`asadeltek-indo-tax-3b.gguf`), langsung menguasai keempat domain + menulis kode Python `Decimal` (`run_python_calc`) tanpa perlu *hot-swap* LoRA.
   * Mencapai **8/8 (100.0%)** pada evaluasi held-out skema JSON ketat dan **9/12 (75.0%)** pada uji eksekusi kode Python nyata di sandbox AST.
-* **Repo saudara ([`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b)):**
+* **Varian MoE & Multi-LoRA ([`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b)):**
   * Berbasis `Qwen/Qwen3-1.7B`, menyediakan **Plan A** (MoE 5B `asadeltek-indo-tax-moe-5b.gguf`, 25.0%) dan **Plan B** (4 *Isolated LoRA GGUF* `34 MB/file`, 75.0% dengan *hot-swap* `POST /lora-adapters` pada ~1.3 GB RAM).
   * Pilih `moe-5b` (Plan B) jika RAM sangat ketat (~1.3 GB) dan menggunakan arsitektur estafet multi-LoRA; pilih **`asadeltek-indo-tax-3b.gguf`** jika ingin **1 model tunggal dengan akurasi 100% di keempat domain**.
 

@@ -45,9 +45,9 @@ Repositori ini menyediakan **2 mode deployment** berbasis **`Qwen/Qwen3-1.7B`** 
 | **Model Asal:** `Qwen/Qwen2.5-Coder-3B-Instruct` (`Q4_K_M`, tanpa fine-tune) | 0 / 8 | 0.0% |
 | **Plan A:** `asadeltek-indo-tax-moe-5b.gguf` (`Qwen3-MoE` + Router Calibration) | 2 / 8 | 25.0% |
 | **Plan B:** `Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUF | 6 / 8 | 75.0% *(100% di Audit & Pajak)* |
-| **Plan C (Repo Saudara):** [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`) | **8 / 8** | **100.0%** *(+ 9/12 uji Python AST)* |
+| **Plan C (Varian Unified 3B):** [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`) | **8 / 8** | **100.0%** *(+ 9/12 uji Python AST)* |
 
-> **Repo Saudara (`Unified 3B`):** Jika kamu menginginkan **1 file GGUF tunggal** tanpa *hot-swap* LoRA dengan akurasi **100%** pada keempat domain, lihat [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`). Pilih repo ini (**Plan B**) jika kamu membutuhkan jejak RAM lebih kecil (~1.3 GB) dengan arsitektur multi-LoRA.
+> **Varian Unified 3B:** Jika kamu menginginkan **1 file GGUF tunggal** tanpa *hot-swap* LoRA dengan akurasi **100%** pada keempat domain, gunakan [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`). Pilih varian di repo ini (**Plan B**) jika kamu membutuhkan jejak RAM lebih kecil (~1.3 GB) dengan arsitektur multi-LoRA.
 
 ### Cara Menjalankan (`llama.cpp`)
 
