@@ -1,0 +1,147 @@
+{
+  "total_std": 8,
+  "base_qwen25_coder_3b": {
+    "passed": 0,
+    "details": [
+      [
+        "expert_1_accounting",
+        false,
+        "invalid_json"
+      ],
+      [
+        "expert_1_accounting",
+        false,
+        "invalid_json"
+      ],
+      [
+        "expert_2_audit",
+        false,
+        "invalid_json"
+      ],
+      [
+        "expert_2_audit",
+        false,
+        "invalid_json"
+      ],
+      [
+        "expert_3_tax_id",
+        false,
+        "invalid_json"
+      ],
+      [
+        "expert_3_tax_id",
+        false,
+        "invalid_json"
+      ],
+      [
+        "expert_4_agentic",
+        false,
+        "invalid_tool_name"
+      ],
+      [
+        "expert_4_agentic",
+        false,
+        "invalid_tool_name"
+      ]
+    ]
+  },
+  "plan_c_unified_3b": {
+    "passed": 8,
+    "details": [
+      [
+        "expert_1_accounting",
+        true,
+        "ok"
+      ],
+      [
+        "expert_1_accounting",
+        true,
+        "ok"
+      ],
+      [
+        "expert_2_audit",
+        true,
+        "ok"
+      ],
+      [
+        "expert_2_audit",
+        true,
+        "ok"
+      ],
+      [
+        "expert_3_tax_id",
+        true,
+        "ok"
+      ],
+      [
+        "expert_3_tax_id",
+        true,
+        "ok"
+      ],
+      [
+        "expert_4_agentic",
+        true,
+        "ok"
+      ],
+      [
+        "expert_4_agentic",
+        true,
+        "ok"
+      ]
+    ]
+  },
+  "plan_c_python_exec_eval": {
+    "passed": 9,
+    "total": 12,
+    "details": [
+      [
+        true,
+        "ok"
+      ],
+      [
+        true,
+        "ok"
+      ],
+      [
+        false,
+        "mismatch:{'pendapatan_khir': 5578806640, 'beban_khir': 3453523838, 'laba_khir': 2125282801}!={'proyeksi_pendapatan': 5578806640, 'proyeksi_beban': 3453523838, 'proyeksi_laba_usaha': 2125282802}"
+      ],
+      [
+        false,
+        "err:NameError"
+      ],
+      [
+        true,
+        "ok"
+      ],
+      [
+        true,
+        "ok"
+      ],
+      [
+        true,
+        "ok"
+      ],
+      [
+        false,
+        "mismatch:{'saldo_bank': 4624000000, 'saldo_buku': 4624000000, 'selisih': 0, 'seimbang': True}!={'saldo_bank_disesuaikan': 4624000000, 'saldo_buku_disesuaikan': 4624000000, 'selisih': 0, 'seimbang': True}"
+      ],
+      [
+        true,
+        "ok"
+      ],
+      [
+        true,
+        "ok"
+      ],
+      [
+        true,
+        "ok"
+      ],
+      [
+        true,
+        "ok"
+      ]
+    ]
+  }
+}

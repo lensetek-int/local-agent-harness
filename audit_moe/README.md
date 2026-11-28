@@ -32,9 +32,16 @@ Pengujian dilakukan secara seragam via `llama-server` (`temperature=0.1`) terhad
 
 | Model | Total Lulus | Akurasi | Expert 1 (Accounting) | Expert 2 (Audit) | Expert 3 (Tax ID) | Expert 4 (Agentic) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Model Asal:** `Qwen/Qwen3-1.7B` (`Q4_K_M`, tanpa fine-tune) | **0 / 8** | **0.0%** | 0/2 (`invalid_json`) | 0/2 (`invalid_json`) | 0/2 (`invalid_json`) | 0/2 (`invalid_json`) |
-| **Plan A:** `asadeltek-indo-tax-moe-5b.gguf` (`Qwen3-MoE` + Router Calibration) | **2 / 8** | **25.0%** | 0/2 | **2/2 (100%)** | 0/2 | 0/2 |
-| **Plan B (Rekomendasi):** `Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUF | **6 / 8** | **75.0%** | 1/2 | **2/2 (100%)** | **2/2 (100%)** | 1/2 |
+| **Base:** `Qwen/Qwen3-1.7B` (`Q4_K_M`, tanpa fine-tune) | **0 / 8** | **0.0%** | 0/2 | 0/2 | 0/2 | 0/2 |
+| **Base:** `Qwen/Qwen2.5-Coder-3B-Instruct` (`Q4_K_M`, tanpa fine-tune) | **0 / 8** | **0.0%** | 0/2 | 0/2 | 0/2 | 0/2 |
+| **Plan A:** [`asadeltek-indo-tax-moe-5b.gguf`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b) (`Qwen3-MoE` + Router Calibration) | **2 / 8** | **25.0%** | 0/2 | **2/2 (100%)** | 0/2 | 0/2 |
+| **Plan B:** [`Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUF](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b) | **6 / 8** | **75.0%** | 1/2 | **2/2 (100%)** | **2/2 (100%)** | 1/2 |
+| **Plan C (Terbaik):** [`asadeltek-indo-tax-3b.gguf`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`Unified 6.48K`) | **8 / 8** | **100.0%** | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** |
+
+* **Uji Eksekusi Python Nyata Plan C (`eval_python_calc_24.jsonl`, 12 domain kalkulasi):** **9 / 12 (75.0%)** lulus eksekusi AST sandbox.
+* **Dua Repo Hugging Face Saling Terhubung:**
+  * Unified 3B (**Plan C**, 100% akurasi): [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)
+  * MoE 5B & 4 Isolated LoRA (**Plan A & B**): [`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b)
 
 ### Cara Menjalankan Semua LoRA (Multi-LoRA Hot-Swap)
 ```bash
@@ -73,9 +80,16 @@ Evaluated uniformly via `llama-server` (`temperature=0.1`) on **8 held-out sampl
 
 | Model | Passed | Accuracy | Expert 1 (Accounting) | Expert 2 (Audit) | Expert 3 (Tax ID) | Expert 4 (Agentic) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Base Model:** `Qwen/Qwen3-1.7B` (`Q4_K_M`, zero-shot) | **0 / 8** | **0.0%** | 0/2 (`invalid_json`) | 0/2 (`invalid_json`) | 0/2 (`invalid_json`) | 0/2 (`invalid_json`) |
-| **Plan A:** `asadeltek-indo-tax-moe-5b.gguf` (`Qwen3-MoE` + Router Calibration) | **2 / 8** | **25.0%** | 0/2 | **2/2 (100%)** | 0/2 | 0/2 |
-| **Plan B (Recommended):** `Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUFs | **6 / 8** | **75.0%** | 1/2 | **2/2 (100%)** | **2/2 (100%)** | 1/2 |
+| **Base:** `Qwen/Qwen3-1.7B` (`Q4_K_M`, zero-shot) | **0 / 8** | **0.0%** | 0/2 | 0/2 | 0/2 | 0/2 |
+| **Base:** `Qwen/Qwen2.5-Coder-3B-Instruct` (`Q4_K_M`, zero-shot) | **0 / 8** | **0.0%** | 0/2 | 0/2 | 0/2 | 0/2 |
+| **Plan A:** [`asadeltek-indo-tax-moe-5b.gguf`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b) (`Qwen3-MoE` + Router Calibration) | **2 / 8** | **25.0%** | 0/2 | **2/2 (100%)** | 0/2 | 0/2 |
+| **Plan B:** [`Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUFs](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b) | **6 / 8** | **75.0%** | 1/2 | **2/2 (100%)** | **2/2 (100%)** | 1/2 |
+| **Plan C (Best):** [`asadeltek-indo-tax-3b.gguf`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`Unified 6.48K`) | **8 / 8** | **100.0%** | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** |
+
+* **Live Python AST Execution Eval (`eval_python_calc_24.jsonl`):** **9 / 12 (75.0%)** passed exact `Decimal` verification.
+* **Linked Hugging Face Repositories:**
+  * Unified 3B (**Plan C**, 100% accuracy): [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b)
+  * MoE 5B & 4 Isolated LoRAs (**Plan A & B**): [`lensetek/asadeltek-indo-tax-moe-5b`](https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b)
 
 ### Quick Start (Multi-LoRA Hot-Swap — Plan B)
 ```bash

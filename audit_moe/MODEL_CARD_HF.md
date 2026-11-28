@@ -42,8 +42,12 @@ Repositori ini menyediakan **2 mode deployment** berbasis **`Qwen/Qwen3-1.7B`** 
 | Model | Lulus | Akurasi |
 | :--- | :---: | :---: |
 | **Model Asal:** `Qwen/Qwen3-1.7B` (`Q4_K_M`, tanpa fine-tune) | 0 / 8 | 0.0% |
+| **Model Asal:** `Qwen/Qwen2.5-Coder-3B-Instruct` (`Q4_K_M`, tanpa fine-tune) | 0 / 8 | 0.0% |
 | **Plan A:** `asadeltek-indo-tax-moe-5b.gguf` (`Qwen3-MoE` + Router Calibration) | 2 / 8 | 25.0% |
-| **Plan B (Rekomendasi):** `Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUF | **6 / 8** | **75.0%** *(100% di Audit & Pajak)* |
+| **Plan B:** `Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUF | 6 / 8 | 75.0% *(100% di Audit & Pajak)* |
+| **Plan C (Repo Saudara):** [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`) | **8 / 8** | **100.0%** *(+ 9/12 uji Python AST)* |
+
+> **Repo Saudara (`Unified 3B`):** Jika kamu menginginkan **1 file GGUF tunggal** tanpa *hot-swap* LoRA dengan akurasi **100%** pada keempat domain, lihat [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`). Pilih repo ini (**Plan B**) jika kamu membutuhkan jejak RAM lebih kecil (~1.3 GB) dengan arsitektur multi-LoRA.
 
 ### Cara Menjalankan (`llama.cpp`)
 
@@ -95,9 +99,13 @@ This repository provides **two offline deployment modes** built on **`Qwen/Qwen3
 ### Held-Out Benchmark Comparison (8 Samples, Strict JSON Schema)
 | Model | Passed | Accuracy |
 | :--- | :---: | :---: |
-| **Base Model:** `Qwen/Qwen3-1.7B` (`Q4_K_M`, zero-shot) | 0 / 8 | 0.0% |
+| **Base:** `Qwen/Qwen3-1.7B` (`Q4_K_M`, zero-shot) | 0 / 8 | 0.0% |
+| **Base:** `Qwen/Qwen2.5-Coder-3B-Instruct` (`Q4_K_M`, zero-shot) | 0 / 8 | 0.0% |
 | **Plan A:** `asadeltek-indo-tax-moe-5b.gguf` (`Qwen3-MoE` + Router Calibration) | 2 / 8 | 25.0% |
-| **Plan B (Recommended):** `Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUFs | **6 / 8** | **75.0%** *(100% on Audit & Tax)* |
+| **Plan B:** `Qwen/Qwen3-1.7B` (`Q4_K_M`) + 4 Isolated LoRA GGUFs | 6 / 8 | 75.0% *(100% on Audit & Tax)* |
+| **Plan C (Sister Repo):** [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`) | **8 / 8** | **100.0%** *(+ 9/12 Python AST eval)* |
+
+> **Sister Repo (`Unified 3B`):** If you prefer a **single GGUF file** without LoRA hot-swapping and **100%** accuracy across all 4 domains, see [`lensetek/asadeltek-indo-tax-3b`](https://huggingface.co/lensetek/asadeltek-indo-tax-3b) (`asadeltek-indo-tax-3b.gguf`). Choose this repo (**Plan B**) for a smaller RAM footprint (~1.3 GB) with isolated multi-LoRA switching.
 
 ### Quick Start (`llama.cpp` Multi-LoRA Hot-Swap — Plan B)
 ```bash
