@@ -66,6 +66,17 @@
       "description": "4-Expert Qwen3-MoE (~5B total / ~2.3B active) khusus Akuntansi, Audit, Perpajakan Indonesia, dan Agentic Tools.",
       "repo": "lensetek/asadeltek-indo-tax-moe-5b",
       "url": "https://huggingface.co/lensetek/asadeltek-indo-tax-moe-5b/resolve/main/asadeltek-indo-tax-moe-5b.gguf?download=true"
+    },
+    {
+      "id": "asadeltek-indo-tax-3b",
+      "name": "Asadeltek Indo Tax & Audit 3B (Unified)",
+      "filename": "asadeltek-indo-tax-3b.gguf",
+      "size_display": "1.93 GB",
+      "quantization": "Q4_K_M",
+      "recommended": true,
+      "description": "Unified Qwen2.5-Coder-3B (100% held-out schema accuracy) untuk Akuntansi, Audit, Perpajakan Indonesia, Agentic Tools, dan Python Decimal.",
+      "repo": "lensetek/asadeltek-indo-tax-3b",
+      "url": "https://huggingface.co/lensetek/asadeltek-indo-tax-3b/resolve/main/asadeltek-indo-tax-3b.gguf?download=true"
     }
   ]
 }
