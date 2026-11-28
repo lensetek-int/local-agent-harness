@@ -76,18 +76,19 @@
 
     /* Top Header */
     .topbar {
-      height: 52px;
-      min-height: 52px;
+      min-height: 50px;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
+      flex-wrap: wrap;
+      padding: 6px 12px;
       gap: 8px;
       z-index: 30;
     }
-    .topbar-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .topbar-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .topbar-center { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; position: relative; }
     .topbar-right { display: flex; align-items: center; gap: 6px; }
 
     .icon-btn {
@@ -1106,6 +1107,27 @@
         <div class="workspace-pill" id="workspacePill" style="cursor:pointer;" title="Switch Project (Home)">📁 .</div>
       </div>
 
+      <div class="topbar-center">
+        <select class="select-pill" id="selModel" style="max-width:190px;" title="Active GGUF Model"></select>
+        <button class="btn" id="btnLoraPopover" type="button" style="padding:4px 9px;font-size:11.5px;" title="Select LoRA Adapters (Single or Multi-LoRA)">🧩 LoRA (0)</button>
+        <div class="tree-ctx-menu" id="loraPopover" style="width:280px;max-width:90vw;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:12px;font-weight:600;">LoRA Adapters</span>
+            <div style="display:flex;gap:4px;">
+              <button class="btn" id="btnLoraSelectAll" type="button" style="padding:2px 6px;font-size:10.5px;">All</button>
+              <button class="btn" id="btnLoraClearAll" type="button" style="padding:2px 6px;font-size:10.5px;">None</button>
+            </div>
+          </div>
+          <div id="loraPopoverList" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
+          <button class="btn btn-primary" id="btnLoraApply" type="button" style="width:100%;justify-content:center;padding:5px;font-size:12px;">Apply LoRA Selection</button>
+        </div>
+
+        <button class="btn" id="btnPluginsDropdown" type="button" style="padding:4px 9px;font-size:11.5px;border-color:rgba(37,99,235,0.3);background:var(--accent-soft);color:var(--accent-text);" title="Open Installed Plugins">🧩 Plugins (0) ▾</button>
+        <div class="tree-ctx-menu" id="pluginsDropdownMenu" style="min-width:210px;max-width:90vw;padding:6px;"></div>
+
+        <span class="token-pill desktop-only" id="tokenUsagePill">0 tok</span>
+      </div>
+
       <div class="topbar-right">
         <div class="status-badge" id="serverStatusBadge">
           <span class="dot" id="serverDot"></span>
@@ -1190,28 +1212,6 @@
       <!-- Center: Agent Conversation & Tool Execution -->
       <main class="chat-pane">
         <div class="chat-tabs-bar" id="chatTabsBar"></div>
-        <div class="chat-subbar" id="chatSubbar">
-          <div class="subbar-pills" style="position:relative;">
-            <select class="select-pill" id="selModel" style="max-width:220px;" title="Active GGUF Model"></select>
-            <button class="btn" id="btnLoraPopover" type="button" style="padding:4px 9px;font-size:11.5px;" title="Select LoRA Adapters (Single or Multi-LoRA)">🧩 LoRA (0)</button>
-            <div class="tree-ctx-menu" id="loraPopover" style="width:280px;max-width:90vw;padding:10px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:12px;font-weight:600;">LoRA Adapters</span>
-                <div style="display:flex;gap:4px;">
-                  <button class="btn" id="btnLoraSelectAll" type="button" style="padding:2px 6px;font-size:10.5px;">All</button>
-                  <button class="btn" id="btnLoraClearAll" type="button" style="padding:2px 6px;font-size:10.5px;">None</button>
-                </div>
-              </div>
-              <div id="loraPopoverList" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
-              <button class="btn btn-primary" id="btnLoraApply" type="button" style="width:100%;justify-content:center;padding:5px;font-size:12px;">Apply LoRA Selection</button>
-            </div>
-            <span class="token-pill" id="tokenUsagePill">0 tok</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-            <div id="pluginPanelsBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
-            <button class="btn" id="btnClearView" style="padding:4px 10px;font-size:11.5px;">+ New Chat</button>
-          </div>
-        </div>
 
         <div class="messages-scroll" id="messagesScroll">
           <div class="messages-inner" id="messagesInner">
@@ -1570,7 +1570,6 @@
 
     function syncActivePaneView() {
       const isPlugin = Boolean(state.activePluginTabId);
-      $('chatSubbar').style.display = isPlugin ? 'none' : '';
       $('messagesScroll').style.display = isPlugin ? 'none' : '';
       $('composerWrap').style.display = isPlugin ? 'none' : '';
       $('pluginTabHost').style.display = isPlugin ? 'flex' : 'none';
@@ -2342,7 +2341,6 @@
       closeMobileDrawer();
     }
     $('btnNewSession').onclick = createNewSession;
-    $('btnClearView').onclick = createNewSession;
 
     // =========================================================================
     // Home View & Multi-Project Launcher
@@ -3161,10 +3159,12 @@
         pop.classList.remove('open');
         return;
       }
+      $('pluginsDropdownMenu').classList.remove('open');
       pop.classList.add('open');
-      pop.style.position = 'absolute';
-      pop.style.top = '36px';
-      pop.style.left = '0px';
+      const rect = $('btnLoraPopover').getBoundingClientRect();
+      pop.style.position = 'fixed';
+      pop.style.top = (rect.bottom + 4) + 'px';
+      pop.style.left = Math.min(window.innerWidth - 290, Math.max(8, rect.left)) + 'px';
     };
     document.addEventListener('click', (e) => {
       const pop = $('loraPopover');
@@ -3227,28 +3227,77 @@
       await loadState();
     };
 
-    // Dynamic Installed Plugin Tabs
+    // Dynamic Installed Plugin Dropdown & Tabs
     function renderPluginPanels(panels) {
-      const bar = $('pluginPanelsBar');
-      if (!bar) return;
-      bar.innerHTML = '';
-      const validIds = new Set((panels || []).map((x) => x.id));
+      const list = panels || [];
+      const btn = $('btnPluginsDropdown');
+      const menu = $('pluginsDropdownMenu');
+      if (btn) btn.textContent = `🧩 Plugins (${list.length}) ▾`;
+
+      const validIds = new Set(list.map((x) => x.id));
       state.openPluginTabs = (state.openPluginTabs || []).filter((t) => validIds.has(t.id));
       if (state.activePluginTabId && !validIds.has(state.activePluginTabId)) {
         state.activePluginTabId = null;
       }
 
-      (panels || []).forEach((p) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn';
-        btn.type = 'button';
-        btn.style.cssText = 'padding:4px 10px;font-size:11.5px;border-color:rgba(37,99,235,0.3);background:var(--accent-soft);color:var(--accent-text);';
-        btn.textContent = `${p.icon || '🧩'} ${p.title}`;
-        btn.onclick = () => openPluginTab(p);
-        bar.appendChild(btn);
-      });
+      if (menu) {
+        menu.innerHTML = '';
+        if (list.length === 0) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'font-size:11.5px;color:var(--text-muted);padding:6px 8px;';
+          empty.textContent = 'No UI plugins installed yet.';
+          menu.appendChild(empty);
+        } else {
+          list.forEach((p) => {
+            const item = document.createElement('button');
+            item.className = 'tree-ctx-item';
+            item.type = 'button';
+            item.innerHTML = `<span>${escapeHtml(p.icon || '🧩')}</span><span>${escapeHtml(p.title)}</span>`;
+            item.onclick = () => {
+              menu.classList.remove('open');
+              openPluginTab(p);
+            };
+            menu.appendChild(item);
+          });
+        }
+        const div = document.createElement('div');
+        div.style.cssText = 'height:1px;background:var(--border);margin:4px 0;';
+        menu.appendChild(div);
+        const manage = document.createElement('button');
+        manage.className = 'tree-ctx-item';
+        manage.type = 'button';
+        manage.innerHTML = `<span>⚙</span><span>Manage / Install Plugins...</span>`;
+        manage.onclick = () => {
+          menu.classList.remove('open');
+          openSettingsModal('plugins');
+        };
+        menu.appendChild(manage);
+      }
       renderChatTabs();
     }
+
+    $('btnPluginsDropdown').onclick = (e) => {
+      e.stopPropagation();
+      const menu = $('pluginsDropdownMenu');
+      const btn = $('btnPluginsDropdown');
+      const isOpen = menu.classList.contains('open');
+      $('loraPopover').classList.remove('open');
+      if (isOpen) {
+        menu.classList.remove('open');
+        return;
+      }
+      menu.classList.add('open');
+      const rect = btn.getBoundingClientRect();
+      menu.style.position = 'fixed';
+      menu.style.top = (rect.bottom + 4) + 'px';
+      menu.style.left = Math.min(window.innerWidth - 220, Math.max(8, rect.left)) + 'px';
+    };
+    document.addEventListener('click', (e) => {
+      const menu = $('pluginsDropdownMenu');
+      if (menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target.id !== 'btnPluginsDropdown') {
+        menu.classList.remove('open');
+      }
+    });
 
     function openPluginTab(panel) {
       if (!state.openPluginTabs) state.openPluginTabs = [];
