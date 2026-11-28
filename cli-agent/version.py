@@ -24,11 +24,11 @@ GITHUB_ARCHIVE_ZIP_URL = "https://github.com/lensetek-int/local-agent-harness/ar
 
 CHANGELOG: dict[str, list[str]] = {
     "0.4.0": [
-        "WebUI Studio Overhaul: Multi-tab chat, Home multi-project launcher with native folder picker, TreeView explorer with Open in Explorer, and Settings side-tabs",
+        "WebUI Studio Overhaul: Compact 2-row header, multi-tab chat, Home multi-project launcher (+ native folder picker), TreeView (+ Open in Explorer), Settings side-tabs, & Plugins dropdown",
         "Multi-LoRA Adapter Support: Register and stack single or multiple GGUF LoRA adapters with scale control on llama-server",
-        "True On-Demand Plugins: Lean core install with GitHub on-demand plugin download, uninstall/remove, Show in Explorer, and full-width plugin tabs",
+        "True On-Demand Plugins: Lean core install (catalog-only) with GitHub on-demand download, ↻ Refresh catalog sync, uninstall/remove, Show in Explorer, and full-width plugin tabs",
         "4 New On-Demand Plugins: Tutor Mode (+ Interactive SVG Mindmap), Double-Entry Accounting (SQLite), IoT Studio (pyserial + arduino-cli + SVG wiring), and Trading Desk (live OHLCV + SQLite journal)",
-        "Resilient HF Downloads & Prompt Upload: Pause/Resume/Cancel HF downloads with duplicate-click guard and (+) file upload directly into project folder"
+        "Resilient HF Downloads & Model/Prompt Tools: Pause/Resume/Cancel HF downloads with duplicate-click guard, Open Model Folder in Explorer, and (+) prompt file upload to project folder"
     ],
     "0.3.1": [
         "WebUI Cancel & Full Slash Commands: Real-time Cancel button (/api/cancel) plus /goal, /loop, /session, /mcp, /schedule, /ctx, /workspace, and /update in WebUI",
