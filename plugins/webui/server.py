@@ -680,7 +680,7 @@ class WebUIBackendState:
         if cmd == "/update":
             if not app_version:
                 return "Version manager is not available."
-            info = app_version.check_for_updates(force=True)
+            info = app_version.check_for_updates(force_refresh=True)
             if info.get("error"):
                 return f"**Update check error:** {info['error']}"
             if info.get("update_available"):
@@ -1267,6 +1267,15 @@ def make_handler(state: WebUIBackendState):
                 self._send_json(st_job)
                 return
 
+            if path == "/api/update/check":
+                if app_version is None:
+                    self._send_json({"checked": False, "update_available": False, "error": "version module unavailable"})
+                    return
+                force_ref = (qs.get("refresh") or ["0"])[0] in ("1", "true", "yes")
+                info = app_version.check_for_updates(timeout_sec=5.0, force_refresh=force_ref)
+                self._send_json(info)
+                return
+
             if path == "/api/projects":
                 self._send_json({
                     "projects": state.list_projects(),
@@ -1661,6 +1670,31 @@ def make_handler(state: WebUIBackendState):
 
                 msg = f"Removed model '{p_resolved.name}'."
                 self._send_json({"ok": True, "message": msg, "state": state.get_state_payload()})
+                return
+
+            if path == "/api/update/apply":
+                if self.client_address[0] != "127.0.0.1":
+                    self._send_json({"error": "Forbidden"}, 403)
+                    return
+                if app_version is None:
+                    self._send_json({"ok": False, "error": "version module unavailable"}, 500)
+                    return
+                ok, msg = app_version.perform_update()
+                self._send_json({"ok": ok, "message": msg})
+                if ok:
+                    def _delayed_restart():
+                        time.sleep(0.8)
+                        try:
+                            state.mcp_mgr.close_all()
+                        except Exception:
+                            pass
+                        try:
+                            if state.server_mgr:
+                                state.server_mgr.stop()
+                        except Exception:
+                            pass
+                        app_version.restart_application()
+                    threading.Thread(target=_delayed_restart, daemon=True).start()
                 return
 
             if path == "/api/projects/browse":

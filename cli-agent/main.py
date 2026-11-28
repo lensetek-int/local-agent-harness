@@ -779,13 +779,13 @@ Examples / Contoh Penggunaan:
         def _bg_check_update():
             nonlocal startup_update_info
             try:
-                startup_update_info = version.check_for_updates(timeout_sec=2.5)
+                startup_update_info = version.check_for_updates(timeout_sec=5.0)
             except Exception:
                 pass
 
         up_thread = threading.Thread(target=_bg_check_update, daemon=True)
         up_thread.start()
-        up_thread.join(timeout=0.9)  # beri jeda hingga 0.9s untuk fetch cepat
+        up_thread.join(timeout=3.5)
 
     # --- INTERACTIVE CLI UI ---
     all_skills = skills_mgr.scan_skills()

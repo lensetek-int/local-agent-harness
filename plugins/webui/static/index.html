@@ -1139,6 +1139,18 @@
       </div>
     </header>
 
+    <!-- Startup Update Notification Banner -->
+    <div id="updateBanner" style="display:none;background:var(--warn-soft);border-bottom:1px solid var(--warn);padding:7px 14px;font-size:12.5px;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span>🔔 <strong id="updateBannerText">Update available!</strong></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="btn" id="btnShowWhatsNew" type="button" style="padding:3px 9px;font-size:11.5px;">What's New</button>
+        <button class="btn btn-primary" id="btnApplyUpdate" type="button" style="padding:3px 10px;font-size:11.5px;">Update & Restart</button>
+        <button class="icon-btn" id="btnDismissUpdate" type="button" style="width:24px;height:24px;font-size:12px;" title="Dismiss">✕</button>
+      </div>
+    </div>
+
     <!-- Home View: Multi-Project Launcher -->
     <section class="home-view" id="homeView">
       <div class="home-inner">
@@ -3339,12 +3351,50 @@
       }
     });
 
+    // Startup Non-Blocking Update Check
+    let latestUpdateInfo = null;
+    async function checkStartupUpdates() {
+      try {
+        const res = await fetch('/api/update/check');
+        const info = await res.json();
+        latestUpdateInfo = info;
+        if (info && info.update_available) {
+          $('updateBannerText').textContent = `Update available: v${info.latest_version} (Current: v${info.current_version})`;
+          $('updateBanner').style.display = 'flex';
+        }
+      } catch (e) {}
+    }
+
+    $('btnDismissUpdate').onclick = () => { $('updateBanner').style.display = 'none'; };
+    $('btnShowWhatsNew').onclick = () => {
+      if (!latestUpdateInfo) return;
+      const notes = (latestUpdateInfo.whats_new || []).map((x) => `• ${x}`).join('\n');
+      alert(`What's New in v${latestUpdateInfo.latest_version}:\n\n${notes || 'Latest improvements & bug fixes.'}`);
+    };
+    $('btnApplyUpdate').onclick = async () => {
+      const btn = $('btnApplyUpdate');
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+      try {
+        const res = await fetch('/api/update/apply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        const d = await res.json();
+        if (!d.ok) throw new Error(d.message || d.error || 'Update failed');
+        showToast('Update applied! Restarting server...');
+        setTimeout(() => location.reload(), 3500);
+      } catch (err) {
+        showToast('Update failed: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Update & Restart';
+      }
+    };
+
     // Initial boot
     loadState();
     loadFiles('');
     loadMessages();
     loadCommands();
     loadMentionableFiles();
+    checkStartupUpdates();
   </script>
 </body>
 </html>
