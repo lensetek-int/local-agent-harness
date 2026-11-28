@@ -379,19 +379,33 @@ def perform_update() -> tuple[bool, str]:
 
 def restart_application():
     """
-    Merestart aplikasi CLI agent secara bersih menggunakan Python interpreter saat ini.
+    Merestart aplikasi CLI/WebUI secara bersih menggunakan Python interpreter saat ini.
+    Pada Windows CLI interaktif, parent menunggu child agar PowerShell/CMD tidak
+    merebut stdin dan merusak input terminal (prompt_toolkit).
     """
     try:
+        import signal
         import time
         time.sleep(0.5)
         sys.stdout.flush()
         sys.stderr.flush()
-        
+
         python_exe = sys.executable
         args = [python_exe] + sys.argv
-        
-        subprocess.Popen(args)
-        sys.exit(0)
+
+        if "--gui" in sys.argv:
+            subprocess.Popen(args)
+            sys.exit(0)
+
+        if sys.platform != "win32":
+            os.execv(python_exe, args)
+        else:
+            try:
+                signal.signal(signal.SIGINT, signal.SIG_IGN)
+            except Exception:
+                pass
+            rc = subprocess.call(args)
+            sys.exit(rc)
     except Exception as e:
         print(f"\n[!] Gagal restart otomatis: {e}. Silakan jalankan ulang aplikasi secara manual.")
         sys.exit(0)
