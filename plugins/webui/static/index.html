@@ -83,13 +83,21 @@
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      padding: 6px 12px;
-      gap: 8px;
+      padding: 6px 10px;
+      gap: 6px;
       z-index: 30;
     }
-    .topbar-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
-    .topbar-center { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; position: relative; }
-    .topbar-right { display: flex; align-items: center; gap: 6px; }
+    .topbar-left { display: flex; align-items: center; gap: 4px; min-width: 0; order: 1; flex: 1 1 auto; }
+    .topbar-right { display: flex; align-items: center; gap: 4px; order: 2; flex: 0 0 auto; }
+    .topbar-center { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; position: relative; order: 3; width: 100%; flex: 1 0 100%; }
+    .topbar-center #selModel { flex: 1 1 0; min-width: 90px; max-width: none !important; }
+    .topbar-center #btnLoraPopover,
+    .topbar-center #btnPluginsDropdown { flex-shrink: 0; white-space: nowrap; }
+    @media (max-width: 479px) {
+      .topbar .icon-btn { width: 30px; height: 30px; font-size: 14px; }
+      .topbar #serverStatusText { display: none; }
+      .topbar .status-badge { padding: 5px 7px; }
+    }
 
     .icon-btn {
       width: 34px;
@@ -1089,6 +1097,14 @@
         max-width: 680px;
         border-left: 1px solid var(--border);
       }
+    }
+
+    @media (min-width: 1024px) {
+      .topbar { flex-wrap: nowrap; padding: 6px 12px; gap: 8px; }
+      .topbar-left { order: 1; flex: 0 0 auto; gap: 6px; }
+      .topbar-center { order: 2; width: auto; flex: 1 1 auto; justify-content: center; }
+      .topbar-center #selModel { flex: 0 1 190px; max-width: 190px !important; }
+      .topbar-right { order: 3; flex: 0 0 auto; gap: 6px; }
     }
   </style>
 </head>

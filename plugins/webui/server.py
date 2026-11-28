@@ -1062,6 +1062,9 @@ class WebUIBackendState:
         if not api_file.exists():
             return 404, {"error": f"Plugin '{plugin_id}' has no server_api.py"}
         try:
+            p_dir_str = str(p_dir.resolve())
+            if p_dir_str not in sys.path:
+                sys.path.insert(0, p_dir_str)
             mod_name = f"lensetek_plugin_api_{plugin_id.replace('-', '_')}"
             spec = importlib.util.spec_from_file_location(mod_name, str(api_file))
             if not spec or not spec.loader:
@@ -1070,7 +1073,11 @@ class WebUIBackendState:
             if mod is None:
                 mod = importlib.util.module_from_spec(spec)
                 sys.modules[mod_name] = mod
-                spec.loader.exec_module(mod)
+                try:
+                    spec.loader.exec_module(mod)
+                except Exception:
+                    sys.modules.pop(mod_name, None)
+                    raise
             if not hasattr(mod, "handle_request"):
                 return 500, {"error": "server_api.py missing handle_request()"}
             return mod.handle_request(method=method, sub_path=sub_path, query=qs, body=body, state=self)
